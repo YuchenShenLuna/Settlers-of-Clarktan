@@ -1,3 +1,9 @@
+open Tile
+
+open Building
+
+open DevCard
+
 type tiles
 
 type settlements
