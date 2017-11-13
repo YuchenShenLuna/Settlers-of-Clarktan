@@ -24,9 +24,9 @@ let build_road st = failwith "TODO"
 
 let trade st = failwith "TODO"
 
-let check_build_building st = failwith "TODO"
+let check_build_building coord st = failwith "TODO"
 
-let check_build_road st = failwith "TODO"
+let check_build_road coord st = failwith "TODO"
 
 let do_player st = failwith "TODO"
 

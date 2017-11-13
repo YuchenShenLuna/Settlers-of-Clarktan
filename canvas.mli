@@ -4,12 +4,11 @@ open Building
 
 open DevCard
 
-type tiles
+(* Canvas module represents the canvas background of the game
+ * the player will visualize. *)
 
-type settlements
-
-type devcards
-
+(* representation type for canvas background *)
 type canvas
 
-val init_board : unit -> canvas
+(* [init_canvas] returns a new canvas to be used in a new game *)
+val init_canvas : unit -> canvas

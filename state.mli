@@ -6,28 +6,46 @@ open Tile
 
 open DevCard
 
+(* State module keeps information of the game and prompts the game play. *)
+
+(* state represents the game state type *)
 type state
 
+(* [fetch_tiles i] fetches the list of tiles associated with number [i] *)
 val fetch_tiles : int -> tile list
 
+(* [roll_dice] generates a sum of randomly rolling two dices *)
 val roll_dice : unit -> int
 
+(* [next_turn st] changes the turn from one player to the next *)
 val next_turn : state -> state
 
+(* [play_devcard card st] returns the new state after the player plays [card]*)
 val play_devcard : devcard -> state -> state
 
+(* [move_robber st] returns the new state after the player moves the
+ * robber *)
 val move_robber : state -> state
 
+(* [build_building st] returns the new state after player builds a building *)
 val build_building : state -> state
 
+(* [build_road st] returns the new state after player builds a road *)
 val build_road : state -> state
 
+(* [trade st] returns the new state after player trades *)
 val trade : state -> state
 
-val check_build_building : state -> bool
+(* [check_build_building coor st] returns true when player can build a building,
+ * false otherwise *)
+val check_build_building : coordinate -> state -> bool
 
-val check_build_road : state -> bool
+(* [check_build_road coord st] returns true when player can build a road,
+ * false otherwise *)
+val check_build_road : coordinate -> state -> bool
 
+(* [do_player st] returns the state after a player finishes a turn *)
 val do_player : state -> state
 
+(* [do_ai st] returns the state after an AI finishes a turn *)
 val do_ai : state -> state

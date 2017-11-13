@@ -1,4 +1,8 @@
+open Tile
+
 type color = unit
+
+type trophy = unit
 
 type player = unit
 

@@ -12,4 +12,4 @@ type devcards = unit
 
 type canvas = unit
 
-let init_board = failwith "TODO"
+let init_canvas = failwith "TODO"
