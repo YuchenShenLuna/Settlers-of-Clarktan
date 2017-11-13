@@ -1,5 +1,5 @@
 test:
-	ocamlbuild -use-ocamlfind state_test.byte && ./state_test.byte
+	ocamlbuild -use-ocamlfind test.byte && ./test.byte
 
 play:
 	ocamlbuild -use-ocamlfind main.byte && ./main.byte
@@ -13,3 +13,6 @@ zipcheck:
 clean:
 	ocamlbuild -clean
 	rm -f finalsrc.zip
+
+check:
+	bash checkenv.sh && bash checktypes.sh
