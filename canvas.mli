@@ -1,7 +1,9 @@
-open Tile
+type tiles
 
-open Settlement
+type settlements
 
-open DevCard
+type devcards
 
 type canvas
+
+val init_board : unit -> canvas
