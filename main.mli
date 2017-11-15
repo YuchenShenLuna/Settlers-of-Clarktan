@@ -1,5 +1,7 @@
 open State
 
+open Command
+
 (* Main module makes the repl for the game to start and play *)
 
 (* [repl st] is the repl for the game *)

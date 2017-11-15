@@ -6,6 +6,10 @@ open Tile
 
 open DevCard
 
+open Command
+
+open Trade
+
 type state
 
 let fetch_tiles num = failwith "TODO"

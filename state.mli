@@ -6,6 +6,10 @@ open Tile
 
 open DevCard
 
+open Command
+
+open Trade
+
 (* State module keeps information of the game and prompts the game play. *)
 
 (* state represents the game state type *)

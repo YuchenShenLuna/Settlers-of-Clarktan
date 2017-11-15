@@ -1,6 +1,8 @@
-(* Trade module handles tradings of the game *)
-
 open Tile
+
+open Player
+
+(* Trade module handles tradings of the game *)
 
 (* port is the type of trading ports of the game *)
 type port
