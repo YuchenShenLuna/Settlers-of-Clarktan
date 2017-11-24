@@ -1,7 +1,5 @@
 open Player
 
-open Canvas
-
 open Tile
 
 open DevCard
@@ -16,7 +14,10 @@ open Trade
 type state
 
 (* representation type for canvas background *)
-type canvas
+type canvas =
+  {
+    tiles : Tile.tile list
+  }
 
 (* [init_canvas] returns a new canvas to be used in a new game *)
 val init_canvas : unit -> canvas
@@ -45,11 +46,11 @@ val trade : state -> state
 
 (* [check_build_building coor st] returns true when player can build a building,
  * false otherwise *)
-val check_build_building : coordinate -> state -> bool
+val check_build_building : Tile.tile -> state -> bool
 
 (* [check_build_road coord st] returns true when player can build a road,
  * false otherwise *)
-val check_build_road : coordinate -> state -> bool
+val check_build_road : Tile.tile -> state -> bool
 
 (* [do_player st] returns the state after a player finishes a turn *)
 val do_player : state -> state

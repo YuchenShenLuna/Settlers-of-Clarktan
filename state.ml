@@ -1,20 +1,111 @@
-open Player
-
-open Canvas
-
 open Tile
-
-open DevCard
-
-open Command
-
-open Trade
 
 type state
 
-type canvas
+type canvas =
+  {
+    tiles : Tile.tile list
+  }
 
-let init_canvas = failwith "TODO"
+let rec roll () =
+  let i = 1 + Random.int 12 in
+  if i <> 7 then i else roll ()
+
+let random_resource () =
+  match Random.int 5 with
+  | 0 -> Lumber
+  | 1 -> Wool
+  | 2 -> Grain
+  | 3 -> Brick
+  | _ -> Ore
+
+let init_canvas () =
+  let center = 500., 375. in
+  let length = 50. in
+  let apothem =  length *. sqrt 3. /. 2. in
+  {
+    tiles = [
+      { dice = roll ();
+        resource = random_resource ();
+        center = fst center, snd center +. 3. *. length ;
+        edge = length };
+      { dice = roll ();
+        resource = random_resource ();
+        center = fst center +. 2. *. apothem, snd center +. 3. *. length;
+        edge = length };
+      { dice = roll ();
+        resource = random_resource ();
+        center = fst center -. 2. *. apothem, snd center +. 3. *. length;
+        edge = length };
+      { dice = roll ();
+        resource = random_resource ();
+        center = fst center +. apothem, snd center +. 1.5 *. length;
+        edge = length };
+      { dice = roll ();
+        resource = random_resource ();
+        center = fst center -. apothem, snd center +. 1.5 *. length;
+        edge = length };
+      { dice = roll ();
+        resource = random_resource ();
+        center = fst center +. 3. *. apothem, snd center +. 1.5 *. length;
+        edge = length };
+      { dice = roll ();
+        resource = random_resource ();
+        center = fst center -. 3. *. apothem, snd center +. 1.5 *. length;
+        edge = length };
+      { dice = roll ();
+        resource = random_resource ();
+        center = fst center, snd center;
+        edge = length
+      };
+      { dice = roll ();
+        resource = random_resource ();
+        center = fst center +. 2. *. apothem, snd center;
+        edge = length
+      };
+      { dice = roll ();
+        resource = random_resource ();
+        center = fst center -. 2. *. apothem, snd center;
+        edge = length };
+      { dice = roll ();
+        resource = random_resource ();
+        center = fst center +. 4. *. apothem, snd center;
+        edge = length
+      };
+      { dice = roll ();
+        resource = random_resource ();
+        center = fst center -. 4. *. apothem, snd center;
+        edge = length };
+      { dice = roll ();
+        resource = random_resource ();
+        center = fst center +. apothem, snd center -. 1.5 *. length;
+        edge = length };
+      { dice = roll ();
+        resource = random_resource ();
+        center = fst center -. apothem, snd center -. 1.5 *. length;
+        edge = length };
+      { dice = roll ();
+        resource = random_resource ();
+        center = fst center +. 3. *. apothem, snd center -. 1.5 *. length;
+        edge = length };
+      { dice = roll ();
+        resource = random_resource ();
+        center = fst center -. 3. *. apothem, snd center -. 1.5 *. length;
+        edge = length };
+      { dice = roll ();
+        resource = random_resource ();
+        center = fst center, snd center -. 3. *. length ;
+        edge = length };
+      { dice = roll ();
+        resource = random_resource ();
+        center = fst center +. 2. *. apothem, snd center -. 3. *. length;
+        edge = length };
+      { dice = roll ();
+        resource = random_resource ();
+        center = fst center -. 2. *. apothem, snd center -. 3. *. length;
+        edge = length };
+    ]
+  }
 
 let fetch_tiles num = failwith "TODO"
 
