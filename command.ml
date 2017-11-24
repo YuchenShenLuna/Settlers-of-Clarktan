@@ -22,6 +22,8 @@ let case_str str =
   (String.uppercase_ascii (String.sub s 0 1))^
   (String.sub s 1 ((String.length s)-1))
 
+let parse_mouse = failwith "TODO"
+
 let parse_text str =
   let s = String.trim str in
   let lst = String.split_on_char ' ' s in
@@ -41,4 +43,6 @@ let parse_text str =
     | "Accept" -> Accept true
     | "Decline" -> Accept false
     | "Monopoly" -> Monopoly (String.trim (String.sub s 9 ((String.length s)-9)))
+    | "Build" -> parse_mouse
+    | "Move" -> parse_mouse
     | _ -> Invalid
