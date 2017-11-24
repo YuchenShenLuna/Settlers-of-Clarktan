@@ -8,7 +8,6 @@ type command =
   | Move of coordinate
   | Trade of ((resource*int) list)*((resource*int) list)
   | Accept of bool
-  | Monopoly of string
   | Look
   | Endturn
   | Invalid
@@ -41,11 +40,16 @@ let parse_text str =
   |h::t ->  match (case_str h) with
     | "Play" ->
       let card = (String.trim (String.sub s 5 ((String.length s)-5))) in
-      if card = "roadofbuilding" then parse_mouse
-      else Play card
+      if card = "road_of_building" then
+        parse_mouse
+      else if card = "monopoly" then
+        Play ("monopoly "^(String.trim (String.sub s 9 ((String.length s)-9))))
+      else if card = "knight" then
+        parse_mouse
+      else
+        Play ("year_of_plenty "^(String.trim (String.sub s 15 ((String.length s)-15))))
     | "Accept" -> Accept true
     | "Decline" -> Accept false
-    | "Monopoly" -> Monopoly (String.trim (String.sub s 9 ((String.length s)-9)))
     | "Build" -> parse_mouse
     | "Move" -> parse_mouse
     | _ -> Invalid
