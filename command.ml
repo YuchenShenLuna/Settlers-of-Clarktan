@@ -8,6 +8,7 @@ type command =
   | Move of float * float
   | Trade of (resource * int) list * (resource * int) list
   | Accept of bool
+  | Discard of string
   | Look
   | Endturn
   | Invalid
@@ -50,6 +51,7 @@ let parse_text str =
         Play ("year_of_plenty "^(String.trim (String.sub s 15 ((String.length s)-15))))
     | "Accept" -> Accept true
     | "Decline" -> Accept false
+    | "Discard" -> Discard (String.trim (String.sub s 8 ((String.length s)-8)))
     | "Build" -> parse_mouse
     | "Move" -> parse_mouse
     | _ -> Invalid
