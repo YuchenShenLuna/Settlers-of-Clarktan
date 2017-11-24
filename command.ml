@@ -8,6 +8,7 @@ type command =
   | Move of coordinate
   | Trade of ((resource*int) list)*((resource*int) list)
   | Accept of bool
+  | Monopoly of string
   | Look
   | Endturn
   | Invalid
@@ -39,4 +40,5 @@ let parse_text str =
     | "Play" -> Play (String.trim (String.sub s 5 ((String.length s)-5)))
     | "Accept" -> Accept true
     | "Decline" -> Accept false
+    | "Monopoly" -> Monopoly (String.trim (String.sub s 9 ((String.length s)-9)))
     | _ -> Invalid
