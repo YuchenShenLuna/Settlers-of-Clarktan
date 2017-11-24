@@ -7,7 +7,6 @@
 *.cmx
 *.cmxs
 *.cmxa
-*.DS_Store
 
 # ocamlbuild working directory
 _build/
@@ -19,3 +18,12 @@ _build/
 # oasis generated files
 setup.data
 setup.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
