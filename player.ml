@@ -7,10 +7,8 @@ type color = Red | Yellow | Blue | Green
 type player = {color: color; dev_list: devcard list;
                res_list: resource list; score: int }
 
-let init_human_player color = {color= color; dev_list= []
+let init_human_player color = {color= color; dev_list= [];
                                                        res_list=[]; score=0 }
-
-
 let init_ai_list num = failwith "TODO"
 
 let update_resource = failwith "TODO"
