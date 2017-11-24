@@ -1,14 +1,33 @@
 open Tile
 
-type state
+open Building
+
+open Player
+
+open DevCard
+
+open Trade
+
+type state =
+  {
+    robber: int;
+    buildings: (color*int*building) list;
+    roads: (color*int*int) list;
+    deck: devcard list;
+    human: player;
+    zikiu: player;
+    iris: player;
+    mike: player
+  }
 
 type canvas =
   {
-    tiles : Tile.tile list
+    tiles: Tile.tile list;
+    ports: port list
   }
 
 let rec roll () =
-  let i = 1 + Random.int 12 in
+  let i = 2 + Random.int 11 in
   if i <> 7 then i else roll ()
 
 let random_resource () =
@@ -104,12 +123,16 @@ let init_canvas () =
         resource = random_resource ();
         center = fst center -. 2. *. apothem, snd center -. 3. *. length;
         edge = length };
-    ]
+    ];
+    ports = []
   }
 
 let fetch_tiles num = failwith "TODO"
 
-let roll_dice = failwith "TODO"
+let roll_dice =
+  let i1 = 1 + Random.int 6 in
+  let i2 = 1 + Random.int 6 in
+  i1+i2
 
 let next_turn st = failwith "TODO"
 

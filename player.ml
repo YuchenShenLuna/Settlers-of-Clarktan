@@ -12,7 +12,7 @@ type player =
     score: int }
 
 let init_human_player color =
-  {color= color; dev_list= []; res_list=[]; score=0 }
+  {color= color; dev_list= []; res_list=[]; score=0}
 
 let update_resource = failwith "TODO"
 
