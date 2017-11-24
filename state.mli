@@ -1,22 +1,33 @@
-open Player
-
 open Tile
 
-open DevCard
+open Building
 
-open Command
+open Player
+
+open DevCard
 
 open Trade
 
 (* State module keeps information of the game and prompts the game play. *)
 
 (* state represents the game state type *)
-type state
+type state =
+  {
+    robber: int;
+    buildings: (color*int*building) list;
+    roads: (color*int*int) list;
+    deck: devcard list;
+    human: player;
+    zikiu: player;
+    iris: player;
+    mike: player
+  }
 
 (* representation type for canvas background *)
 type canvas =
   {
-    tiles : Tile.tile list
+    tiles: Tile.tile list;
+    ports: port list
   }
 
 (* [init_canvas] returns a new canvas to be used in a new game *)
