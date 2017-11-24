@@ -39,7 +39,10 @@ let parse_text str =
         | _ -> Invalid
       end
   |h::t ->  match (case_str h) with
-    | "Play" -> Play (String.trim (String.sub s 5 ((String.length s)-5)))
+    | "Play" ->
+      let card = (String.trim (String.sub s 5 ((String.length s)-5))) in
+      if card = "roadofbuilding" then parse_mouse
+      else Play card
     | "Accept" -> Accept true
     | "Decline" -> Accept false
     | "Monopoly" -> Monopoly (String.trim (String.sub s 9 ((String.length s)-9)))
