@@ -1,5 +1,3 @@
-open Canvas
-
 open State
 
 (* GUI module handles the GUI and user interface for the game *)
