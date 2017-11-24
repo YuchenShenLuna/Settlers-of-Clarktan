@@ -1,3 +1,5 @@
+open Player
+
 open Tile
 
 open DevCard

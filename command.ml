@@ -3,10 +3,10 @@ open Tile
 open DevCard
 
 type command =
-  | Build of coordinate
+  | Build of float * float
   | Play of string
-  | Move of coordinate
-  | Trade of ((resource*int) list)*((resource*int) list)
+  | Move of float * float
+  | Trade of (resource * int) list * (resource * int) list
   | Accept of bool
   | Look
   | Endturn
