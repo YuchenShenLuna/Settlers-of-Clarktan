@@ -12,6 +12,10 @@ open Trade
 
 type state
 
+type canvas
+
+let init_canvas = failwith "TODO"
+
 let fetch_tiles num = failwith "TODO"
 
 let roll_dice = failwith "TODO"

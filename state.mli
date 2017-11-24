@@ -15,11 +15,14 @@ open Trade
 (* state represents the game state type *)
 type state
 
+(* representation type for canvas background *)
+type canvas
+
+(* [init_canvas] returns a new canvas to be used in a new game *)
+val init_canvas : unit -> canvas
+
 (* [fetch_tiles i] fetches the list of tiles associated with number [i] *)
 val fetch_tiles : int -> tile list
-
-(* [roll_dice] generates a sum of randomly rolling two dices *)
-val roll_dice : unit -> int
 
 (* [next_turn st] changes the turn from one player to the next *)
 val next_turn : state -> state
