@@ -4,10 +4,9 @@ open DevCard
 
 open Building
 
-open Player
+(* [init_ai color] initializes the ai player and his information *)
+val init_ai : color -> player
 
-type ai
-
-val init_ai: color -> ai
-
-val init_ai_list : ai list
+(* [init_ai_list num] initializes the list of ai players for the game.
+ * The number of ai players depend on [num]. *)
+val init_ai_list : int -> player list
