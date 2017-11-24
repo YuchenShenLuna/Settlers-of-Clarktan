@@ -2,8 +2,6 @@ open Tile
 
 open DevCard
 
-open Building
-
 open Player
 
 type ai = player

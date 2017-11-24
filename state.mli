@@ -1,7 +1,5 @@
 open Tile
 
-open Building
-
 open Player
 
 open DevCard
@@ -9,6 +7,8 @@ open DevCard
 open Trade
 
 (* State module keeps information of the game and prompts the game play. *)
+
+type building = Settlement | City | None
 
 (* state represents the game state type *)
 type state =
@@ -35,9 +35,6 @@ val init_canvas : unit -> canvas
 
 (* [fetch_tiles i] fetches the list of tiles associated with number [i] *)
 val fetch_tiles : int -> tile list
-
-(* [next_turn st] changes the turn from one player to the next *)
-val next_turn : state -> state
 
 (* [play_devcard card st] returns the new state after the player plays [card]*)
 val play_devcard : devcard -> state -> state

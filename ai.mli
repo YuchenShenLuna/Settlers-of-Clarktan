@@ -4,8 +4,6 @@ open Tile
 
 open DevCard
 
-open Building
-
 (* [init_ai color] initializes the ai player and his information *)
 val init_ai : color -> player
 

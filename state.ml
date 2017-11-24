@@ -1,12 +1,12 @@
 open Tile
 
-open Building
-
 open Player
 
 open DevCard
 
 open Trade
+
+type building = Settlement | City | None
 
 type state =
   {
@@ -133,8 +133,6 @@ let roll_dice =
   let i1 = 1 + Random.int 6 in
   let i2 = 1 + Random.int 6 in
   i1+i2
-
-let next_turn st = failwith "TODO"
 
 let play_devcard card st = failwith "TODO"
 

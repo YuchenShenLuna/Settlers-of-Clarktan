@@ -11,17 +11,5 @@ type tile = {
   edge : float
 }
 
-(* [update_tile_list tile lst] updates the list of tiles in the game *)
-val update_tile_list : tile -> tile list -> tile list
-
-(* [fetch_robber] returns the tile with robber in the game *)
-val fetch_robber : tile list -> tile
-
-(* [update_robber lst] updates the list of tiles with robber moved *)
-val update_robber : tile -> tile list -> tile list
-
-(* [init_tiles] initializes the tiles for a game play *)
-val init_tiles : unit -> tile list
-
 (* [neighbors tile] returns the list of coordinates boardering [tile] *)
 val neighbors : tile -> (int * int) list

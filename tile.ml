@@ -7,14 +7,6 @@ type tile = {
   edge : float
 }
 
-let update_tile_list ti lst = failwith "TODO"
-
-let fetch_robber lst = failwith "TODO"
-
-let update_robber tile lst = failwith "TODO"
-
-let init_tiles = failwith "TODO"
-
 let rec round = function
   | [] -> []
   | h :: t -> (h |> fst |> int_of_float, h |> snd |> int_of_float) :: round t
