@@ -8,6 +8,7 @@ type command =
   | Move of coordinate
   | Trade of ((resource*int) list)*((resource*int) list)
   | Accept of bool
+  | Look
   | Endturn
   | Invalid
   | Quit
@@ -31,6 +32,7 @@ let parse_text str =
         match (case_str h) with
         | "Endturn" -> Endturn
         | "Quit" -> Quit
+        | "Look" -> Look
         | _ -> Invalid
       end
   |h::t ->  match (case_str h) with
