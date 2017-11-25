@@ -1,7 +1,11 @@
 type description = string
 
-type devcard = Knight | Road_of_Building| Year_of_Plenty|
-               Monopoly of string| Victory_Point
+type devcard =
+  | Knight
+  | Road_of_Building
+  | Year_of_Plenty
+  | Monopoly of string
+  | Victory_Point
 
 (*cite from stackoverflow: how to shuffle elements of list in
   OCaml in O(n) time:

@@ -6,7 +6,7 @@ type tile = {
   center : float * float;
   edge : float;
   buildings : (color * int) list;
-  roads : color list
+  roads : (color*road) list
 }
 
 let corners t =

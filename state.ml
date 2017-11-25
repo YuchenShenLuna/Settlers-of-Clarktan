@@ -150,10 +150,17 @@ let init_canvas () =
     ports = []
   }
 
+let check_build_building coord st = failwith "TODO"
+
+let check_build_road coord st = failwith "TODO"
+
 let fetch_tiles num tiles =
   List.filter (fun x -> x.Tile.dice = num) tiles
 
-let play_road_build st color road = failwith "TODO"
+let update_dev_list lst x = failwith "TODO"
+
+let play_road_build st color road =
+  failwith "TODO"
 
 let play_monopoly st = failwith "TODO"
 
@@ -161,16 +168,9 @@ let play_year_of_plenty st = failwith "TODO"
 
 let play_victory st color =
   let open Player in
-  let rec help st color acc =
-    let players = st.players in
-    match players with
-    | [] -> acc
-    | h::t ->
-      if h.color = color then help st color ({h with score = h.score+2}::acc)
-      else help st color (h::acc)
-  in
-  let people = help st color [] in
-  {st with players = people}
+  let f e =
+    if e.color = color then {e with score = e.score + 2}
+    else e in {st with players = List.map f st.players}
 
 let play_knight st = failwith "TODO"
 
@@ -183,10 +183,6 @@ let build_building st = failwith "TODO"
 let build_road st = failwith "TODO"
 
 let trade st = failwith "TODO"
-
-let check_build_building coord st = failwith "TODO"
-
-let check_build_road coord st = failwith "TODO"
 
 let do_player st = failwith "TODO"
 
