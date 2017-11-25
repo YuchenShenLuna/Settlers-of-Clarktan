@@ -37,13 +37,17 @@ val build_road : state -> state
 (* [trade_with_bank] returns the new state after player trades with bank *)
 val trade_with_bank : state -> resource-> resource-> color -> player
 
-(* [check_build_building coor st] returns true when player can build a building,
+(* [check_build_building num st col] returns true when player can build a building,
  * false otherwise *)
-val check_build_building : Tile.tile -> state -> bool
+val check_build_settlements : int -> state -> color -> bool
 
-(* [check_build_road coord st] returns true when player can build a road,
+(* [check_build_road road st col] returns true when player can build a road,
  * false otherwise *)
-val check_build_road : Tile.tile -> state -> bool
+val check_build_road : road -> state -> color -> bool
+
+(* [check_build_city num st col] checks whether a city can be build at the
+ * index [num] for player with color [col] *)
+val check_build_cities : int -> state -> color -> bool
 
 (* [do_player st] returns the state after a player finishes a turn *)
 val do_player : state -> state

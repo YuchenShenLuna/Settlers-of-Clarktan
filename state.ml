@@ -33,133 +33,133 @@ let init_canvas () =
   let open Tile in
   {
     tiles = [
-      { indices = [0; 4; 8; 12; 7; 3];
+      { indices = [3; 4; 15; 14; 13; 2];
         dice = roll ();
         resource = random_resource ();
         center = fst center -. 2. *. apothem, snd center +. 3. *. length;
         edge = length;
         buildings = [];
         roads = [] };
-      { indices = [1; 5; 9; 13; 8; 4];
+      { indices = [5; 6; 17; 16; 15; 4];
         dice = roll ();
         resource = random_resource ();
         center = fst center, snd center +. 3. *. length ;
         edge = length;
         buildings = [];
         roads = [] };
-      { indices = [2; 6; 10; 14; 9; 5];
+      { indices = [7; 8; 19; 18; 17; 6];
         dice = roll ();
         resource = random_resource ();
         center = fst center +. 2. *. apothem, snd center +. 3. *. length;
         edge = length;
         buildings = [];
         roads = [] };
-      { indices = [7; 12; 17; 22; 16; 11];
+      { indices = [13; 14; 25; 24; 23; 12];
         dice = roll ();
         resource = random_resource ();
         center = fst center -. 3. *. apothem, snd center +. 1.5 *. length;
         edge = length;
         buildings = [];
         roads = [] };
-      { indices = [8; 13; 18; 23; 17; 12];
+      { indices = [15; 16; 27; 26; 25; 14];
         dice = roll ();
         resource = random_resource ();
         center = fst center -. apothem, snd center +. 1.5 *. length;
         edge = length;
         buildings = [];
         roads = [] };
-      { indices = [9; 14; 19; 24; 18; 13];
+      { indices = [17; 18; 29; 28; 27; 16];
         dice = roll ();
         resource = random_resource ();
         center = fst center +. apothem, snd center +. 1.5 *. length;
         edge = length;
         buildings = [];
         roads = [] };
-      { indices = [10; 15; 20; 25; 19; 14];
+      { indices = [19; 20; 31; 30; 29; 18];
         dice = roll ();
         resource = random_resource ();
         center = fst center +. 3. *. apothem, snd center +. 1.5 *. length;
         edge = length;
         buildings = [];
         roads = [] };
-      { indices = [16; 22; 28; 33; 27; 21];
+      { indices = [23; 24; 35; 34; 33; 22];
         dice = roll ();
         resource = random_resource ();
         center = fst center -. 4. *. apothem, snd center;
         edge = length;
         buildings = [];
         roads = [] };
-      { indices = [17; 23; 29; 34; 28; 22];
+      { indices = [25; 26; 37; 36; 35; 24];
         dice = roll ();
         resource = random_resource ();
         center = fst center -. 2. *. apothem, snd center;
         edge = length;
         buildings = [];
         roads = [] };
-      { indices = [18; 24; 30; 35; 29; 23];
+      { indices = [27; 28; 39; 38; 37; 26];
         dice = roll ();
         resource = random_resource ();
         center = fst center, snd center;
         edge = length;
         buildings = [];
         roads = [] };
-      { indices = [19; 25; 31; 36; 30; 24];
+      { indices = [29; 30; 41; 40; 39; 28];
         dice = roll ();
         resource = random_resource ();
         center = fst center +. 2. *. apothem, snd center;
         edge = length;
         buildings = [];
         roads = [] };
-      { indices = [20; 26; 32; 37; 31; 25];
+      { indices = [31; 32; 43; 42; 41; 30];
         dice = roll ();
         resource = random_resource ();
         center = fst center +. 4. *. apothem, snd center;
         edge = length;
         buildings = [];
         roads = [] };
-      { indices = [28; 34; 39; 43; 38; 33];
+      { indices = [35; 36; 47; 46; 45; 34];
         dice = roll ();
         resource = random_resource ();
         center = fst center -. 3. *. apothem, snd center -. 1.5 *. length;
         edge = length;
         buildings = [];
         roads = [] };
-      { indices = [29; 35; 40; 44; 39; 34];
+      { indices = [37; 38; 49; 48; 47; 36];
         dice = roll ();
         resource = random_resource ();
         center = fst center -. apothem, snd center -. 1.5 *. length;
         edge = length;
         buildings = [];
         roads = [] };
-      { indices = [30; 36; 41; 45; 40; 35];
+      { indices = [39; 40; 51; 50; 49; 38];
         dice = roll ();
         resource = random_resource ();
         center = fst center +. apothem, snd center -. 1.5 *. length;
         edge = length;
         buildings = [];
         roads = [] };
-      { indices = [31; 37; 42; 46; 41; 36];
+      { indices = [41; 42; 53; 52; 51; 40];
         dice = roll ();
         resource = random_resource ();
         center = fst center +. 3. *. apothem, snd center -. 1.5 *. length;
         edge = length;
         buildings = [];
         roads = [] };
-      { indices = [39; 44; 48; 51; 47; 43];
+      { indices = [47; 48; 51; 58; 57; 46];
         dice = roll ();
         resource = random_resource ();
         center = fst center -. 2. *. apothem, snd center -. 3. *. length;
         edge = length;
         buildings = [];
         roads = [] };
-      { indices = [40; 45; 49; 52; 48; 44];
+      { indices = [49; 50; 61; 60; 59; 48];
         dice = roll ();
         resource = random_resource ();
         center = fst center, snd center -. 3. *. length ;
         edge = length;
         buildings = [];
         roads = [] };
-      { indices = [41; 46; 50; 53; 49; 45];
+      { indices = [51; 52; 63; 62; 61; 50];
         dice = roll ();
         resource = random_resource ();
         center = fst center +. 2. *. apothem, snd center -. 3. *. length;
@@ -170,17 +170,108 @@ let init_canvas () =
     ports = []
   }
 
-let check_build_building coord st = failwith "TODO"
+let fetch_neighbors num =
+  let fetch num =
+    if num mod 2 = 1 then [num-11; num-1; num+1]
+    else [num+11; num-1; num+1]
+  in
+  let lst = fetch num in
+  let possible_index =
+    [2; 3; 4; 5; 6; 7; 8; 12; 13; 14; 15; 16; 17; 18; 19; 20; 22; 23; 24; 25;
+     26; 27; 28; 29; 30; 31; 32; 33; 34; 35; 36; 37; 38; 39; 40; 41; 42; 43;
+     45; 46; 47; 48; 49; 50; 51; 52; 53; 57; 58; 59; 60; 61; 62; 63]
+  in
+  List.filter (fun x -> List.mem x possible_index) lst
 
-let check_build_road coord st = failwith "TODO"
+let check_build_settlements num st color =
+  let open Tile in
+  let ind_lst = fetch_neighbors num in
+  let tile_lst = st.canvas.tiles in
+  let rec help lst num =
+    match lst with
+    | [] -> White
+    | h::t ->
+      match List.assoc_opt num h.buildings with
+      | None -> help t num
+      | Some (color, _) -> color
+  in
+  if help tile_lst num <> White then false
+  else
+    let res = List.fold_left (fun acc x -> acc && help tile_lst x = White) true ind_lst in
+    if res = false then false
+    else
+      let rec help' lst num2 =
+        match lst with
+        | [] -> White
+        | h::t ->
+          if List.mem_assoc (num, num2) h.roads
+          then List.assoc (num, num2) h.roads
+          else if List.mem_assoc (num2, num) h.roads
+          then List.assoc (num2, num) h.roads
+          else help' t num2
+      in
+      List.fold_left (fun acc x -> acc || help' tile_lst x = color) false ind_lst
+
+let check_build_road (i0, i1) st color =
+  let open Tile in
+  let ind_lst_i0 = List.filter (fun x -> x <> i0 && x <> i1)
+      (fetch_neighbors i0) in
+  let ind_lst_i1 = List.filter (fun x -> x <> i0 && x <> i1)
+      (fetch_neighbors i1) in
+  let tile_lst = st.canvas.tiles in
+  let rec help' lst x y =
+    match lst with
+    | [] -> White
+    | h::t ->
+      if List.mem_assoc (x, y) h.roads
+      then List.assoc (x, y) h.roads
+      else if List.mem_assoc (y, x) h.roads
+      then List.assoc (y, x) h.roads
+      else help' t x y
+  in
+  let res = help' tile_lst i0 i1 = White in
+  if res = false then false
+  else
+  let rec help lst num =
+    match lst with
+    | [] -> White
+    | h::t ->
+      match List.assoc_opt num h.buildings with
+      | None -> help t num
+      | Some (color, _) -> color
+  in
+  let res' = help tile_lst i0 = color || help tile_lst i1 = color in
+  if res' = true then true else
+    List.fold_left (fun acc x -> acc || help' tile_lst i0 x = color) false ind_lst_i0
+    || List.fold_left (fun acc x -> acc || help' tile_lst i1 x = color) false ind_lst_i1
+
+let check_build_cities num st color =
+  let open Tile in
+  let tile_lst = st.canvas.tiles in
+  let rec help lst num =
+    match lst with
+    | [] -> White, 1
+    | h::t ->
+      match List.assoc_opt num h.buildings with
+      | None -> help t num
+      | Some (color, ty) -> (color, ty)
+  in
+  help tile_lst num = (color, 1)
 
 let fetch_tiles num tiles =
   List.filter (fun x -> x.Tile.dice = num) tiles
 
-let update_dev_list lst x = failwith "TODO"
+let play_road_build st color (i0, i1) =
+  let open Tile in
+  if check_build_road (i0, i1) st color = false then
+    failwith "Cannot Build Road"
+  else
+    let new_tiles =
+      List.map (fun t -> if List.mem i0 t.indices && List.mem i1 t.indices then
+                   {t with roads=((i0, i1), color)::t.roads} else t) st.canvas.tiles in
+    let st' = {st with canvas = {tiles = new_tiles; ports=st.canvas.ports}} in
+    failwith "TODO"
 
-let play_road_build st color road =
-  failwith "TODO"
 
 let play_monopoly st = failwith "TODO"
 
