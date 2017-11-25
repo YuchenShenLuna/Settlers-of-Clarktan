@@ -1,3 +1,5 @@
+open Tile
+
 type canvas = {
   tiles: Tile.tile list;
   ports: Trade.port list

@@ -1,3 +1,5 @@
+open State
+
 type command =
   | Build of structure * float * float
   | Play of string
