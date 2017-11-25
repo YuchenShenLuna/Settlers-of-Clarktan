@@ -3,3 +3,6 @@ type color = Red | Yellow | Blue | Green
 
 (* [resource] represents a resource. *)
 type resource = Lumber | Wool | Grain | Brick | Ore
+
+(* [road] represents a road *)
+type road = int*int

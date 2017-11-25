@@ -10,10 +10,7 @@ type canvas = {
 type state = {
   robber: int;
   deck: DevCard.devcard list;
-  human: Player.player;
-  zikiu: Player.player;
-  iris: Player.player;
-  mike: Player.player;
+  players: Player.player list;
   canvas : canvas
 }
 

@@ -8,10 +8,7 @@ type canvas = {
 type state = {
   robber: int;
   deck: DevCard.devcard list;
-  human: Player.player;
-  zikiu: Player.player;
-  iris: Player.player;
-  mike: Player.player;
+  players: Player.player list;
   canvas : canvas
 }
 
@@ -156,13 +153,24 @@ let init_canvas () =
 let fetch_tiles num tiles =
   List.filter (fun x -> x.Tile.dice = num) tiles
 
-let play_road_build st = failwith "TODO"
+let play_road_build st color road = failwith "TODO"
 
 let play_monopoly st = failwith "TODO"
 
 let play_year_of_plenty st = failwith "TODO"
 
-let play_victory st = failwith "TODO"
+let play_victory st color =
+  let open Player in
+  let rec help st color acc =
+    let players = st.players in
+    match players with
+    | [] -> acc
+    | h::t ->
+      if h.color = color then help st color ({h with score = h.score+2}::acc)
+      else help st color (h::acc)
+  in
+  let people = help st color [] in
+  {st with players = people}
 
 let play_knight st = failwith "TODO"
 
