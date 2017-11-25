@@ -1,4 +1,5 @@
 open Elements
+open Player
 
 (* representation type for canvas background *)
 type canvas = {
@@ -33,8 +34,8 @@ val build_building : state -> state
 (* [build_road st] returns the new state after player builds a road *)
 val build_road : state -> state
 
-(* [trade st] returns the new state after player trades *)
-val trade : state -> state
+(* [trade_with_bank] returns the new state after player trades with bank *)
+val trade_with_bank : state -> resource-> resource-> color -> player
 
 (* [check_build_building coor st] returns true when player can build a building,
  * false otherwise *)

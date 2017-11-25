@@ -1,4 +1,5 @@
 open Elements
+open Player
 
 type canvas = {
   tiles: Tile.tile list;
@@ -182,7 +183,46 @@ let build_building st = failwith "TODO"
 
 let build_road st = failwith "TODO"
 
-let trade st = failwith "TODO"
+let count_resource_card player resource =
+  match resource with
+  | Lumber -> player.lumber
+  | Wool -> player.wool
+  | Grain -> player.grain
+  | Brick -> player.brick
+  | Ore -> player.ore
+
+(*helper function returns the corresponding player for the input color
+  and game state*)
+let rec check_player_color st cl=
+  let rec help_check_color pl_lst' cl'=
+    match pl_lst' with
+    | [] -> failwith "impossible"
+    | h::t ->
+      if h.color = cl' then h else help_check_color t cl'
+  in help_check_color st.players cl
+
+(*helper function for trade_with_bank, only remove resource cards*)
+let trade_with_bank_helper st rs color =
+  let player_now = check_player_color st color
+  in let number_of_resource_card = count_resource_card player_now rs
+  in  if number_of_resource_card < 4 then
+    raise (Failure("not enough resource cards"))
+  else match rs with
+    | Lumber -> {player_now with lumber=player_now.lumber - 4}
+    | Wool ->  {player_now with wool=player_now.wool - 4}
+    | Grain ->  {player_now with grain=player_now.grain - 4}
+    | Brick ->  {player_now with brick=player_now.brick - 4}
+    | Ore ->  {player_now with ore=player_now.ore - 4}
+
+let trade_with_bank st rs rs' color =
+  let updated = trade_with_bank_helper st rs color in
+  match rs' with
+  | Lumber -> {updated with lumber=updated.lumber + 1}
+  | Wool ->  {updated with wool=updated.wool + 1}
+  | Grain ->  {updated with grain=updated.grain + 1}
+  | Brick ->  {updated with brick=updated.brick + 1}
+  | Ore ->  {updated with ore=updated.ore + 1}
+
 
 let do_player st = failwith "TODO"
 

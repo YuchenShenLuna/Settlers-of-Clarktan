@@ -6,13 +6,22 @@ open Elements
 type player =
   {
     color: color;
-    dev_list: DevCard.devcard list;
-    res_list: resource list;
+    knight: int;
+    road_of_Building: int;
+    year_of_Plenty: int;
+    monopoly: int;
+    victory_Point: int;
+    wool: int;
+    lumber: int;
+    grain: int;
+    brick: int;
+    ore: int;
     score: int;
     knights: int;
     longest_road: bool;
     largest_army: bool
   }
+
 
 (* [init_human_player color] initializes the human player and his information *)
 val init_player : color -> player
