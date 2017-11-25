@@ -1,12 +1,13 @@
 open Elements
 
 type tile = {
+  indices : int list;
   dice : int;
   resource : resource;
   center : float * float;
   edge : float;
   buildings : (color * int) list;
-  roads : (color*road) list
+  roads : (color * road) list
 }
 
 let corners t =
