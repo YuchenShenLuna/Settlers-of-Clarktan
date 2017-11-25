@@ -33,8 +33,8 @@ let parse_mouse (st : State.state) =
         fun acc p ->
           if acc = None && distance (x, y) p < r
           then Some p
-          else None
-    ) None (f t)
+          else acc
+      ) None (f t)
     else acc
   in
   match List.fold_left (check Tile.corners 10.) None st.canvas.tiles with
