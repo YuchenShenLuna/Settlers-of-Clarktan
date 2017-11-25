@@ -1,7 +1,8 @@
 open Elements
 
 type command =
-  | Build of structure * float * float
+  | BuildSettlement of int
+  | BuildRoad of int * int
   | Play of string
   | Move of float * float
   | Trade of (resource * int) list * (resource * int) list
@@ -11,7 +12,6 @@ type command =
   | EndTurn
   | Invalid
   | Quit
-and structure = Settlement | City | Road
 
 (* returns: [case_str str] changes str to all lowercases and
  * capitalize its first char
@@ -24,30 +24,32 @@ let case_str str =
 let distance (x1, y1) (x2, y2) =
   sqrt ((x1 -. x2) ** 2. +. (y1 -. y2) ** 2.)
 
-let parse_mouse (st : State.state) =
+let parse_mouse st =
   let open Graphics in
   let open State in
+  let open Tile in
   let info = wait_next_event [ Button_down ] in
   let x = float_of_int info.mouse_x in
   let y = float_of_int info.mouse_y in
-  let check f r acc t =
+  let check f m acc t =
     if acc = None
     then List.fold_left (
         fun acc p ->
-          if acc = None && distance (x, y) p < r
-          then Some p
-          else acc
-      ) None (f t)
+          if fst acc = None && distance (x, y) p < m *. t.edge
+          then Some (List.nth t.indices (snd acc),
+                     List.nth t.indices ((snd acc + 1) mod 6)), snd acc
+          else fst acc, snd acc + 1
+      ) (None, 0) (f t) |> fst
     else acc
   in
-  match List.fold_left (check Tile.corners 10.) None st.canvas.tiles with
+  match List.fold_left (check Tile.corners 0.1) None st.canvas.tiles with
   | None ->
     begin
-      match List.fold_left (check Tile.edges 25.) None st.canvas.tiles with
+      match List.fold_left (check Tile.edges 0.5) None st.canvas.tiles with
       | None -> Invalid
-      | Some point -> Build (Road, fst point, snd point)
+      | Some (i0, i1) -> BuildRoad (i0, i1)
     end
-  | Some point -> Build (Settlement, fst point, snd point) (* check *)
+  | Some (i0, i1) -> BuildSettlement i0
 
 let parse_text st str =
   let s = String.trim str in
