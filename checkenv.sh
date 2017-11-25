@@ -46,20 +46,13 @@ fi
 if [[ "$environment" == good ]]; then
   cat <<EOF
 ===========================================================
-Your OCaml environment looks good to me.  Congratulations!
+Your OCaml environment looks good.  Congratulations!
 ===========================================================
 EOF
 else
   cat <<EOF
 ===========================================================
-WARNING
-
-Your OCaml environment looks broken to me.  The code that
-you submit might not compile on the grader's machine,
-leading to heavy penalties.  Please fix your OCaml
-environment. Check the error messages above carefully to
-determine what is wrong with your environment.  See a
-consultant for help if you cannot determine what is wrong.
+WARNING: Your OCaml environment looks broken.
 ===========================================================
 EOF
 fi

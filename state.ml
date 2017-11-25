@@ -1,36 +1,24 @@
-open Tile
+type canvas = {
+  tiles: Tile.tile list;
+  ports: Trade.port list
+}
 
-open Player
-
-open DevCard
-
-open Trade
-
-type building = Settlement | City | None
-
-type state =
-  {
-    robber: int;
-    buildings: (color*int*building) list;
-    roads: (color*int*int) list;
-    deck: devcard list;
-    human: player;
-    zikiu: player;
-    iris: player;
-    mike: player
-  }
-
-type canvas =
-  {
-    tiles: Tile.tile list;
-    ports: port list
-  }
+type state = {
+  robber: int;
+  deck: DevCard.devcard list;
+  human: Player.player;
+  zikiu: Player.player;
+  iris: Player.player;
+  mike: Player.player;
+  canvas : canvas
+}
 
 let rec roll () =
   let i = 2 + Random.int 11 in
   if i <> 7 then i else roll ()
 
 let random_resource () =
+  let open Tile in
   match Random.int 5 with
   | 0 -> Lumber
   | 1 -> Wool
@@ -47,82 +35,117 @@ let init_canvas () =
       { dice = roll ();
         resource = random_resource ();
         center = fst center, snd center +. 3. *. length ;
-        edge = length };
+        edge = length;
+        buildings = [];
+        roads = [] };
       { dice = roll ();
         resource = random_resource ();
         center = fst center +. 2. *. apothem, snd center +. 3. *. length;
-        edge = length };
+        edge = length;
+        buildings = [];
+        roads = [] };
       { dice = roll ();
         resource = random_resource ();
         center = fst center -. 2. *. apothem, snd center +. 3. *. length;
-        edge = length };
+        edge = length;
+        buildings = [];
+        roads = [] };
       { dice = roll ();
         resource = random_resource ();
         center = fst center +. apothem, snd center +. 1.5 *. length;
-        edge = length };
+        edge = length;
+        buildings = [];
+        roads = [] };
       { dice = roll ();
         resource = random_resource ();
         center = fst center -. apothem, snd center +. 1.5 *. length;
-        edge = length };
+        edge = length;
+        buildings = [];
+        roads = [] };
       { dice = roll ();
         resource = random_resource ();
         center = fst center +. 3. *. apothem, snd center +. 1.5 *. length;
-        edge = length };
+        edge = length;
+        buildings = [];
+        roads = [] };
       { dice = roll ();
         resource = random_resource ();
         center = fst center -. 3. *. apothem, snd center +. 1.5 *. length;
-        edge = length };
+        edge = length;
+        buildings = [];
+        roads = [] };
       { dice = roll ();
         resource = random_resource ();
         center = fst center, snd center;
-        edge = length
-      };
+        edge = length;
+        buildings = [];
+        roads = [] };
       { dice = roll ();
         resource = random_resource ();
         center = fst center +. 2. *. apothem, snd center;
-        edge = length
-      };
+        edge = length;
+        buildings = [];
+        roads = [] };
       { dice = roll ();
         resource = random_resource ();
         center = fst center -. 2. *. apothem, snd center;
-        edge = length };
+        edge = length;
+        buildings = [];
+        roads = [] };
       { dice = roll ();
         resource = random_resource ();
         center = fst center +. 4. *. apothem, snd center;
-        edge = length
-      };
+        edge = length;
+        buildings = [];
+        roads = [] };
       { dice = roll ();
         resource = random_resource ();
         center = fst center -. 4. *. apothem, snd center;
-        edge = length };
+        edge = length;
+        buildings = [];
+        roads = [] };
       { dice = roll ();
         resource = random_resource ();
         center = fst center +. apothem, snd center -. 1.5 *. length;
-        edge = length };
+        edge = length;
+        buildings = [];
+        roads = [] };
       { dice = roll ();
         resource = random_resource ();
         center = fst center -. apothem, snd center -. 1.5 *. length;
-        edge = length };
+        edge = length;
+        buildings = [];
+        roads = [] };
       { dice = roll ();
         resource = random_resource ();
         center = fst center +. 3. *. apothem, snd center -. 1.5 *. length;
-        edge = length };
+        edge = length;
+        buildings = [];
+        roads = [] };
       { dice = roll ();
         resource = random_resource ();
         center = fst center -. 3. *. apothem, snd center -. 1.5 *. length;
-        edge = length };
+        edge = length;
+        buildings = [];
+        roads = [] };
       { dice = roll ();
         resource = random_resource ();
         center = fst center, snd center -. 3. *. length ;
-        edge = length };
+        edge = length;
+        buildings = [];
+        roads = [] };
       { dice = roll ();
         resource = random_resource ();
         center = fst center +. 2. *. apothem, snd center -. 3. *. length;
-        edge = length };
+        edge = length;
+        buildings = [];
+        roads = [] };
       { dice = roll ();
         resource = random_resource ();
         center = fst center -. 2. *. apothem, snd center -. 3. *. length;
-        edge = length };
+        edge = length;
+        buildings = [];
+        roads = [] };
     ];
     ports = []
   }

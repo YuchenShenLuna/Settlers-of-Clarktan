@@ -1,7 +1,3 @@
-open Tile
-
-open DevCard
-
 (* Command module takes in player's command, either through mouse click
  * or terminal entry, and parses them accordingly. *)
 

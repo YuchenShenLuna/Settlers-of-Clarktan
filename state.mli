@@ -1,43 +1,28 @@
-open Tile
-
-open Player
-
-open DevCard
-
-open Trade
-
-(* State module keeps information of the game and prompts the game play. *)
-
-type building = Settlement | City | None
+(* representation type for canvas background *)
+type canvas = {
+  tiles: Tile.tile list;
+  ports: Trade.port list
+}
 
 (* state represents the game state type *)
-type state =
-  {
-    robber: int;
-    buildings: (color*int*building) list;
-    roads: (color*int*int) list;
-    deck: devcard list;
-    human: player;
-    zikiu: player;
-    iris: player;
-    mike: player
-  }
-
-(* representation type for canvas background *)
-type canvas =
-  {
-    tiles: Tile.tile list;
-    ports: port list
-  }
+type state = {
+  robber: int;
+  deck: DevCard.devcard list;
+  human: Player.player;
+  zikiu: Player.player;
+  iris: Player.player;
+  mike: Player.player;
+  canvas : canvas
+}
 
 (* [init_canvas] returns a new canvas to be used in a new game *)
 val init_canvas : unit -> canvas
 
 (* [fetch_tiles i] fetches the list of tiles associated with number [i] *)
-val fetch_tiles : int -> tile list
+val fetch_tiles : int -> Tile.tile list
 
 (* [play_devcard card st] returns the new state after the player plays [card]*)
-val play_devcard : devcard -> state -> state
+val play_devcard : DevCard.devcard -> state -> state
 
 (* [move_robber st] returns the new state after the player moves the
  * robber *)

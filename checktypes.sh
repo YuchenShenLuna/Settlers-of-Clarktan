@@ -5,13 +5,7 @@ ocamlbuild -use-ocamlfind main.cmo state.cmo command.cmo devCard.cmo gui.cmo ai.
 if [[ $? -ne 0 ]]; then
   cat <<EOF
 ===========================================================
-WARNING
-
-Your code currently does not compile.  You will receive
-little to no credit for submitting this code. Check the
-error messages above carefully to determine what is wrong.
-See a consultant for help if you cannot determine what is
-wrong.
+WARNING: Your code currently does not compile.
 ===========================================================
 EOF
   exit 1

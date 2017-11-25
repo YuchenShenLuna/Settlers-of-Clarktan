@@ -8,8 +8,10 @@ type tile = {
   dice : int;
   resource : resource;
   center : float * float;
-  edge : float
+  edge : float;
+  buildings : (Player.color * int) list;
+  roads : Player.color list
 }
 
 (* [neighbors tile] returns the list of coordinates boardering [tile] *)
-val neighbors : tile -> (int * int) list
+val neighbors : tile -> (float * float) list

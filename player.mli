@@ -1,7 +1,3 @@
-open Tile
-
-open DevCard
-
 (* Player module handles the player informations for the game *)
 
 (* color is the type of different colors for different players *)

@@ -1,14 +1,10 @@
-open Tile
-
-open DevCard
-
 type color = Red | Yellow | Blue | Green
 
 type player =
   {
     color: color;
-    dev_list: devcard list;
-    res_list: resource list;
+    dev_list: DevCard.devcard list;
+    res_list: Tile.resource list;
     score: int;
     knights: int;
     longest_road: bool;
@@ -17,11 +13,11 @@ type player =
 
 let init_player color =
   {
-    color=color;
-    dev_list=[];
-    res_list=[];
-    score=0;
-    knights=0;
-    longest_road=false;
-    largest_army=false
+    color = color;
+    dev_list = [];
+    res_list = [];
+    score = 0;
+    knights = 0;
+    longest_road = false;
+    largest_army = false
   }

@@ -4,12 +4,10 @@ type tile = {
   dice : int;
   resource : resource;
   center : float * float;
-  edge : float
+  edge : float;
+  buildings : (Player.color * int) list;
+  roads : Player.color list
 }
-
-let rec round = function
-  | [] -> []
-  | h :: t -> (h |> fst |> int_of_float, h |> snd |> int_of_float) :: round t
 
 let neighbors t =
   let x = fst t.center in
@@ -23,4 +21,3 @@ let neighbors t =
     x, y -. l;
     x -. l *. c, y -. l *. s;
     x -. l *. c, y +. l *. s ]
-  |> round

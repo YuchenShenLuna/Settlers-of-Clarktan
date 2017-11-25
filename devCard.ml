@@ -1,5 +1,3 @@
-open Tile
-
 type description = string
 
 type devcard = Knight | Road_of_Building| Year_of_Plenty|
