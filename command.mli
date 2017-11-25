@@ -5,4 +5,4 @@
 type command
 
 (* [parse str] parses the command given by [str] to type command *)
-val parse_text : string -> command
+val parse_text : State.state -> string -> command

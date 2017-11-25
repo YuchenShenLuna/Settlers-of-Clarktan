@@ -4,7 +4,7 @@ let rec round = function
 
 let draw_canvas () =
   Graphics.clear_graph ();
-  let f hex = hex |> Tile.neighbors |> round |> Array.of_list |> Graphics.draw_poly in
+  let f t = t |> Tile.corners |> round |> Array.of_list |> Graphics.draw_poly in
   List.iter f (State.init_canvas ()).tiles
 
 let draw_robber = failwith "TODO"

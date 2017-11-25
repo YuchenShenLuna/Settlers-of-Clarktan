@@ -9,7 +9,7 @@ type tile = {
   roads : Player.color list
 }
 
-let neighbors t =
+let corners t =
   let x = fst t.center in
   let y = snd t.center in
   let l = t.edge in
@@ -21,3 +21,11 @@ let neighbors t =
     x, y -. l;
     x -. l *. c, y -. l *. s;
     x -. l *. c, y +. l *. s ]
+
+let edges t =
+  let c = corners t in
+  List.mapi (
+    fun i elt ->
+      let next = ((i + 1) mod 6) |> List.nth c in
+      (fst elt +. fst next) /. 2., (snd elt +. snd next) /. 2.
+  ) c

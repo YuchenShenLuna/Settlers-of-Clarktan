@@ -1,9 +1,7 @@
-(* Tile module keeps information about the tiles in the game *)
-
-(* resource is the type of resources for tiles in the game *)
+(* [resource] represents a resource. *)
 type resource = Lumber | Wool | Grain | Brick | Ore
 
-(* tile is the type of tiles that hold information of tiles in the game *)
+(* [tile] represents a terrain hex. *)
 type tile = {
   dice : int;
   resource : resource;
@@ -13,5 +11,8 @@ type tile = {
   roads : Player.color list
 }
 
-(* [neighbors tile] returns the list of coordinates boardering [tile] *)
-val neighbors : tile -> (float * float) list
+(* [corners t] returns a list of the coordinates of the corners of tile [t]. *)
+val corners : tile -> (float * float) list
+
+(* [corners t] returns a list of the midpoints of the edges of tile [t]. *)
+val edges : tile -> (float * float) list
