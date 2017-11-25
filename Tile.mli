@@ -1,5 +1,4 @@
-(* [resource] represents a resource. *)
-type resource = Lumber | Wool | Grain | Brick | Ore
+open Elements
 
 (* [tile] represents a terrain hex. *)
 type tile = {
@@ -7,8 +6,8 @@ type tile = {
   resource : resource;
   center : float * float;
   edge : float;
-  buildings : (Player.color * int) list;
-  roads : Player.color list
+  buildings : (color * int) list;
+  roads : color list
 }
 
 (* [corners t] returns a list of the coordinates of the corners of tile [t]. *)

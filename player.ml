@@ -1,10 +1,10 @@
-type color = Red | Yellow | Blue | Green
+open Elements
 
 type player =
   {
     color: color;
     dev_list: DevCard.devcard list;
-    res_list: Tile.resource list;
+    res_list: resource list;
     score: int;
     knights: int;
     longest_road: bool;

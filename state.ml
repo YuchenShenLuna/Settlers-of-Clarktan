@@ -1,4 +1,4 @@
-open Tile
+open Elements
 
 type canvas = {
   tiles: Tile.tile list;
@@ -32,6 +32,7 @@ let init_canvas () =
   let center = 500., 375. in
   let length = 50. in
   let apothem =  length *. sqrt 3. /. 2. in
+  let open Tile in
   {
     tiles = [
       { dice = roll ();
@@ -152,12 +153,18 @@ let init_canvas () =
     ports = []
   }
 
-let fetch_tiles num = failwith "TODO"
+let fetch_tiles num tiles =
+  List.filter (fun x -> x.Tile.dice = num) tiles
 
-let roll_dice =
-  let i1 = 1 + Random.int 6 in
-  let i2 = 1 + Random.int 6 in
-  i1+i2
+let play_road_build st = failwith "TODO"
+
+let play_monopoly st = failwith "TODO"
+
+let play_year_of_plenty st = failwith "TODO"
+
+let play_victory st = failwith "TODO"
+
+let play_knight st = failwith "TODO"
 
 let play_devcard card st = failwith "TODO"
 

@@ -1,12 +1,12 @@
-type resource = Lumber | Wool | Grain | Brick | Ore
+open Elements
 
 type tile = {
   dice : int;
   resource : resource;
   center : float * float;
   edge : float;
-  buildings : (Player.color * int) list;
-  roads : Player.color list
+  buildings : (color * int) list;
+  roads : color list
 }
 
 let corners t =

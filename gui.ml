@@ -4,6 +4,8 @@ let rec round = function
 
 let draw_canvas () =
   let open Graphics in
+  let open Tile in
+  let open State in
   clear_graph ();
   let f t = t |> Tile.corners |> round |> Array.of_list |> draw_poly;
     let x = t.center |> fst |> (-.) (0.1 *. t.edge) |> (~-.) |> int_of_float in

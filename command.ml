@@ -1,10 +1,10 @@
-open State
+open Elements
 
 type command =
   | Build of structure * float * float
   | Play of string
   | Move of float * float
-  | Trade of (Tile.resource * int) list * (Tile.resource * int) list
+  | Trade of (resource * int) list * (resource * int) list
   | Accept of bool
   | Discard of string
   | Look
@@ -26,6 +26,7 @@ let distance (x1, y1) (x2, y2) =
 
 let parse_mouse (st : State.state) =
   let open Graphics in
+  let open State in
   let info = wait_next_event [ Button_down ] in
   let x = float_of_int info.mouse_x in
   let y = float_of_int info.mouse_y in

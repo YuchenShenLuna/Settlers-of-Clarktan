@@ -1,8 +1,13 @@
-let roll_dice = failwith "TODO"
+open State
 
-let check_player = failwith "TODO"
+let roll_dice () =
+  let i1 = 1 + Random.int 6 in
+  let i2 = 1 + Random.int 6 in
+  i1+i2
 
-let repl = failwith "TODO"
+(* let check_player = failwith "TODO" *)
+
+let repl = let _ = init_canvas () in Gui.draw_canvas ()
 
 let play f =
     Graphics.open_graph " 1000x750";

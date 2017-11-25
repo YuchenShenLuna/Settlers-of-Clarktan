@@ -1,3 +1,5 @@
+open Elements
+
 (* representation type for canvas background *)
 type canvas = {
   tiles: Tile.tile list;
@@ -19,7 +21,7 @@ type state = {
 val init_canvas : unit -> canvas
 
 (* [fetch_tiles i] fetches the list of tiles associated with number [i] *)
-val fetch_tiles : int -> Tile.tile list
+val fetch_tiles : int -> Tile.tile list -> Tile.tile list
 
 (* [play_devcard card st] returns the new state after the player plays [card]*)
 val play_devcard : DevCard.devcard -> state -> state
