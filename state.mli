@@ -11,7 +11,7 @@ type canvas = {
 type state = {
   robber: int;
   deck: DevCard.devcard list;
-  current_player : color;
+  turn : color;
   players: Player.player list;
   canvas : canvas
 }

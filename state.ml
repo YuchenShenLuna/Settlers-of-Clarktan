@@ -9,7 +9,7 @@ type canvas = {
 type state = {
   robber: int;
   deck: DevCard.devcard list;
-  current_player : color;
+  turn : color;
   players: Player.player list;
   canvas : canvas
 }
@@ -500,43 +500,35 @@ let count_resource_card player resource =
   | Brick -> player.brick
   | Ore -> player.ore
 
-(*helper function returns the corresponding player for the input color
-  and game state*)
-let rec check_player_color st cl=
-  let rec help_check_color pl_lst' cl'=
-    match pl_lst' with
-    | [] -> failwith "impossible"
-    | h::t ->
-      if h.color = cl' then h else help_check_color t cl'
-  in help_check_color st.players cl
-
-(*helper function for trade_with_bank, only remove resource cards*)
-let trade_with_bank_helper st rs color =
-  let player_now = check_player_color st color
-  in let number_of_resource_card = count_resource_card player_now rs
-  in  if number_of_resource_card < 4 then
+(*helper function for update resource*)
+let update_resource player rs n =
+  let number_of_resource_card = count_resource_card player rs
+  in if number_of_resource_card + n < 0 then
     raise (Failure("not enough resource cards"))
   else match rs with
-    | Lumber -> {player_now with lumber=player_now.lumber - 4}
-    | Wool ->  {player_now with wool=player_now.wool - 4}
-    | Grain ->  {player_now with grain=player_now.grain - 4}
-    | Brick ->  {player_now with brick=player_now.brick - 4}
-    | Ore ->  {player_now with ore=player_now.ore - 4}
+    | Lumber -> {player with lumber=player.lumber + n}
+    | Wool ->  {player with wool=player.wool + n}
+    | Grain ->  {player with grain=player.grain + n}
+    | Brick ->  {player with brick=player.brick + n}
+    | Ore ->  {player with ore=player.ore + n}
 
-(* helper function for trade_with_bank, which returns the updated player*)
-let trade_with_bank_helper' st rs rs' color =
-  let updated = trade_with_bank_helper st rs color in
-  match rs' with
-  | Lumber -> {updated with lumber=updated.lumber + 1}
-  | Wool ->  {updated with wool=updated.wool + 1}
-  | Grain ->  {updated with grain=updated.grain + 1}
-  | Brick ->  {updated with brick=updated.brick + 1}
-  | Ore ->  {updated with ore=updated.ore + 1}
+let trade_with_bank st rs_lst rs_lst' cl =
+  let player = List.find (fun p -> p.color = cl) st.players in
+  let updated_player = List.fold_left (fun acc (r, n) -> update_resource acc r (-n)) player rs_lst in
+  let updated_player' = List.fold_left (fun acc (r, n) -> update_resource acc r n) updated_player rs_lst' in
+  let updated_list=List.map (fun p -> if p.color=cl then updated_player' else p) st.players in
+  {st with players=updated_list}
 
-let trade_with_bank st rs rs' cl=
-  let updated_player=trade_with_bank_helper' st rs rs' cl in
-  let updated_list=List.filter (fun s -> s.color<>cl) st.players in
-  {st with players=updated_player::updated_list}
+let trade_with_other_player st rs_list rs'_list cl =
+  let st1=trade_with_bank st rs_list rs'_list st.turn in
+  trade_with_bank st1 rs'_list rs_list cl
+
+let trade_with_port st rs_lst rs_lst' cl =
+  let player = List.find (fun p -> p.color = cl) st.players in
+  let updated_player = List.fold_left (fun acc (r, n) -> update_resource acc r (-n)) player rs_lst in
+  let updated_player' = List.fold_left (fun acc (r, n) -> update_resource acc r n) updated_player rs_lst' in
+  let updated_list=List.map (fun p -> if p.color=cl then updated_player' else p) st.players in
+  {st with players=updated_list}
 
 let do_player st = failwith "TODO"
 
