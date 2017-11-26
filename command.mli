@@ -5,17 +5,24 @@ open Elements
 
 (* command represents possible types of commands *)
 type command =
+  | Setup of int * road
   | BuildSettlement of int
-  | BuildRoad of int * int
-  | Play of string
-  | Move of float * float
-  | Trade of (resource * int) list * (resource * int) list
+  | BuildCity of int
+  | BuildRoad of road
+  | BuyCard
+  | Knight of int
+  | RoadBuilding of road * road
+  | YearOfPlenty of resource * resource
+  | Monopoly of resource
+  | VictoryPoint
+  | Robber of int
+  | DomesticTrade of (resource * int) list * (resource * int) list
+  | MaritimeTrade of (resource * int) list * (resource * int) list * color
   | Accept of bool
-  | Discard of string
-  | Look
+  | Discard of (resource * int) list
   | EndTurn
-  | Invalid
   | Quit
+  | Invalid
 
 (* [parse str] parses the command given by [str] to type command *)
 val parse_text : State.state -> string -> command

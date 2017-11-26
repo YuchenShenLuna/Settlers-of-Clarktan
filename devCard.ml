@@ -15,15 +15,6 @@ let shuffle d =
   let sond = List.sort compare nd in
   List.map snd sond
 
-(*transfer string representation of resources to corresponeding monolopy card type*)
-let helper_monopoly rs=
-  let rs'= String.lowercase_ascii rs in
-  if rs' = "wool" then Monopoly
-  else if rs' = "lumber" then Monopoly
-  else if rs' = "grain" then Monopoly
-  else if rs' = "brick" then Monopoly
-  else Monopoly
-
 let input rs =
   failwith "TODO"
 
