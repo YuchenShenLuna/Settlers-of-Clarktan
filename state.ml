@@ -496,8 +496,14 @@ let generate_resource st num =
 let longest_road st = failwith "TODO"
 
 let largest_army st =
-  List.fold_left (fun acc x -> if x.knights_activated > acc.knights_activated
-                   then x else acc) (List.hd st.players) (st.players)
+  List.fold_left
+    (fun acc x ->
+      match acc with
+      | None -> if x.knights_activated >= 3 then Some x else None
+      | Some y ->
+        if x.knights_activated > y.knights_activated
+        then Some x else acc
+    ) None st.players
 
 let num_resources player = function
   | Lumber -> player.lumber
