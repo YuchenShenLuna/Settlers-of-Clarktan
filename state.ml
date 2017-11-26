@@ -263,15 +263,21 @@ let fetch_tiles num tiles =
 
 let play_road_build st color (i0, i1) =
   let open Tile in
-  if check_build_road (i0, i1) st color = false then
-    failwith "Cannot Build Road"
+  let player = List.filter (fun x -> x.color = color) st.players |> List.hd in
+  if player.road_of_Building < 1 then
+    failwith "No Road Building Card"
+  else
+    if check_build_road (i0, i1) st color = false then
+      failwith "Cannot Build Road"
   else
     let new_tiles =
       List.map (fun t -> if List.mem i0 t.indices && List.mem i1 t.indices then
                    {t with roads=((i0, i1), color)::t.roads} else t) st.canvas.tiles in
-    let st' = {st with canvas = {tiles = new_tiles; ports=st.canvas.ports}} in
-    failwith "TODO"
-
+    let new_players =
+      List.map (fun x -> if x <> player then x
+                 else {player with road_of_Building = player.road_of_Building-1}) st.players in
+    {st with canvas = {tiles = new_tiles; ports=st.canvas.ports};
+             players = new_players}
 
 let play_monopoly st = failwith "TODO"
 
@@ -286,6 +292,8 @@ let play_victory st color =
 let play_knight st = failwith "TODO"
 
 let play_devcard card st = failwith "TODO"
+
+let init_phase f = failwith "TODO"
 
 let move_robber st = failwith "TODO"
 

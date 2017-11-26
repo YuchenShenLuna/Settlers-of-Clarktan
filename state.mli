@@ -24,6 +24,9 @@ val fetch_tiles : int -> Tile.tile list -> Tile.tile list
 (* [play_devcard card st] returns the new state after the player plays [card]*)
 val play_devcard : DevCard.devcard -> state -> state
 
+(* [init_phase] initializes the first stage of the game *)
+val init_phase : unit -> unit
+
 (* [move_robber st] returns the new state after the player moves the
  * robber *)
 val move_robber : state -> state
