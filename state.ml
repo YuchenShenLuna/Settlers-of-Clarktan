@@ -301,6 +301,8 @@ let build_building st = failwith "TODO"
 
 let build_road st = failwith "TODO"
 
+let generate_resource st = failwith "TODO"
+
 let count_resource_card player resource =
   match resource with
   | Lumber -> player.lumber
