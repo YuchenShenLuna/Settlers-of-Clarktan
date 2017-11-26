@@ -579,7 +579,16 @@ let generate_resource st num =
   in help st info
 
 let longest_road st = failwith "TODO"
-let largest_army st = failwith "TODO"
+
+let largest_army st =
+  List.fold_left
+    (fun acc x ->
+      match acc with
+      | None -> if x.knights_activated >= 3 then Some x else None
+      | Some y ->
+        if x.knights_activated > y.knights_activated
+        then Some x else acc
+    ) None st.players
 
 let add_resources player n = function
   | Lumber -> { player with lumber = player.lumber + n }
@@ -588,7 +597,11 @@ let add_resources player n = function
   | Brick  -> { player with brick = player.brick + n }
   | Ore    -> { player with ore = player.ore + n }
 
-let player_ok p = failwith "TODO"
+let player_ok p =
+  if p.lumber < 0 || p.wool < 0 || p.grain<0 || p.brick <0 || p.ore<0
+  then invalid_arg "Not enough resources"
+  else p
+
 let remove_resources player n r = add_resources player (-n) r |> player_ok
 
 let trade_with_bank st to_remove to_add cl =
@@ -603,12 +616,19 @@ let trade_with_player st to_remove to_add cl =
   trade_with_bank st' to_add to_remove cl
 
 let play_monopoly st rs =
-  let result = List.fold_left (fun (lst, n) p -> if p.color = st.turn then p::lst, n else (add_resources p (-(num_resources p rs)) rs):: lst, n + (num_resources p rs)) ([], 0) st.players in
+  let steal (lst, n) p =
+    if p.color = st.turn
+    then p :: lst, n
+    else
+      let m = num_resources p rs in
+      (remove_resources p m rs):: lst, n + m
+  in
+  let result = List.fold_left steal ([], 0) st.players in
   let player = List.find (fun p -> p.color = st.turn) st.players in
   let player = add_resources player (snd result) rs in
   let player = { player with monopoly = player.monopoly - 1 } in
-  let players = List.map (fun p -> if p.color = st.turn then player else p) (fst result) in
-  { st with players }
+  let players = List.map (fun p -> if p.color = st.turn then player else p)
+      (fst result) in { st with players }
 
 let play_year_of_plenty st r1 r2 =
   let player = List.find (fun p -> p.color = st.turn) st.players in
