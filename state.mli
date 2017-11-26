@@ -32,10 +32,13 @@ val init_phase : state -> state
 val move_robber : state -> state
 
 (* [build_building st] returns the new state after player builds a building *)
-val build_building : state -> state
+val build_settlement : int*state*color -> state
 
 (* [build_road st] returns the new state after player builds a road *)
-val build_road : state -> state
+val build_road : road*state*color -> state
+
+(* [build_city st] returns the new state after player builds a city *)
+val build_city : int*state*color -> state
 
 (* [trade_with_bank] returns the new state after player trades with bank *)
 val trade_with_bank : state -> resource -> resource -> color -> state

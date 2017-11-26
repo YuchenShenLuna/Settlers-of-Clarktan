@@ -406,9 +406,49 @@ let can_build_city ind st color =
       failwith "You do not have enough resource to build a city"
     else true
 
-let build_building st = failwith "TODO"
+let build_settlement ind st color =
+  let open Tile in
+  let _ = can_build_settlements ind st color in
+  let new_players = st.players
+                    |> List.map (fun x -> if x.color <> color then x
+                                  else {x with lumber = x.lumber-1;
+                                               brick = x.brick-1;
+                                               ore = x.ore-1;
+                                               wool = x.wool-1})
+  in
+  let new_tiles = st.canvas.tiles
+                  |> List.map (fun x -> if List.mem ind x.indices = false then x
+                                else {x with buildings = (ind, (color, 1))::x.buildings})
+  in {st with players = new_players; canvas = {tiles = new_tiles; ports = st.canvas.ports}}
 
-let build_road st = failwith "TODO"
+let build_road (i0, i1) st color =
+  let open Tile in
+  let _ = can_build_road (i0, i1) st color in
+  let new_players = st.players
+                    |> List.map (fun x -> if x.color <> color then x
+                                  else {x with lumber = x.lumber-1;
+                                               brick = x.brick-1})
+  in
+  let new_tiles = st.canvas.tiles
+                  |> List.map (fun x -> if List.mem i0 x.indices = false
+                                        || List.mem i1 x.indices = false then x
+                                else {x with roads = ((i0, i1), color)::x.roads})
+  in {st with players = new_players; canvas = {tiles = new_tiles; ports = st.canvas.ports}}
+
+let build_city ind st color =
+  let open Tile in
+  let _ = can_build_city ind st color in
+  let new_players = st.players
+                    |> List.map (fun x -> if x.color <> color then x
+                                  else {x with grain = x.grain-3;
+                                               ore = x.ore-2})
+  in
+  let new_tiles =
+    st.canvas.tiles
+    |> List.map (fun x -> if List.mem ind x.indices = false then x
+                  else {x with buildings = List.map (fun (a, (b, c)) ->
+                      if a = ind then (a, (b, 2)) else (1, (b, c))) x.buildings})
+  in {st with players = new_players; canvas = {tiles = new_tiles; ports = st.canvas.ports}}
 
 let check_robber tile st =
   let robber_ind = st.robber in
