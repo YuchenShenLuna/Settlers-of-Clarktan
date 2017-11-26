@@ -24,6 +24,8 @@ let distance (x1, y1) (x2, y2) =
   sqrt ((x1 -. x2) ** 2. +. (y1 -. y2) ** 2.)
 
 let nearby_settlement (st : State.state) (x, y) =
+  let open Tile in
+  let open State in
   let find_intersection acc (t : Tile.tile) =
     if acc = None
     then List.fold_left (
@@ -41,6 +43,8 @@ let nearby_settlement (st : State.state) (x, y) =
   List.fold_left find_intersection None st.canvas.tiles
 
 let nearby_city (st : State.state) (x, y) (c : color) =
+  let open Tile in
+  let open State in
   let find_settlement acc (t : Tile.tile) =
     if acc = None
     then List.fold_left (
@@ -57,6 +61,8 @@ let nearby_city (st : State.state) (x, y) (c : color) =
   List.fold_left find_settlement None st.canvas.tiles
 
 let nearby_road (st : State.state) (x, y) =
+  let open Tile in
+  let open State in
   let find_edge acc (t : Tile.tile) =
     if acc = None
     then List.fold_left (
@@ -80,6 +86,8 @@ let nearby_road (st : State.state) (x, y) =
   List.fold_left find_edge None st.canvas.tiles
 
 let nearby_tile (st : State.state) (x, y) =
+  let open Tile in
+  let open State in
   let f acc (t : Tile.tile) =
     if fst acc = None && distance (x, y) t.center < 0.86602540378 *. t.edge
     then Some (snd acc), 0
@@ -88,7 +96,8 @@ let nearby_tile (st : State.state) (x, y) =
   List.fold_left f (None, 0) st.canvas.tiles |> fst
 
 let parse_mouse st =
-  let info = Graphics.wait_next_event [ Button_down; Button_up ] in
+  let open Graphics in
+  let info = wait_next_event [ Button_down; Button_up ] in
   float_of_int info.mouse_x, float_of_int info.mouse_y
 
 let resource_of_string = function
