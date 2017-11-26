@@ -343,16 +343,69 @@ let move_robber st = failwith "TODO"
 (* check: 1. whether player's number of settlements < 5
           2. resource is enough [1 lumber, 1 brick, 1 ore, i wool]
           3. whether check_build_settlements returns true *)
-let can_build_settlements num st color = failwith "TODO"
+let can_build_settlements ind st color =
+  let open Tile in
+  let num_settlements = st.canvas.tiles
+             |> List.map (fun x -> x.buildings)
+             |> List.flatten
+             |> List.sort_uniq compare
+             |> List.filter (fun (x, (y, z)) -> y=color && z=1)
+             |> List.length
+  in
+  if num_settlements >= 5 then
+    failwith "You have build the maximum number of settlements possible"
+  else if check_build_settlements ind st color = false then
+    failwith "You cannot build settlement at this place"
+  else
+    let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
+    if player.lumber < 1 || player.brick < 1 || player.ore < 1 || player.wool < 1 then
+      failwith "You do not have enough resource to build a settlement"
+    else true
 
 (* check: 1. whether players number of roads < 15
           2. resource is enough [1 lumber, 1 brick]
           3. whether check_build_road returns true *)
-let can_build_road (i0, i1) st color = failwith "TODO"
+let can_build_road (i0, i1) st color =
+  let open Tile in
+  let num_roads = st.canvas.tiles
+                  |> List.map (fun x -> x.roads)
+                  |> List.flatten
+                  |> List.sort_uniq compare
+                  |> List.filter (fun (x, y) -> y=color)
+                  |> List.length
+  in
+  if num_roads >= 15 then
+    failwith "You have build the maximum number of roads possible"
+  else if check_build_road (i0, i1) st color = false then
+    failwith "You cannot build road at this place"
+  else
+    let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
+    if player.lumber < 1 || player.brick < 1 then
+      failwith "You do not have enough resource to build a road"
+    else true
 
 (* check: 1. whether players number of cities < 4
           2. resource is enough [3 grains, 2 ores]
           3. whether check_build_cities returns true *)
+let can_build_city ind st color =
+  let open Tile in
+  let num_cities = st.canvas.tiles
+                   |> List.map (fun x -> x.buildings)
+                   |> List.flatten
+                   |> List.sort_uniq compare
+                   |> List.filter (fun (x, (y, z)) -> y=color && z=2)
+                   |> List.length
+  in
+  if num_cities >= 5 then
+    failwith "You have build the maximum number of cities possible"
+  else if check_build_cities ind st color = false then
+    failwith "You cannot build city at this place"
+  else
+    let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
+    if player.grain < 3 || player.ore < 2 then
+      failwith "You do not have enough resource to build a city"
+    else true
+
 let build_building st = failwith "TODO"
 
 let build_road st = failwith "TODO"
