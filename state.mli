@@ -38,7 +38,7 @@ val build_building : state -> state
 val build_road : state -> state
 
 (* [trade_with_bank] returns the new state after player trades with bank *)
-val trade_with_bank : state -> resource-> resource-> color -> player
+val trade_with_bank : state -> resource -> resource -> color -> state
 
 (* [check_build_building num st col] returns true when player can build a building,
  * false otherwise *)
