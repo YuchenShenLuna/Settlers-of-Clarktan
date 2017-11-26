@@ -14,7 +14,7 @@ type player =
     brick: int;
     ore: int;
     score: int;
-    knights: int;
+    knights_activated: int;
     longest_road: bool;
     largest_army: bool
   }
@@ -33,7 +33,7 @@ let init_player color =
     brick = 0;
     ore = 0;
     score = 0;
-    knights = 0;
+    knights_activated = 0;
     longest_road = false;
     largest_army = false
   }

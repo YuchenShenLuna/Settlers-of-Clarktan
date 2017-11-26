@@ -33,9 +33,12 @@ val fetch_tiles : int -> Tile.tile list -> Tile.tile list
 (* [init_phase] initializes the first stage of the game *)
 val setup : state -> state
 
+(* [discard_resource] discards resources for one player when robber is activated *)
+val discard_resource : color -> state -> (resource*int) list -> state
+
 (* [play_robber st] returns the new state after the player plays the
  * robber by dice 7 *)
-val play_robber : state -> state
+val play_robber : state -> color -> int -> state
 
 (* [build_building st] returns the new state after player builds a building *)
 val build_settlement : int -> state -> color -> state

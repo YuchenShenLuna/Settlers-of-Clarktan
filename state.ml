@@ -297,8 +297,6 @@ let play_victory st color =
     if e.color = color then {e with score = e.score + 2}
     else e in {st with players = List.map f st.players}
 
-let play_knight st = failwith "TODO"
-
 (* need [1 grain, 1 ore, 1 wool] *)
 let buy_devcard color st =
   let open Player in
@@ -342,7 +340,94 @@ let buy_devcard color st =
     | VictoryPoint -> play_victory st' color
     | _ -> st'
 
-let play_robber st = failwith "TODO"
+
+let num_resources player = function
+  | Lumber -> player.lumber
+  | Wool   -> player.wool
+  | Grain  -> player.grain
+  | Brick  -> player.brick
+  | Ore    -> player.ore
+
+let check_num_resources color st =
+  let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
+  num_resources player Lumber + num_resources player Wool +
+  num_resources player Grain + num_resources player Brick +
+  num_resources player Ore
+
+let discard_resource color st lst =
+  let open Player in
+  if check_num_resources color st < 7 then st
+  else
+    let num_in_lst = List.fold_left (fun acc (a, b) -> acc + b) 0 lst in
+    if num_in_lst < check_num_resources color st then
+      failwith "you need to discard more resources"
+    else if num_in_lst > check_num_resources color st then
+      failwith "you need to discard fewer resources"
+    else
+      let new_players =
+        st.players
+        |> List.map (fun x -> if x.color <> color then x
+                      else {x with
+                            wool = if List.assoc_opt Wool lst <> None then
+                                    x.wool - (List.assoc Wool lst) else x.wool;
+                            lumber = if List.assoc_opt Lumber lst <> None then
+                                x.wool - (List.assoc Lumber lst) else x.wool;
+                            grain = if List.assoc_opt Grain lst <> None then
+                                x.wool - (List.assoc Grain lst) else x.wool;
+                            brick = if List.assoc_opt Brick lst <> None then
+                                x.wool - (List.assoc Brick lst) else x.wool;
+                            ore = if List.assoc_opt Ore lst <> None then
+                                x.wool - (List.assoc Ore lst) else x.wool;})
+      in
+      {st with players = new_players}
+
+let play_robber st color ind =
+  let open Tile in
+  let open Player in
+  let pos_stealees = (List.nth st.canvas.tiles ind).buildings
+                          |> List.map (fun (_, (col, _)) -> col)
+                          |> List.sort_uniq compare
+                          |> List.filter (fun x -> check_num_resources x st > 0) in
+  let shuffle lst =
+    let i = Random.int (List.length lst) in
+    List.nth lst i
+  in
+  let stealee_color = shuffle pos_stealees in
+  let stealee = List.hd (List.filter (fun x -> x.color = stealee_color) st.players) in
+  let pos_wool = if stealee.wool > 0 then [Wool] else [] in
+  let pos_lumber = if stealee.lumber > 0 then [Lumber] else [] in
+  let pos_brick = if stealee.wool > 0 then [Brick] else [] in
+  let pos_ore = if stealee.lumber > 0 then [Ore] else [] in
+  let pos_grain = if stealee.wool > 0 then [Grain] else [] in
+  let pos_resource = pos_wool @ pos_brick @ pos_lumber @ pos_grain @ pos_ore in
+  let stolen_resource = shuffle pos_resource in
+  let new_players =
+    st.players |> List.map (fun x -> if x.color = color then begin
+                               match stolen_resource with
+                               | Wool -> {x with wool = x.wool+1}
+                               | Brick -> {x with brick = x.brick+1}
+                               | Lumber -> {x with lumber = x.lumber+1}
+                               | Ore -> {x with ore = x.ore+1}
+                               | Grain -> {x with grain = x.grain+1} end
+                            else if x.color = stealee_color then begin
+                              match stolen_resource with
+                              | Wool -> {x with wool = x.wool-1}
+                              | Brick -> {x with brick = x.brick-1}
+                              | Lumber -> {x with lumber = x.lumber-1}
+                              | Ore -> {x with ore = x.ore-1}
+                              | Grain -> {x with grain = x.grain-1} end
+                              else x)
+  in {st with players = new_players; robber = ind}
+
+
+let play_knight st color ind =
+  let open Player in
+  let st' = play_robber st color ind in
+  let new_players =
+    List.map (fun x -> if x.color <> color then x
+               else {x with knight = x.knight-1;
+                            knights_activated = x.knights_activated+1}) st'.players in
+  {st' with players = new_players}
 
 (* check: 1. whether player's number of settlements < 5
           2. resource is enough [1 lumber, 1 brick, 1 ore, i wool]
@@ -495,13 +580,6 @@ let generate_resource st num =
 
 let longest_road st = failwith "TODO"
 let largest_army st = failwith "TODO"
-
-let num_resources player = function
-  | Lumber -> player.lumber
-  | Wool   -> player.wool
-  | Grain  -> player.grain
-  | Brick  -> player.brick
-  | Ore    -> player.ore
 
 let add_resources player n = function
   | Lumber -> { player with lumber = player.lumber + n }
