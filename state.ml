@@ -293,7 +293,7 @@ let play_knight st = failwith "TODO"
 
 let play_devcard card st = failwith "TODO"
 
-let init_phase f = failwith "TODO"
+let init_phase st = failwith "TODO"
 
 let move_robber st = failwith "TODO"
 
@@ -301,7 +301,44 @@ let build_building st = failwith "TODO"
 
 let build_road st = failwith "TODO"
 
-let generate_resource st = failwith "TODO"
+let check_robber tile st =
+  let robber_ind = st.robber in
+  let tile_at_ind = List.nth st.canvas.tiles robber_ind in
+  tile_at_ind = tile
+
+let generate_resource st num =
+  let open Tile in
+  let open Player in
+  let tiles = fetch_tiles num st.canvas.tiles in
+  let info =
+    List.flatten
+      (List.map
+         (fun x -> if check_robber x st then []
+           else List.map
+               (fun (a, (b, c)) -> (b, (x.resource, c))) x.buildings) tiles) in
+  let rec help st lst =
+    match lst with
+    | [] -> st
+    | (col, (resource, mul))::t ->
+      begin
+        let rec new_players playerlst acc =
+        match playerlst with
+        | [] -> acc
+        | h::t -> if h.color = col then
+                    let newp =
+                    begin
+                      match resource with
+                      | Lumber -> {h with lumber = h.lumber + mul}
+                      | Wool -> {h with wool = h.wool + mul}
+                      | Grain -> {h with grain = h.grain + mul}
+                      | Brick -> {h with brick = h.brick + mul}
+                      | Ore -> {h with ore = h.ore + mul}
+                    end
+                    in new_players t (newp::acc)
+          else new_players t (h::acc)
+        in help {st with players = new_players st.players []} t
+      end
+  in help st info
 
 let count_resource_card player resource =
   match resource with
