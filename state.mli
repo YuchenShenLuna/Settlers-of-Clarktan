@@ -11,9 +11,12 @@ type canvas = {
 type state = {
   robber: int;
   deck: DevCard.devcard list;
+  current_player : color;
   players: Player.player list;
   canvas : canvas
 }
+
+val end_turn : state -> state
 
 (* [init_canvas] returns a new canvas to be used in a new game *)
 val init_canvas : unit -> canvas

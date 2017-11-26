@@ -9,6 +9,7 @@ type canvas = {
 type state = {
   robber: int;
   deck: DevCard.devcard list;
+  current_player : color;
   players: Player.player list;
   canvas : canvas
 }
@@ -169,6 +170,8 @@ let init_canvas () =
     ];
     ports = []
   }
+
+let end_turn = failwith ""
 
 let fetch_neighbors num =
   let fetch num =
@@ -520,7 +523,7 @@ let trade_with_bank_helper st rs color =
     | Brick ->  {player_now with brick=player_now.brick - 4}
     | Ore ->  {player_now with ore=player_now.ore - 4}
 
-(*helper function for trade_with_bank, which returns the updated player*)
+(* helper function for trade_with_bank, which returns the updated player*)
 let trade_with_bank_helper' st rs rs' color =
   let updated = trade_with_bank_helper st rs color in
   match rs' with
@@ -534,7 +537,6 @@ let trade_with_bank st rs rs' cl=
   let updated_player=trade_with_bank_helper' st rs rs' cl in
   let updated_list=List.filter (fun s -> s.color<>cl) st.players in
   {st with players=updated_player::updated_list}
-
 
 let do_player st = failwith "TODO"
 
