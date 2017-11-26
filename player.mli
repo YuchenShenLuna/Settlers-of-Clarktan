@@ -17,7 +17,7 @@ type player =
     brick: int;
     ore: int;
     score: int;
-    knights: int;
+    knights_activated: int;
     longest_road: bool;
     largest_army: bool
   }
