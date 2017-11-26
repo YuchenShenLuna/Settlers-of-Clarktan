@@ -293,10 +293,66 @@ let play_knight st = failwith "TODO"
 
 let play_devcard card st = failwith "TODO"
 
+(* need [1 grain, 1 ore, 1 wool] *)
+let buy_devcard color st =
+  let open Player in
+  let open DevCard in
+  let player = List.hd (List.filter (fun x -> x.color=color) st.players) in
+  if player.grain < 1 || player.ore < 1 || player.wool < 1 then
+    failwith "Not enough resource to buy development card"
+  else if List.length st.deck < 1 then
+    failwith "Development cards sold out"
+  else
+    let card_lst = (shuffle st.deck) in
+    let card = List.hd card_lst in
+    let rest = List.tl card_lst in
+    let updated_players col lst =
+      List.map (fun x -> if x.color <> col then x
+                 else
+                   match card with
+                   | Knight -> {x with knight = x.knight+1;
+                                       grain = x.grain-1;
+                                       ore = x.ore-1;
+                                       wool = x.wool-1}
+                   | Road_of_Building -> {x with road_of_Building = x.road_of_Building+1;
+                                                 grain = x.grain-1;
+                                                 ore = x.ore-1;
+                                                 wool = x.wool-1}
+                   | Year_of_Plenty -> {x with year_of_Plenty = x.year_of_Plenty+1;
+                                               grain = x.grain-1;
+                                               ore = x.ore-1;
+                                               wool = x.wool-1}
+                   | Monopoly -> {x with monopoly = x.monopoly+1;
+                                         grain = x.grain-1;
+                                         ore = x.ore-1;
+                                         wool = x.wool-1}
+                   | Victory_Point -> {x with victory_Point = x.victory_Point+1;
+                                              grain = x.grain-1;
+                                              ore = x.ore-1;
+                                              wool = x.wool-1}) lst
+    in
+    let st' = {st with deck = rest; players = updated_players color st.players} in
+    match card with
+    | Victory_Point -> play_victory st' color
+    | _ -> st'
+
 let init_phase st = failwith "TODO"
 
 let move_robber st = failwith "TODO"
 
+(* check: 1. whether player's number of settlements < 5
+          2. resource is enough [1 lumber, 1 brick, 1 ore, i wool]
+          3. whether check_build_settlements returns true *)
+let can_build_settlements num st color = failwith "TODO"
+
+(* check: 1. whether players number of roads < 15
+          2. resource is enough [1 lumber, 1 brick]
+          3. whether check_build_road returns true *)
+let can_build_road (i0, i1) st color = failwith "TODO"
+
+(* check: 1. whether players number of cities < 4
+          2. resource is enough [3 grains, 2 ores]
+          3. whether check_build_cities returns true *)
 let build_building st = failwith "TODO"
 
 let build_road st = failwith "TODO"

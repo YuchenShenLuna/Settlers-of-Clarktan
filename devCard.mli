@@ -5,7 +5,12 @@
 type description
 
 (* devcard is the type of development cards that hold various informations *)
-type devcard
+type devcard =
+  | Knight
+  | Road_of_Building
+  | Year_of_Plenty
+  | Monopoly
+  | Victory_Point
 
 (* [shuffle lst] randomly changes the order of the cards in [lst] and returns
  * the new list of cards *)

@@ -4,7 +4,7 @@ type devcard =
   | Knight
   | Road_of_Building
   | Year_of_Plenty
-  | Monopoly of string
+  | Monopoly
   | Victory_Point
 
 (*cite from stackoverflow: how to shuffle elements of list in
@@ -18,11 +18,11 @@ let shuffle d =
 (*transfer string representation of resources to corresponeding monolopy card type*)
 let helper_monopoly rs=
   let rs'= String.lowercase_ascii rs in
-  if rs' = "wool" then Monopoly ("wool")
-  else if rs' = "lumber" then Monopoly ("lumber")
-  else if rs' = "grain" then Monopoly ("grain")
-  else if rs' = "brick" then Monopoly ("brick")
-  else Monopoly ("ore")
+  if rs' = "wool" then Monopoly
+  else if rs' = "lumber" then Monopoly
+  else if rs' = "grain" then Monopoly
+  else if rs' = "brick" then Monopoly
+  else Monopoly
 
 let input rs =
   failwith "TODO"

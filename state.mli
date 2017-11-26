@@ -53,7 +53,7 @@ val check_build_road : road -> state -> color -> bool
 val check_build_cities : int -> state -> color -> bool
 
 (* [generate_resource st] generates the resource for each dice roll *)
-val generate_resource : state -> state
+val generate_resource : state -> int -> state
 
 (* [do_player st] returns the state after a player finishes a turn *)
 val do_player : state -> state
