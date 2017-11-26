@@ -338,7 +338,7 @@ let buy_devcard color st =
 
 let init_phase st = failwith "TODO"
 
-let move_robber st = failwith "TODO"
+let play_robber st = failwith "TODO"
 
 (* check: 1. whether player's number of settlements < 5
           2. resource is enough [1 lumber, 1 brick, 1 ore, i wool]

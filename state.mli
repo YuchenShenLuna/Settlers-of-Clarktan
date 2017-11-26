@@ -27,18 +27,18 @@ val play_devcard : DevCard.devcard -> state -> state
 (* [init_phase] initializes the first stage of the game *)
 val init_phase : state -> state
 
-(* [move_robber st] returns the new state after the player moves the
- * robber *)
-val move_robber : state -> state
+(* [play_robber st] returns the new state after the player plays the
+ * robber by dice 7 *)
+val play_robber : state -> state
 
 (* [build_building st] returns the new state after player builds a building *)
-val build_settlement : int*state*color -> state
+val build_settlement : int -> state -> color -> state
 
 (* [build_road st] returns the new state after player builds a road *)
-val build_road : road*state*color -> state
+val build_road : road -> state -> color -> state
 
 (* [build_city st] returns the new state after player builds a city *)
-val build_city : int*state*color -> state
+val build_city : int -> state -> color -> state
 
 (* [trade_with_bank] returns the new state after player trades with bank *)
 val trade_with_bank : state -> resource -> resource -> color -> state
