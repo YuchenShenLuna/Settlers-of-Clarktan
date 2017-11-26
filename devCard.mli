@@ -6,19 +6,12 @@ type description
 
 (* devcard is the type of development cards that hold various informations *)
 type devcard =
-  | Knight
-  | Road_of_Building
-  | Year_of_Plenty
-  | Monopoly
-  | Victory_Point
+| Knight
+| RoadBuilding
+| YearOfPlenty
+| Monopoly
+| VictoryPoint
 
 (* [shuffle lst] randomly changes the order of the cards in [lst] and returns
  * the new list of cards *)
 val shuffle : devcard list -> devcard list
-
-(* [input str] deals with the monopoly card and returns the new card list
- * after one monopoly card is played *)
-val input : string -> devcard list
-
-(* [remove_from_list lst] removes a certain card from the card list *)
-val remove_from_list : devcard -> devcard list -> devcard list

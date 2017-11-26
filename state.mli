@@ -16,7 +16,13 @@ type state = {
   canvas : canvas
 }
 
+val longest_road : state -> player
+
+val largest_army : state -> player
+
 val end_turn : state -> state
+
+val init_state : unit -> state
 
 (* [init_canvas] returns a new canvas to be used in a new game *)
 val init_canvas : unit -> canvas
@@ -24,11 +30,8 @@ val init_canvas : unit -> canvas
 (* [fetch_tiles i] fetches the list of tiles associated with number [i] *)
 val fetch_tiles : int -> Tile.tile list -> Tile.tile list
 
-(* [play_devcard card st] returns the new state after the player plays [card]*)
-val play_devcard : DevCard.devcard -> state -> state
-
 (* [init_phase] initializes the first stage of the game *)
-val init_phase : state -> state
+val setup : state -> state
 
 (* [play_robber st] returns the new state after the player plays the
  * robber by dice 7 *)
@@ -44,7 +47,9 @@ val build_road : road -> state -> color -> state
 val build_city : int -> state -> color -> state
 
 (* [trade_with_bank] returns the new state after player trades with bank *)
-val trade_with_bank : state -> resource -> resource -> color -> state
+val trade_with_bank : state -> (resource * int) list -> (resource * int) list -> color -> state
+
+val trade_with_player : state -> (resource * int) list -> (resource * int) list -> color -> state
 
 (* [check_build_building num st col] returns true when player can build a building,
  * false otherwise *)

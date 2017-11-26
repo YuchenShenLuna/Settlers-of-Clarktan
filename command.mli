@@ -17,7 +17,7 @@ type command =
   | VictoryPoint
   | Robber of int
   | DomesticTrade of (resource * int) list * (resource * int) list * color
-  | MaritimeTrade of (resource * int) list * (resource * int) list
+  | MaritimeTrade of (resource * int) * (resource * int)
   | Accept of bool
   | Discard of (resource * int) list
   | EndTurn

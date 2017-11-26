@@ -4,10 +4,10 @@ type player =
   {
     color: color;
     knight: int;
-    road_of_Building: int;
-    year_of_Plenty: int;
+    road_building: int;
+    year_of_plenty: int;
     monopoly: int;
-    victory_Point: int;
+    victory_point: int;
     wool: int;
     lumber: int;
     grain: int;
@@ -22,16 +22,16 @@ type player =
 let init_player color =
   {
     color = color;
-    knight=0;
-    road_of_Building=0;
-    year_of_Plenty=0;
-    monopoly=0;
-    victory_Point=0;
-    wool=0;
-    lumber=0;
-    grain=0;
-    brick=0;
-    ore=0;
+    knight = 0;
+    road_building = 0;
+    year_of_plenty = 0;
+    monopoly = 0;
+    victory_point = 0;
+    wool = 0;
+    lumber = 0;
+    grain = 0;
+    brick = 0;
+    ore = 0;
     score = 0;
     knights = 0;
     longest_road = false;

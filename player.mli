@@ -7,10 +7,10 @@ type player =
   {
     color: color;
     knight: int;
-    road_of_Building: int;
-    year_of_Plenty: int;
+    road_building: int;
+    year_of_plenty: int;
     monopoly: int;
-    victory_Point: int;
+    victory_point: int;
     wool: int;
     lumber: int;
     grain: int;
