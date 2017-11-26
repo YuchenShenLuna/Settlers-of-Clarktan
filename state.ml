@@ -578,6 +578,24 @@ let generate_resource st num =
       end
   in help st info
 
+let fetch_roads st =
+  let cmp (s1, e1) (s2, e2) =
+    if s1 < s2 then -1
+    else if s1 > s2 then 1
+    else if e1 < e2 then -1
+    else if e1 > e2 then 1
+    else 0
+  in
+  let open Tile in
+  List.fold_left (
+    fun acc t ->
+      acc @ List.mapi (
+        fun i j ->
+          let k = List.nth t.indices ((i + 1) mod 6) in
+          if j < k then j, k else k, j
+      ) t.indices
+  ) [] st.tiles |> List.sort_uniq cmp
+
 let longest_road st = failwith "TODO"
 
 let largest_army st =

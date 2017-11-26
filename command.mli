@@ -16,7 +16,7 @@ type command =
   | Monopoly of resource
   | VictoryPoint
   | Robber of int
-  | DomesticTrade of (resource * int) list * (resource * int) list * color
+  | DomesticTrade of (resource * int) list * (resource * int) list
   | MaritimeTrade of (resource * int) * (resource * int)
   | Accept of bool
   | Discard of (resource * int) list
