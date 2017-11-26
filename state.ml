@@ -172,6 +172,7 @@ let init_canvas () =
   }
 
 let init_state () = failwith "TODO"
+
 let setup st = failwith "TODO"
 
 let end_turn st =
