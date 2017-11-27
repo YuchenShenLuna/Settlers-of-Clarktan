@@ -360,7 +360,9 @@ let check_build_road (i0, i1) st color =
       | Some (color, _) -> color
   in
   let res' = help tile_lst i0 = color || help tile_lst i1 = color in
-  if res' = true then true else
+  if res' = true then
+    true 
+  else
     List.fold_left (fun acc x ->
         acc || help' tile_lst i0 x = color) false ind_lst_i0
     || List.fold_left (fun acc x ->
