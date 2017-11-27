@@ -16,9 +16,9 @@ type state = {
   canvas : canvas
 }
 
-val longest_road : state -> player option
+val longest_road : state -> state
 
-val largest_army : state -> player option
+val largest_army : state -> state
 
 val end_turn : state -> state
 

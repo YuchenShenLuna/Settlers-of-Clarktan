@@ -647,21 +647,43 @@ let longest_road st=
       else visited
     in rdfs [] start in
   let longest_road=dfs edges (fst (List.hd edges)) in
-  if (List.length longest_road)-1 <5 then None else
+  if (List.length longest_road)-1 <5 then st else
     let possible_player=find_owner_of_road st ((List.hd longest_road),(List.nth longest_road 1 ))
-    in if possible_player <> None then Some {(get_player_out_of_some possible_player) with longest_road=true} else
-      let possible_player'=find_owner_of_road st ((List.nth longest_road 1 ),(List.hd longest_road)) in
-      Some {(get_player_out_of_some possible_player') with longest_road=true}
+    in if possible_player <> None then
+      let now_player=get_player_out_of_some possible_player in
+      let updated_player={now_player with longest_road=true} in
+      let updated_player_list=List.map (fun x-> if x.color!=updated_player.color
+                                         then {x with longest_road=false} else
+                                           updated_player) st.players in
+      {st with players=updated_player_list}
+    else
+      let now_player'=get_player_out_of_some (find_owner_of_road st ((List.nth longest_road 1 ),(List.hd longest_road))) in
+      let updated_player'={now_player' with longest_road=true} in
+      let updated_player_list'=List.map (fun x->
+          if x.color!=updated_player'.color
+          then {x with longest_road=false}
+          else updated_player') st.players in
+      {st with players=updated_player_list'}
 
 let largest_army st =
-  List.fold_left
-    (fun acc x ->
-       match acc with
-       | None -> if x.knights_activated >= 3 then Some x else None
-       | Some y ->
-         if x.knights_activated > y.knights_activated
-         then Some x else acc
-    ) None st.players
+  let possible_player=
+    List.fold_left
+      (fun acc x ->
+         match acc with
+         | None -> if x.knights_activated >= 3 then Some x else None
+         | Some y ->
+           if x.knights_activated > y.knights_activated
+           then Some x else acc
+      ) None st.players
+  in if possible_player = None then st else
+    let now_player= get_player_out_of_some possible_player  in
+    let updated_player={now_player with largest_army=true} in
+    let updated_player_list=List.map (fun x->
+        if x.color!=updated_player.color
+        then {x with largest_army=false}
+        else updated_player) st.players in
+    {st with players=updated_player_list}
+
 
 let add_resources player n = function
   | Lumber -> { player with lumber = player.lumber + n }
