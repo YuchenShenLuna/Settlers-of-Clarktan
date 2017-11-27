@@ -16,9 +16,7 @@ type state = {
   canvas : canvas
 }
 
-val longest_road : state -> state
 
-val largest_army : state -> state
 
 (* [build_settlement ind st col] returns the new state after player with color
  * [col] at state [st] builds a new settlement at index [ind].
@@ -100,10 +98,10 @@ val init_state : unit -> state
 val init_canvas : unit -> canvas
 
 (* [longest_road st] returns the player who has the longest road token *)
-val longest_road : state -> player option
+val longest_road : state -> state
 
 (* [largest_army st] returns the player who has the largest army token *)
-val largest_army : state -> player option
+val largest_army : state -> state
 
 (* [play_knight st col ind] updates the state [st] when player with color
  * [col] plays a knight card and moves the robber to the new index [ind]*)

@@ -826,7 +826,7 @@ let longest_road st=
           let s = successors node graph in
           List.fold_left rdfs (node::visited) s
         end
-<<<<<<< HEAD
+
       else visited
     in rdfs [] start in
   let longest_road=dfs edges (fst (List.hd edges)) in
@@ -867,36 +867,6 @@ let largest_army st =
         else updated_player) st.players in
     {st with players=updated_player_list}
 
-=======
-      else
-        visited
-    in rdfs [] start
-  in
-  let longest_road = dfs edges (fst (List.hd edges)) in
-  if (List.length longest_road)-1 < 5 then None
-  else
-    let possible_player =
-      find_owner_of_road st ((List.hd longest_road), (List.nth longest_road 1))
-    in
-    if possible_player <> None then
-      Some {(get_player_out_of_some possible_player) with longest_road=true}
-    else
-      let possible_player' =
-        find_owner_of_road st ((List.nth longest_road 1 ),(List.hd longest_road))
-      in
-      Some {(get_player_out_of_some possible_player') with longest_road=true}
-
-let largest_army st =
-  List.fold_left
-    (
-      fun acc x ->
-       match acc with
-       | None -> if x.knights_activated >= 3 then Some x else None
-       | Some y ->
-         if x.knights_activated > y.knights_activated
-         then Some x else acc
-    ) None st.players
->>>>>>> 86e8a4218a1071a235832fda793528f843b93b58
 
 (* [add_resources player n r] adds [n] resources [r] for player [player] *)
 let add_resources player n = function
