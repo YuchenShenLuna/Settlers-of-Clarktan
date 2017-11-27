@@ -613,18 +613,54 @@ let fetch_roads st =
           let k = List.nth t.indices ((i + 1) mod 6) in
           if j < k then j, k else k, j
       ) t.indices
-  ) [] st.tiles |> List.sort_uniq cmp
+  ) [] st.canvas.tiles |> List.sort_uniq cmp
 
-let longest_road st = failwith "TODO"
+let rec find_possible_owner_of_road_one_tile st rd_list (s,e)=
+  let open Tile in
+  match rd_list with
+  | [] -> None
+  | h::t -> if (s,e)=fst h
+    then (*Some (snd h) in*) Some (List.find (fun p -> p.color = snd h) st.players)
+    else  find_possible_owner_of_road_one_tile st t (s,e)
+
+let find_owner_of_road st rd=
+  let open Tile in
+  List.fold_left (fun acc x ->
+      if find_possible_owner_of_road_one_tile st (x.roads) rd <> None
+      then find_possible_owner_of_road_one_tile st x.roads rd  else acc) (None) (st.canvas.tiles)
+
+let get_player_out_of_some pl=
+  match pl with
+  | Some p -> p
+  | None -> failwith "impossible"
+
+let longest_road st=
+  let edges=fetch_roads st in
+  let successors n e = List.map (fun (_, v) -> v) (List.filter (fun (u, _) -> n = u) e) in
+  let dfs graph start  =
+    let rec rdfs visited node =
+      if not (List.mem node visited) then
+        begin
+          let s = successors node graph in
+          List.fold_left rdfs (node::visited) s
+        end
+      else visited
+    in rdfs [] start in
+  let longest_road=dfs edges (fst (List.hd edges)) in
+  if (List.length longest_road)-1 <5 then None else
+    let possible_player=find_owner_of_road st ((List.hd longest_road),(List.nth longest_road 1 ))
+    in if possible_player <> None then Some {(get_player_out_of_some possible_player) with longest_road=true} else
+      let possible_player'=find_owner_of_road st ((List.nth longest_road 1 ),(List.hd longest_road)) in
+      Some {(get_player_out_of_some possible_player') with longest_road=true}
 
 let largest_army st =
   List.fold_left
     (fun acc x ->
-      match acc with
-      | None -> if x.knights_activated >= 3 then Some x else None
-      | Some y ->
-        if x.knights_activated > y.knights_activated
-        then Some x else acc
+       match acc with
+       | None -> if x.knights_activated >= 3 then Some x else None
+       | Some y ->
+         if x.knights_activated > y.knights_activated
+         then Some x else acc
     ) None st.players
 
 let add_resources player n = function
@@ -707,6 +743,7 @@ let trade_with_player st to_remove to_add cl =
   if condition_one && condition_two then
     let st' = trade_with_bank st to_remove to_add st.turn in
     trade_with_bank st' to_add to_remove cl else raise (Failure "the trade with other player is not valid")
+
 
 let play_monopoly st rs =
   let steal (lst, n) p =
