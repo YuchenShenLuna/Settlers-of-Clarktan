@@ -361,7 +361,7 @@ let check_build_road (i0, i1) st color =
   in
   let res' = help tile_lst i0 = color || help tile_lst i1 = color in
   if res' = true then
-    true 
+    true
   else
     List.fold_left (fun acc x ->
         acc || help' tile_lst i0 x = color) false ind_lst_i0
@@ -404,10 +404,22 @@ let play_road_build st color (i0, i1) =
     {st with canvas = {tiles = new_tiles; ports=st.canvas.ports};
              players = new_players}
 
-let play_victory st color =
-  let f e =
-    if e.color = color then {e with score = e.score + 2}
-    else e in {st with players = List.map f st.players}
+let calc_score st color =
+  let open Tile in
+  let build_score =
+    st.canvas.tiles
+    |> List.map (fun x -> x.buildings)
+    |> List.flatten
+    |> List.sort_uniq compare
+    |> List.filter (fun (ind, (c, rate)) -> c=color)
+    |> List.map (fun (ind, (c, rate)) -> rate)
+    |> List.fold_left (fun acc x -> acc + x) 0
+  in
+  let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
+  let victory_card_score = player.victory_point * 2 in
+  let longest_road_score = if player.longest_road then 2 else 0 in
+  let largest_army_score = if player.largest_army then 2 else 0 in
+  build_score + victory_card_score + longest_road_score + largest_army_score
 
 (* need [1 grain, 1 ore, 1 wool] *)
 let buy_devcard color st =
@@ -446,10 +458,7 @@ let buy_devcard color st =
                                               ore = x.ore-1;
                                               wool = x.wool-1}) lst
     in
-    let st' = {st with deck = rest; players = updated_players color st.players} in
-    match card with
-    | VictoryPoint -> play_victory st' color
-    | _ -> st'
+    {st with deck = rest; players = updated_players color st.players}
 
 
 let num_resources player = function
