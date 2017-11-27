@@ -168,7 +168,7 @@ let init_canvas () =
         buildings = [];
         roads = [] };
     ];
-    ports = [] (* TODO *)
+    ports = failwith "TODO"
   }
 
 let init_state () =
