@@ -11,6 +11,7 @@ type resource =
   | Grain
   | Brick
   | Ore
+  | Null
 
 type road = int * int
 

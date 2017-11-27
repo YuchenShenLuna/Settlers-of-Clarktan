@@ -492,6 +492,7 @@ let num_resources player = function
   | Grain  -> player.grain
   | Brick  -> player.brick
   | Ore    -> player.ore
+  | Null   -> 0
 
 (* [check_num_resources col st] returns the number of resources the player
  * with color [color] has at state [st] *)
@@ -563,7 +564,8 @@ let play_robber st color ind =
                       | Brick -> {x with brick = x.brick+1}
                       | Lumber -> {x with lumber = x.lumber+1}
                       | Ore -> {x with ore = x.ore+1}
-                      | Grain -> {x with grain = x.grain+1} end
+                      | Grain -> {x with grain = x.grain+1}
+                      | Null -> x end
                   else if x.color = stealee_color then
                     begin
                       match stolen_resource with
@@ -571,7 +573,8 @@ let play_robber st color ind =
                       | Brick -> {x with brick = x.brick-1}
                       | Lumber -> {x with lumber = x.lumber-1}
                       | Ore -> {x with ore = x.ore-1}
-                      | Grain -> {x with grain = x.grain-1} end
+                      | Grain -> {x with grain = x.grain-1}
+                      | Null -> x end
                       else x)
   in {st with players = new_players;
               robber = ind}
@@ -760,6 +763,7 @@ let generate_resource st num =
               | Grain -> {h with grain = h.grain + mul}
               | Brick -> {h with brick = h.brick + mul}
               | Ore -> {h with ore = h.ore + mul}
+              | Null -> h
             end
             in new_players t (newp::acc)
           else
@@ -875,6 +879,7 @@ let add_resources player n = function
   | Grain  -> {player with grain = player.grain + n}
   | Brick  -> {player with brick = player.brick + n}
   | Ore    -> {player with ore = player.ore + n}
+  | Null   -> player
 
 (* [player_ok p] checks whether a player has enough resources for trade
  * raises: Failure when resouces aren't enough *)
