@@ -30,7 +30,20 @@ val init_canvas : unit -> canvas
 (* [fetch_tiles i] fetches the list of tiles associated with number [i] *)
 val fetch_tiles : int -> Tile.tile list -> Tile.tile list
 
-(* [init_phase] initializes the first stage of the game *)
+(* [init_build_settlement ind color st] changes the state when player
+ * with color [color] at state [st] builds a settlement at index [ind] *)
+val init_build_settlement : int -> color -> state -> state
+
+(* [init_build_road road color st] changes the state when player
+ * with color [color] at state [st] builds a road at index [road] *)
+val init_build_road : road -> color -> state -> state
+
+(* [init_generate_resources color st] changes the state when in the initial
+ * phase the player with color [color] gets the auto-generated resources
+ * after building initial settlements and roads at state [st] *)
+val init_generate_resources : color -> state -> state
+
+(* [set_up] initializes the first stage of the game *)
 val setup : state -> state
 
 (* [discard_resource] discards resources for one player when robber is activated *)

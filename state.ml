@@ -191,8 +191,6 @@ let init_state () =
   canvas = init_canvas ()
 }
 
-let setup st = failwith "TODO"
-
 let end_turn st =
   let rec index acc = function
     | [] -> raise Not_found
@@ -214,6 +212,92 @@ let fetch_neighbors num =
   in
   List.filter (fun x -> List.mem x possible_index) lst
 
+let init_build_settlement ind color st =
+  let open Tile in
+  let check_initialize_build_settlement ind st =
+    let neighbors = fetch_neighbors ind in
+    let tiles = st.canvas.tiles in
+    let rec help lst num =
+      match lst with
+      | [] -> White
+      | h::t ->
+        match List.assoc_opt num h.buildings with
+        | None -> help t num
+        | Some (color, _) -> color
+    in
+    if help tiles ind <> White then false
+    else
+      let res = List.fold_left
+          (fun acc x -> acc && help tiles x = White) true neighbors in
+      if res = false then false else true
+  in
+  let _ = check_initialize_build_settlement ind st in
+  let new_tiles =
+    st.canvas.tiles
+    |> List.map (fun x -> if List.mem ind x.indices = false then x
+                  else {x with buildings = (ind, (color, 1))::x.buildings})
+  in
+  {st with canvas = {tiles = new_tiles; ports = st.canvas.ports}}
+
+let init_build_road (i0, i1) color st =
+  let open Tile in
+  let check_initialize_build_road (a, b) st color =
+    let tiles = st.canvas.tiles in
+    let rec help lst num =
+      match lst with
+      | [] -> White
+      | h::t ->
+        match List.assoc_opt num h.buildings with
+        | None -> help t num
+        | Some (color, _) -> color
+    in
+    if help tiles i0 <> color && help tiles i1 <> color then false
+    else
+      let rec help' lst x y =
+        match lst with
+        | [] -> White
+        | h::t ->
+          if List.mem_assoc (x, y) h.roads
+          then List.assoc (x, y) h.roads
+          else if List.mem_assoc (y, x) h.roads
+          then List.assoc (y, x) h.roads
+          else help' t x y
+      in
+      let res = help' tiles a b = White in
+      if res = false then false else true
+  in
+  let _ = check_initialize_build_road (i0, i1) st color in
+  let new_tiles =
+    st.canvas.tiles
+    |> List.map (fun x -> if List.mem i0 x.indices = false
+                          || List.mem i1 x.indices = false then x
+                  else {x with roads = ((i0, i1), color)::x.roads})
+  in {st with canvas = {tiles = new_tiles; ports = st.canvas.ports}}
+
+let init_generate_resources color st =
+  let open Tile in
+  let open Player in
+  let info =
+    st.canvas.tiles
+    |> List.map (fun x -> (x.buildings, x.resource))
+    |> List.map (fun (lst, r) -> List.map (fun (_, (c, _)) -> r, c) lst)
+    |> List.flatten
+    |> List.filter (fun (r, c) -> c=color)
+  in
+  let count res =
+    List.fold_left (fun acc (r, c) -> if res=r then acc+1 else acc) 0 info in
+  let new_players =
+    st.players
+    |> List.map
+      (fun x -> if x.color <> color then x
+        else {x with
+              wool = x.wool + count Wool;
+              brick = x.brick + count Brick;
+              lumber = x.lumber + count Lumber;
+              ore = x.ore + count Ore;
+              grain = x.grain + count Grain})
+  in {st with players = new_players}
+
 let check_build_settlements num st color =
   let open Tile in
   let ind_lst = fetch_neighbors num in
@@ -228,7 +312,8 @@ let check_build_settlements num st color =
   in
   if help tile_lst num <> White then false
   else
-    let res = List.fold_left (fun acc x -> acc && help tile_lst x = White) true ind_lst in
+    let res =
+      List.fold_left (fun acc x -> acc && help tile_lst x = White) true ind_lst in
     if res = false then false
     else
       let rec help' lst num2 =
@@ -560,8 +645,10 @@ let build_city ind st color =
 
 let check_robber tile st =
   let robber_ind = st.robber in
-  let tile_at_ind = List.nth st.canvas.tiles robber_ind in
-  tile_at_ind = tile
+  if robber_ind > 18 || robber_ind < 0 then true
+  else
+    let tile_at_ind = List.nth st.canvas.tiles robber_ind in
+    tile_at_ind = tile
 
 let generate_resource st num =
   let open Tile in
