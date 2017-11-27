@@ -623,10 +623,10 @@ let player_ok p =
 
 let ports_of_player_helper st indices_list=
   let ports_temp=List.fold_left
-(fun acc element ->
-  if List.mem (fst element.neighbors) indices_list || List.mem (snd element.neighbors) indices_list
-then element::acc
-else acc) [] st.canvas.ports in (List.sort_uniq Pervasives.compare ports_temp)
+      (fun acc element ->
+         if List.mem (fst element.neighbors) indices_list || List.mem (snd element.neighbors) indices_list
+         then element::acc
+         else acc) [] st.canvas.ports in (List.sort_uniq Pervasives.compare ports_temp)
 
 let ports_of_player st color =
   let open Tile in
@@ -661,10 +661,10 @@ let trade_with_bank st to_remove to_add cl =
   let length_of_resource_pass_trade_ok =
     List.fold_left (fun acc x -> if trade_ok st player x (List.nth to_add (indexof to_remove x)) then 1+acc else acc ) 0 to_remove
   in if length_of_resource_pass_trade_ok = List.length to_remove then
-  (let player = List.fold_left (fun acc (r, n) -> remove_resources acc n r) player to_remove in
-  let player = List.fold_left (fun acc (r, n) -> add_resources acc n r) player to_add in
-  let players = List.map (fun p -> if p.color = cl then player else p) st.players in
-   { st with players }) else raise (Failure "the trade with bank is not valid")
+    (let player = List.fold_left (fun acc (r, n) -> remove_resources acc n r) player to_remove in
+     let player = List.fold_left (fun acc (r, n) -> add_resources acc n r) player to_add in
+     let players = List.map (fun p -> if p.color = cl then player else p) st.players in
+     { st with players }) else raise (Failure "the trade with bank is not valid")
 
 let trade_with_port st to_remove to_add cl=
   let player = List.find (fun p -> p.color = cl) st.players in
@@ -677,17 +677,17 @@ let trade_with_port st to_remove to_add cl=
      { st with players }) else raise (Failure "the trade with port is not valid")
 
 let check_whether_trade_is_ok_for_one_player st to_remove to_add cl=
-let player = List.find (fun p -> p.color = cl) st.players in
-let length_of_resource_pass_trade_ok =
-  List.fold_left (fun acc x -> if trade_ok st player x (List.nth to_add (indexof to_remove x)) then 1+acc else acc ) 0 to_remove
-in if length_of_resource_pass_trade_ok = List.length to_remove then true else false
+  let player = List.find (fun p -> p.color = cl) st.players in
+  let length_of_resource_pass_trade_ok =
+    List.fold_left (fun acc x -> if trade_ok st player x (List.nth to_add (indexof to_remove x)) then 1+acc else acc ) 0 to_remove
+  in if length_of_resource_pass_trade_ok = List.length to_remove then true else false
 
 let trade_with_player st to_remove to_add cl =
   let condition_one=check_whether_trade_is_ok_for_one_player st to_remove to_add st.turn in
   let condition_two=check_whether_trade_is_ok_for_one_player st to_add to_remove cl in
   if condition_one && condition_two then
-  let st' = trade_with_bank st to_remove to_add st.turn in
-  trade_with_bank st' to_add to_remove cl else raise (Failure "the trade with other player is not valid")
+    let st' = trade_with_bank st to_remove to_add st.turn in
+    trade_with_bank st' to_add to_remove cl else raise (Failure "the trade with other player is not valid")
 
 let play_monopoly st rs =
   let steal (lst, n) p =
