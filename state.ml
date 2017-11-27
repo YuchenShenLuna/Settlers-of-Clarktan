@@ -14,10 +14,13 @@ type state = {
   canvas : canvas
 }
 
+(* [roll ()] generates a random dice roll in range of [2..12] for random
+ * tile dice number at the initialization of the game *)
 let rec roll () =
   let i = 2 + Random.int 11 in
   if i <> 7 then i else roll ()
 
+(* [random_resource ()] generates a random resource by using random number *)
 let random_resource () =
   let open Tile in
   match Random.int 5 with
@@ -199,6 +202,8 @@ let end_turn st =
   let turn = (List.nth st.players ((index 0 st.players + 1) mod 4)).color in
   {st with turn}
 
+(* [fetch_neighbors num] fetches neigboring indexes for the settlement
+ * with index [num]*)
 let fetch_neighbors num =
   let fetch num =
     if num mod 2 = 1 then [num-11; num-1; num+1]
@@ -232,13 +237,16 @@ let init_build_settlement ind color st =
           (fun acc x -> acc && help tiles x = White) true neighbors in
       if res = false then false else true
   in
-  let _ = check_initialize_build_settlement ind st in
-  let new_tiles =
-    st.canvas.tiles
-    |> List.map (fun x -> if List.mem ind x.indices = false then x
-                  else {x with buildings = (ind, (color, 1))::x.buildings})
-  in
-  {st with canvas = {tiles = new_tiles; ports = st.canvas.ports}}
+  let b = check_initialize_build_settlement ind st in
+  if b = false then
+    failwith "Cannot build settlement at this place"
+  else
+    let new_tiles =
+      st.canvas.tiles
+      |> List.map (fun x -> if List.mem ind x.indices = false then x
+                    else {x with buildings = (ind, (color, 1))::x.buildings})
+    in
+    {st with canvas = {tiles = new_tiles; ports = st.canvas.ports}}
 
 let init_build_road (i0, i1) color st =
   let open Tile in
@@ -269,13 +277,16 @@ let init_build_road (i0, i1) color st =
       let res = help' tiles a b = White in
       if res = false then false else true
   in
-  let _ = check_initialize_build_road (i0, i1) st color in
-  let new_tiles =
-    st.canvas.tiles
-    |> List.map (fun x -> if List.mem i0 x.indices = false
-                            || List.mem i1 x.indices = false then x
-                          else {x with roads = ((i0, i1), color)::x.roads})
-  in {st with canvas = {tiles = new_tiles; ports = st.canvas.ports}}
+  let b = check_initialize_build_road (i0, i1) st color in
+  if b = false then
+    failwith "Cannot build road at this place"
+  else
+    let new_tiles =
+      st.canvas.tiles
+      |> List.map (fun x -> if List.mem i0 x.indices = false
+                              || List.mem i1 x.indices = false then x
+                            else {x with roads = ((i0, i1), color)::x.roads})
+    in {st with canvas = {tiles = new_tiles; ports = st.canvas.ports}}
 
 let init_generate_resources color st =
   let open Tile in
@@ -300,6 +311,11 @@ let init_generate_resources color st =
               grain = x.grain + count Grain})
   in {st with players = new_players}
 
+(* [check_build_settlements num st color] checks whether a settlement can be
+ * build at index [num] at state [st] for player with color [color]. This
+ * checks whether a settlement follows the rule of no two settlements have
+ * fewer than two roads in between and settlement must have own color's
+ * road in one end, and whether the settlement is build upon an empty place *)
 let check_build_settlements num st color =
   let open Tile in
   let ind_lst = fetch_neighbors num in
@@ -368,6 +384,10 @@ let check_build_road (i0, i1) st color =
     || List.fold_left (fun acc x ->
         acc || help' tile_lst i1 x = color) false ind_lst_i1
 
+(* [check_build_cities num st color] checks whether a city can be
+ * build at index [num] at state [st] for player with color [color]. This
+ * checks whether a city follows the rule of being build upon a settlement
+ * that is of the same color *)
 let check_build_cities num st color =
   let open Tile in
   let tile_lst = st.canvas.tiles in
@@ -404,6 +424,8 @@ let play_road_build st color (i0, i1) =
     {st with canvas = {tiles = new_tiles; ports=st.canvas.ports};
              players = new_players}
 
+(* [calc_score st color] calculates the score for player with color [color]
+ * at state [st] *)
 let calc_score st color =
   let open Tile in
   let build_score =
@@ -463,7 +485,7 @@ let buy_devcard color st =
     in
     {st with deck = rest; players = updated_players color st.players}
 
-
+(* [num_resources player] returns the number of resources for player [player] *)
 let num_resources player = function
   | Lumber -> player.lumber
   | Wool   -> player.wool
@@ -471,6 +493,8 @@ let num_resources player = function
   | Brick  -> player.brick
   | Ore    -> player.ore
 
+(* [check_num_resources col st] returns the number of resources the player
+ * with color [color] has at state [st] *)
 let check_num_resources color st =
   let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
   num_resources player Lumber +
@@ -561,9 +585,13 @@ let play_knight st color ind =
                          knights_activated = x.knights_activated+1}) st'.players
   in {st' with players = new_players}
 
-(* check: 1. whether player's number of settlements < 5
+(* returns: whether a settlement can be build at given index [ind]
+ * for player with color [color] under state [st]
+ * check: 1. whether player's number of settlements < 5
           2. resource is enough [1 lumber, 1 brick, 1 ore, i wool]
-          3. whether check_build_settlements returns true *)
+          3. whether check_build_settlements returns true
+ * raises: Failure with specific message when settlement cannot be build
+ * at given index *)
 let can_build_settlements ind st color =
   let open Tile in
   let num_settlements =
@@ -585,9 +613,13 @@ let can_build_settlements ind st color =
       failwith "You do not have enough resource to build a settlement"
     else true
 
-(* check: 1. whether players number of roads < 15
+(* returns: whether a road can be build at given index [ind]
+ * for player with color [color] under state [st]
+ * check: 1. whether players number of roads < 15
           2. resource is enough [1 lumber, 1 brick]
-          3. whether check_build_road returns true *)
+          3. whether check_build_road returns true
+ * raises: Failure with specific message when road cannot be build at
+ * given index *)
 let can_build_road (i0, i1) st color =
   let open Tile in
   let num_roads =
@@ -608,9 +640,13 @@ let can_build_road (i0, i1) st color =
       failwith "You do not have enough resource to build a road"
     else true
 
-(* check: 1. whether players number of cities < 4
+(* returns: whether a city can be build at given index [ind]
+ * for player with color [color] under state [st]
+ * check: 1. whether players number of cities < 4
           2. resource is enough [3 grains, 2 ores]
-          3. whether check_build_cities returns true *)
+          3. whether check_build_cities returns true
+ * raises: Failure with specific message when city cannot be build at
+ * given index *)
 let can_build_city ind st color =
   let open Tile in
   let num_cities =
@@ -687,6 +723,8 @@ let build_city ind st color =
   {st with players = new_players;
            canvas = {tiles = new_tiles; ports = st.canvas.ports}}
 
+(* [check_robber tile st] checks whether a robber is at tile [tile] under
+ * state [st] *)
 let check_robber tile st =
   let robber_ind = st.robber in
   if robber_ind > 18 || robber_ind < 0 then
@@ -730,6 +768,7 @@ let generate_resource st num =
       end
   in help st info
 
+(* [fetch_road st] fetches the roads at given state [st]*)
 let fetch_roads st =
   let cmp (s1, e1) (s2, e2) =
     if s1 < s2 then -1
@@ -749,6 +788,8 @@ let fetch_roads st =
     ) t.indices
   ) [] st.canvas.tiles |> List.sort_uniq cmp
 
+(* [find_possible_owner_of_road_one_tile st rd_list road] finds all possible
+ * owners of the given road [road] at state [st] *)
 let rec find_possible_owner_of_road_one_tile st rd_list (s,e)=
   let open Tile in
   match rd_list with
@@ -759,13 +800,15 @@ let rec find_possible_owner_of_road_one_tile st rd_list (s,e)=
     else
       find_possible_owner_of_road_one_tile st t (s,e)
 
-let find_owner_of_road st rd=
+(* [find_owner_of_road st rd] finds the owner of the road [rd] at state [st] *)
+let find_owner_of_road st rd =
   let open Tile in
   List.fold_left (fun acc x ->
       if find_possible_owner_of_road_one_tile st (x.roads) rd <> None then
         find_possible_owner_of_road_one_tile st x.roads rd
       else acc) (None) (st.canvas.tiles)
 
+(* [get_player_out_of_some pl] extracts player from the player option [pl] *)
 let get_player_out_of_some pl=
   match pl with
   | Some p -> p
@@ -812,6 +855,7 @@ let largest_army st =
          then Some x else acc
     ) None st.players
 
+(* [add_resources player n r] adds [n] resources [r] for player [player] *)
 let add_resources player n = function
   | Lumber -> {player with lumber = player.lumber + n}
   | Wool   -> {player with wool = player.wool + n}
@@ -819,12 +863,14 @@ let add_resources player n = function
   | Brick  -> {player with brick = player.brick + n}
   | Ore    -> {player with ore = player.ore + n}
 
+(* [player_ok p] checks whether a player has enough resources for trade
+ * raises: Failure when resouces aren't enough *)
 let player_ok p =
   if p.lumber < 0 || p.wool < 0 || p.grain < 0 || p.brick < 0 || p.ore < 0
   then invalid_arg "Not enough resources"
   else p
 
-
+(* [ports_of_player_helper st lst] returns ports for player at state [st] *)
 let ports_of_player_helper st indices_list=
   let ports_temp =
     List.fold_left
@@ -837,6 +883,8 @@ let ports_of_player_helper st indices_list=
       ) [] st.canvas.ports
   in (List.sort_uniq Pervasives.compare ports_temp)
 
+(* [ports_of_player st color] returns ports for player with color [color]
+ * at state [st] *)
 let ports_of_player st color =
   let open Tile in
   let indices =
@@ -844,11 +892,16 @@ let ports_of_player st color =
         if c = color then i :: lst else lst) [] t.buildings) [] st.canvas.tiles
   in ports_of_player_helper st indices
 
+(* [ports_of_player_with_specific_resource st color rs] returns ports for
+ * player with color [color] and resource [rs] at state [st] *)
 let ports_of_player_with_specific_resource st color rs=
   let ports_belong_to_player = ports_of_player st color in
   List.fold_left (fun acc x -> if x.resource = rs then x::acc else acc)
     [] ports_belong_to_player
 
+(* [ports_of_player_with_specific_resource_with_best_rate st color rs]
+ * returns ports for player with color [color] and resource [rs]
+ * at state [st] *)
 let ports_of_player_with_specific_resource_with_best_rate st color rs=
   let ports_of_player_with_resource_wanted =
     ports_of_player_with_specific_resource st color rs
@@ -857,6 +910,7 @@ let ports_of_player_with_specific_resource_with_best_rate st color rs=
     (List.hd ports_of_player_with_resource_wanted)
     ports_of_player_with_resource_wanted
 
+(* [trade_ok st p r1 r2] returns whether a trade can be valid *)
 let trade_ok st p (rs, n) (rs', n') =
   if n / n' >= 4 then true
   else
@@ -864,9 +918,10 @@ let trade_ok st p (rs, n) (rs', n') =
       (ports_of_player_with_specific_resource_with_best_rate st p.color rs) in
     if n / n' >= best_port.rate then true else false
 
-
+(* [remove_resources player n r] removes [n] resource [r] for player [player]*)
 let remove_resources player n r = add_resources player (-n) r |> player_ok
 
+(* [indexof lst element] returns the index of element [element] in list [lst]*)
 let rec indexof lst element=
   match lst with
   | [] -> raise (Failure "the element is not in the list")
@@ -913,6 +968,8 @@ let trade_with_port st to_remove to_add cl=
   else
     raise (Failure "the trade with port is not valid")
 
+(* [check_whether_trade_is_ok_for_one_player st r a cl] checks whether a trade
+ * is valid for player at state [st] *)
 let check_whether_trade_is_ok_for_one_player st to_remove to_add cl=
   let player = List.find (fun p -> p.color = cl) st.players in
   let length_of_resource_pass_trade_ok =
