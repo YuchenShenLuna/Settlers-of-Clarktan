@@ -16,6 +16,8 @@ type state = {
   canvas : canvas
 }
 
+
+
 (* [build_settlement ind st col] returns the new state after player with color
  * [col] at state [st] builds a new settlement at index [ind].
  * raises: Failure with message relevant to the error of player when settlement
@@ -58,6 +60,7 @@ val do_player : state -> state
 (* [do_ai st] returns the state after an AI finishes a turn *)
 val do_ai : state -> state
 
+
 (* [end_turn st] updates the player's state when his turn is ended
  * raises: Not_found if player does not exist *)
 val end_turn : state -> state
@@ -95,10 +98,10 @@ val init_state : unit -> state
 val init_canvas : unit -> canvas
 
 (* [longest_road st] returns the player who has the longest road token *)
-val longest_road : state -> player option
+val longest_road : state -> state
 
 (* [largest_army st] returns the player who has the largest army token *)
-val largest_army : state -> player option
+val largest_army : state -> state
 
 (* [play_knight st col ind] updates the state [st] when player with color
  * [col] plays a knight card and moves the robber to the new index [ind]*)
