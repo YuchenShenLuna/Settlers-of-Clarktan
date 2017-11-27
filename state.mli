@@ -4,7 +4,7 @@ open Player
 (* representation type for canvas background *)
 type canvas = {
   tiles: Tile.tile list;
-  ports: Trade.port list
+  ports: port list
 }
 
 (* state represents the game state type *)
