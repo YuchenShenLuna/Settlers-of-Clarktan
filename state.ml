@@ -521,7 +521,8 @@ let play_robber st color ind =
     List.nth lst i
   in
   let stealee_color = shuffle pos_stealees in
-  let stealee = List.hd (List.filter (fun x -> x.color = stealee_color) st.players) in
+  let stealee =
+    List.hd (List.filter (fun x -> x.color = stealee_color) st.players) in
   let pos_wool = if stealee.wool > 0 then [Wool] else [] in
   let pos_lumber = if stealee.lumber > 0 then [Lumber] else [] in
   let pos_brick = if stealee.wool > 0 then [Brick] else [] in
@@ -579,7 +580,8 @@ let can_build_settlements ind st color =
     failwith "You cannot build settlement at this place"
   else
     let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
-    if player.lumber < 1 || player.brick < 1 || player.ore < 1 || player.wool < 1 then
+    if player.lumber < 1 || player.brick < 1
+       || player.ore < 1 || player.wool < 1 then
       failwith "You do not have enough resource to build a settlement"
     else true
 
@@ -900,7 +902,8 @@ let trade_with_port st to_remove to_add cl=
   if length_of_resource_pass_trade_ok = List.length to_remove then
     (
       let player =
-        List.fold_left (fun acc (r, n) -> remove_resources acc n r) player to_remove in
+        List.fold_left (fun acc (r, n) -> remove_resources acc n r)
+          player to_remove in
       let player =
         List.fold_left (fun acc (r, n) -> add_resources acc n r) player to_add in
       let players =
