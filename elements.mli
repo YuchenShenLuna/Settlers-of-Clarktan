@@ -6,3 +6,9 @@ type resource = Lumber | Wool | Grain | Brick | Ore
 
 (* [road] represents a road *)
 type road = int * int
+
+type port = {
+  neighbors : int * int;
+  resource : resource;
+  rate : int
+}
