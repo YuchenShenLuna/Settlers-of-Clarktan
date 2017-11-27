@@ -27,9 +27,9 @@ val init_state : unit -> state
 (* [init_canvas] returns a new canvas to be used in a new game *)
 val init_canvas : unit -> canvas
 
-(* [calc_score st col] calculates score for player with color [col]
-   at state [st] *)
-val calc_score : state -> color -> int
+(* [check_win st col] calculates score for player with color [col]
+   at state [st] and checks whether the player has won the game *)
+val check_win : state -> color -> bool
 
 (* [fetch_tiles i] fetches the list of tiles associated with number [i] *)
 val fetch_tiles : int -> Tile.tile list -> Tile.tile list

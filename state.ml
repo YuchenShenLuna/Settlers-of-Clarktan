@@ -421,6 +421,9 @@ let calc_score st color =
   let largest_army_score = if player.largest_army then 2 else 0 in
   build_score + victory_card_score + longest_road_score + largest_army_score
 
+let check_win st color =
+  calc_score st color >= 10
+
 (* need [1 grain, 1 ore, 1 wool] *)
 let buy_devcard color st =
   let open DevCard in
