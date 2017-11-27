@@ -16,11 +16,10 @@ type state = {
   canvas : canvas
 }
 
-<<<<<<< HEAD
 val longest_road : state -> state
 
 val largest_army : state -> state
-=======
+
 (* [build_settlement ind st col] returns the new state after player with color
  * [col] at state [st] builds a new settlement at index [ind].
  * raises: Failure with message relevant to the error of player when settlement
@@ -62,7 +61,7 @@ val do_player : state -> state
 
 (* [do_ai st] returns the state after an AI finishes a turn *)
 val do_ai : state -> state
->>>>>>> 86e8a4218a1071a235832fda793528f843b93b58
+
 
 (* [end_turn st] updates the player's state when his turn is ended
  * raises: Not_found if player does not exist *)
