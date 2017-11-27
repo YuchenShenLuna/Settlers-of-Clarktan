@@ -43,9 +43,6 @@ val init_build_road : road -> color -> state -> state
  * after building initial settlements and roads at state [st] *)
 val init_generate_resources : color -> state -> state
 
-(* [set_up] initializes the first stage of the game *)
-val setup : state -> state
-
 (* [discard_resource] discards resources for one player when robber is activated *)
 val discard_resource : color -> state -> (resource*int) list -> state
 
