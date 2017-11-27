@@ -168,10 +168,29 @@ let init_canvas () =
         buildings = [];
         roads = [] };
     ];
-    ports = [] (* TODO *)
+    ports = failwith "TODO"
   }
 
-let init_state () = failwith "TODO"
+let init_state () =
+  let open DevCard in
+{
+  robber = 19;
+  deck =
+    [
+      Knight; VictoryPoint; Knight; RoadBuilding;YearOfPlenty; Knight;
+      RoadBuilding; Knight; Knight; VictoryPoint; Knight; Knight; Monopoly;
+      Knight; YearOfPlenty; Knight; Knight; VictoryPoint; Knight;
+      Knight; Knight; Monopoly; VictoryPoint; Knight; VictoryPoint
+    ];
+  turn = White;
+  players =
+    [
+      Player.init_player Red; Player.init_player Yellow;
+      Player.init_player Blue; Player.init_player Green
+    ];
+  canvas = init_canvas ()
+}
+
 let setup st = failwith "TODO"
 
 let end_turn st =
