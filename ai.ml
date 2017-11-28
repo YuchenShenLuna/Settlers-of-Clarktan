@@ -64,6 +64,11 @@ let get_accessible_resources col st =
     |> List.sort_uniq compare
     |> List.map (fun (c, r) -> r)
 
+let get_unaccessible_resources col st =
+  let res_lst = [Lumber; Ore; Grain; Brick; Wool] in
+  let accessibles = get_accessible_resources col st in
+  List.filter (fun x -> List.mem x accessibles = false) res_lst
+
 let obtainable_resources ind st =
   st.canvas.tiles
   |> List.filter (fun x -> List.mem ind x.indices)
@@ -120,7 +125,39 @@ let init_choose_road_build st col ind =
   let i1 = Random.int (List.length possible_roads) in
   (ind, List.nth possible_roads i1)
 
-let init_choose_second_settlement_build st col = failwith "TODO"
+(* [is_sublist lst1 lst2] returns whether lst1 is a sublist of lst2 regardless
+ * of orderings *)
+let is_sublist lst1 lst2 =
+  List.fold_left (fun acc x -> acc && (List.mem x lst2)) true lst1
+
+(* depends on what resource it does not have access to, and dice num probability *)
+let init_choose_second_settlement_build st col =
+  let possible_ind = get_possible_house_ind st col can_build_settlement_ai in
+  let needed_res = get_unaccessible_resources col st in
+  let info =
+    possible_ind
+    |> List.filter (fun x -> is_sublist needed_res (obtainable_resources x st))
+  in
+  if List.length info <> 0 then
+    let values = List.map (fun x -> (calc_value_settlement x st, x)) info in
+    let lst =
+    List.fold_left (fun (accx, accy) (x, y) ->
+          if x > accx then (x, y) else (accx, accy)) (-1, -1) values in
+    (snd lst)
+  else
+    let needed_res' = [List.hd needed_res] in
+    let info' =
+      possible_ind
+      |> List.filter (fun x -> is_sublist needed_res' (obtainable_resources x st))
+    in
+    if List.length info' <> 0 then
+      let values' = List.map (fun x -> (calc_value_settlement x st, x)) info' in
+      let lst' =
+        List.fold_left (fun (accx, accy) (x, y) ->
+            if x > accx then (x, y) else (accx, accy)) (-1, -1) values' in
+      (snd lst')
+    else
+      init_choose_first_settlement_build st col
 
 let make_build_plan = failwith "TODO"
 
