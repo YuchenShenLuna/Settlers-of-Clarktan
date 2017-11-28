@@ -66,7 +66,15 @@ val can_build_road : road -> state -> color -> bool
           3. whether check_build_cities returns true
  * raises: Failure with specific message when city cannot be build at
  * given index *)
-val can_build_city : int -> state -> color -> bool 
+val can_build_city : int -> state -> color -> bool
+
+(* [check_initialize_build_settlement ind st] checks whether a settlement
+ * can be build at state [st] *)
+val check_initialize_build_settlement : int -> state -> bool
+
+(* [check_initialize_build_road road st col] checks whether a road can
+ * be build at state [st] for player with color [col] *)
+val check_initialize_build_road : road -> state -> color -> bool
 
 (* [check_win st col] calculates score for player with color [col]
    at state [st] and checks whether the player has won the game *)

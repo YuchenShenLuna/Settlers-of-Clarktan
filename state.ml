@@ -264,26 +264,27 @@ let fetch_neighbors num =
   in
   List.filter (fun x -> List.mem x possible_index) lst
 
+let check_initialize_build_settlement ind st =
+  let open Tile in
+  let neighbors = fetch_neighbors ind in
+  let tiles = st.canvas.tiles in
+  let rec help lst num =
+    match lst with
+    | [] -> White
+    | h::t ->
+      match List.assoc_opt num h.buildings with
+      | None -> help t num
+      | Some (color, _) -> color
+  in
+  if help tiles ind <> White then
+    false
+  else
+    let res = List.fold_left
+        (fun acc x -> acc && help tiles x = White) true neighbors in
+    if res = false then false else true
+
 let init_build_settlement ind color st =
   let open Tile in
-  let check_initialize_build_settlement ind st =
-    let neighbors = fetch_neighbors ind in
-    let tiles = st.canvas.tiles in
-    let rec help lst num =
-      match lst with
-      | [] -> White
-      | h::t ->
-        match List.assoc_opt num h.buildings with
-        | None -> help t num
-        | Some (color, _) -> color
-    in
-    if help tiles ind <> White then
-      false
-    else
-      let res = List.fold_left
-          (fun acc x -> acc && help tiles x = White) true neighbors in
-      if res = false then false else true
-  in
   let b = check_initialize_build_settlement ind st in
   if b = false then
     failwith "Cannot build settlement at this place"
@@ -295,35 +296,45 @@ let init_build_settlement ind color st =
     in
     {st with canvas = {tiles = new_tiles; ports = st.canvas.ports}}
 
-let init_build_road (i0, i1) color st =
+let check_initialize_build_road (i0, i1) st color =
   let open Tile in
-  let check_initialize_build_road (a, b) st color =
-    let tiles = st.canvas.tiles in
-    let rec help lst num =
+  let tiles = st.canvas.tiles in
+  let rec help lst num =
+    match lst with
+    | [] -> White
+    | h::t ->
+      match List.assoc_opt num h.buildings with
+      | None -> help t num
+      | Some (color, _) -> color
+  in
+  if help tiles i0 <> color && help tiles i1 <> color then
+    false
+  else
+    let rec help' lst x y =
       match lst with
       | [] -> White
       | h::t ->
-        match List.assoc_opt num h.buildings with
-        | None -> help t num
-        | Some (color, _) -> color
+        if List.mem_assoc (x, y) h.roads then
+          List.assoc (x, y) h.roads
+        else if List.mem_assoc (y, x) h.roads then
+          List.assoc (y, x) h.roads
+        else
+          help' t x y
     in
-    if help tiles i0 <> color && help tiles i1 <> color then
+    let res = help' tiles i0 i1 = White in
+    if res = false then
       false
     else
-      let rec help' lst x y =
-        match lst with
-        | [] -> White
-        | h::t ->
-          if List.mem_assoc (x, y) h.roads then
-            List.assoc (x, y) h.roads
-          else if List.mem_assoc (y, x) h.roads then
-            List.assoc (y, x) h.roads
-          else
-            help' t x y
+      let i0_neighbors = fetch_neighbors i0 in
+      let i1_neighbors = fetch_neighbors i1 in
+      let has_no_road i =
+        List.fold_left (fun acc x -> acc && (help' tiles i0 x = White)) true i
       in
-      let res = help' tiles a b = White in
-      if res = false then false else true
-  in
+      (help tiles i0 = color && has_no_road i0_neighbors) ||
+      (help tiles i1 = color && has_no_road i1_neighbors)
+
+let init_build_road (i0, i1) color st =
+  let open Tile in
   let b = check_initialize_build_road (i0, i1) st color in
   if b = false then
     failwith "Cannot build road at this place"
