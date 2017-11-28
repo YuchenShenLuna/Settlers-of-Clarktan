@@ -1,8 +1,10 @@
 open Elements
 
-let init_choose_road_build = failwith "TODO"
+open State
 
 let init_choose_settlement_build = failwith "TODO"
+
+let init_choose_road_build = failwith "TODO"
 
 let choose_road = failwith "TODO"
 
@@ -37,3 +39,5 @@ let want_play_road_building = failwith "TODO"
 let want_play_knight = failwith "TODO"
 
 let choose_robber_spot = failwith "TODO"
+
+let do_ai = failwith "TODO"

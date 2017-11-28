@@ -25,4 +25,4 @@ type command =
   | Invalid
 
 (* [parse str] parses the command given by [str] to type command *)
-val parse_text : State.state -> string -> command
+val parse_text : Tile.tile list -> string -> command
