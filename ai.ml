@@ -174,7 +174,7 @@ let want_build_road st = failwith "TODO"
 
 let want_build_city st = failwith "TODO"
 
-let init_trade = failwith "TODO"
+let want_buy_card st = failwith "TODO"
 
 let want_accept_trade_player st ai rs other_pl rs'=
   let open Player in
@@ -193,7 +193,12 @@ let want_init_trade st ai rs other_pl rs'=
     (*if other_pl does not have the resource you want, then do not trade*)
   if (num_resources other_pl.color rs' st = 0 )then false else true
 
-let want_to_trade st ai = failwith "TODO"
+let want_to_trade st ai =
+  if want_build_settlement st then false
+  else if want_build_road st then false
+  else if want_build_city st then false
+  else if want_buy_card st then false
+  else true
 
 let want_to_trade_with_all_other_players st pl pl_list rs rs'=
   let open Player in
@@ -218,7 +223,6 @@ let want_trade_ports st ai rs rs'=
   if (List.length (ports_of_player_with_specific_resource st (ai.color) rs')) = 0 then false else
   if want_to_trade_with_all_other_players st ai st.players rs rs' = true then false else true
 
-let want_buy_card st = failwith "TODO"
 
 let want_play_monopoly = failwith "TODO"
 
