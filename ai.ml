@@ -45,6 +45,8 @@ let get_possible_house_ind st col f =
             (from 45 52 []) @ (from 57 63 []) in
   List.filter (fun x -> f x st col) lst
 
+(* [get_accesible res col st] returns a list of resources obtainable for player
+ * identified by color [col] at state [st] *)
 let get_accessible resources col st =
   let open Tile in
   st.canvas.tiles
