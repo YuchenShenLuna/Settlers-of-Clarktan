@@ -2,7 +2,6 @@ open Elements
 open Player
 open Command
 open Tile
-open DevCard
 
 (*****************************************************************************
  *                                DEFINITIONS                                *
@@ -21,7 +20,7 @@ type canvas = {
 
 type state = {
   robber : int;
-  deck: DevCard.devcard list;
+  deck: devcard list;
   turn : color;
   players : Player.player list;
   canvas : canvas
@@ -1061,10 +1060,10 @@ let do_player cmd color_opt st =
   | BuildCity i -> build_city i st
   | BuildRoad rd -> build_road rd st
   | BuyCard -> buy_devcard st
-  | Knight i -> play_knight i st
-  | RoadBuilding (rd0, rd1) -> play_road_build rd0 rd1 st
-  | YearOfPlenty (rs0, rs1) -> play_year_of_plenty rs0 rs1 st
-  | Monopoly rs -> play_monopoly rs st
+  | PlayKnight i -> play_knight i st
+  | PlayRoadBuilding (rd0, rd1) -> play_road_build rd0 rd1 st
+  | PlayYearOfPlenty (rs0, rs1) -> play_year_of_plenty rs0 rs1 st
+  | PlayMonopoly rs -> play_monopoly rs st
   | Robber i -> play_robber i st
   | DomesticTrade (lst0, lst1) ->
     begin
