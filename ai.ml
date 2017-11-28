@@ -2,8 +2,6 @@ open Elements
 
 open State
 
-open DevCard
-
 open Tile
 
 (* [get_probability_dice num] gets the relative probability for dice number

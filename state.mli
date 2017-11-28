@@ -20,7 +20,7 @@ type canvas = {
 (* [state] represents the state of the game. *)
 type state = {
   robber : int;
-  deck : DevCard.devcard list;
+  deck : devcard list;
   turn : color;
   players : Player.player list;
   canvas : canvas
@@ -236,7 +236,7 @@ val ports : color -> state -> edge list
 
 (* [cards color st] is a list of the development cards held by the player
  * identified by color [color]. *)
-val cards : color -> state -> (DevCard.devcard * int) list
+val cards : color -> state -> (devcard * int) list
 
 (* [resources color st] is a list of the resources held by the player
  * identified by color [color]. *)

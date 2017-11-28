@@ -7,10 +7,10 @@ type command =
   | BuildCity of int
   | BuildRoad of edge
   | BuyCard
-  | Knight of int
-  | RoadBuilding of edge * edge
-  | YearOfPlenty of resource * resource
-  | Monopoly of resource
+  | PlayKnight of int
+  | PlayRoadBuilding of edge * edge
+  | PlayYearOfPlenty of resource * resource
+  | PlayMonopoly of resource
   | Robber of int
   | DomesticTrade of (resource * int) list * (resource * int) list
   | MaritimeTrade of (resource * int) * (resource * int)

@@ -6,10 +6,10 @@ type command =
   | BuildCity of int
   | BuildRoad of edge
   | BuyCard
-  | Knight of int
-  | RoadBuilding of edge * edge
-  | YearOfPlenty of resource * resource
-  | Monopoly of resource
+  | PlayKnight of int
+  | PlayRoadBuilding of edge * edge
+  | PlayYearOfPlenty of resource * resource
+  | PlayMonopoly of resource
   | Robber of int
   | DomesticTrade of (resource * int) list * (resource * int) list
   | MaritimeTrade of (resource * int) * (resource * int)
@@ -145,18 +145,18 @@ let parse_text tiles str =
         begin
           match () |> parse_mouse_click |> nearby_tile tiles with
           | None -> Invalid
-          | Some i -> Knight i
+          | Some i -> PlayKnight i
         end
       else if List.mem "monopoly" t then
         begin
           match extract_resources t with
-          | h :: [] -> Monopoly h
+          | h :: [] -> PlayMonopoly h
           | _ -> Invalid
         end
       else if List.mem "year" t || List.mem "plenty" t then
         begin
           match extract_resources t with
-          | h :: x :: [] -> YearOfPlenty (h, x)
+          | h :: x :: [] -> PlayYearOfPlenty (h, x)
           | _ -> Invalid
         end
       else if List.mem "road" t then
@@ -167,7 +167,7 @@ let parse_text tiles str =
             begin
               match () |> parse_mouse_click |> nearby_edge tiles with
               | None -> Invalid
-              | Some i1 -> RoadBuilding (i0, i1)
+              | Some i1 -> PlayRoadBuilding (i0, i1)
             end
         end
       else Invalid
