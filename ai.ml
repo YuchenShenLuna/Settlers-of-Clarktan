@@ -213,7 +213,11 @@ let want_trade_bank st ai rs rs'=
     (List.length (ports_of_player st (ai.color)))==0
   && want_to_trade_with_all_other_players st ai st.players rs rs'=false
 
-let want_trade_ports = failwith "TODO"
+let want_trade_ports st ai rs rs'=
+  (*if the ai player has ports that have the resource he wants, and he does not want to trade with other player*)
+  if (List.length (ports_of_player_with_specific_resource st (ai.color) rs')) = 0 then false else
+  if want_to_trade_with_all_other_players st ai st.players rs rs' = true then false else true
+
 
 let want_buy_card st = failwith "TODO"
 
