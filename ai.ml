@@ -218,27 +218,17 @@ let want_trade_ports st ai rs rs'=
   if (List.length (ports_of_player_with_specific_resource st (ai.color) rs')) = 0 then false else
   if want_to_trade_with_all_other_players st ai st.players rs rs' = true then false else true
 
-
 let want_buy_card st = failwith "TODO"
 
 let want_play_monopoly = failwith "TODO"
 
-(* if has a favorable rate then do that one otherwise choose the most many resource *)
-let choose_monopoly = failwith "TODO"
-
 let want_play_year_of_plenty = failwith "TODO"
 
-let choose_two_plenty_resource = failwith "TODO"
-
-let want_play_road_building = failwith "TODO"
-
-let want_play_knight = failwith "TODO"
-
-let choose_robber_spot = failwith "TODO"
+let choose_monopoly st = Grain
 
 let get_player color st = List.find (fun p -> p.color = color) st.players
 
-let list_of_resources st color =
+let list_of_resources color st =
   let rec f r n acc = if n = 0 then acc else f r (n - 1) (r :: acc) in
   let cons r = f r (num_resources color r st) in
   [] |> cons Lumber |> cons Wool |> cons Grain |> cons Brick |> cons Ore
@@ -247,9 +237,74 @@ let rec take n acc = function
   | [] -> acc
   | h :: t -> if n <= 0 then acc else take (n - 1) (h :: acc) t
 
+let choose_two_plenty_resource color st =
+  let player = get_player color st in
+  let hand = [ Lumber; Lumber; Wool; Wool; Grain; Grain; Brick; Brick; Ore; Ore ] in
+  let value =
+    if want_build_settlement st then
+      function
+      | Lumber -> 100 - player.lumber
+      | Wool -> 100 - player.wool
+      | Grain -> 100 - player.grain
+      | Brick -> 100 - player.brick
+      | Ore -> 0
+      | Null -> 0
+    else
+    if want_build_city st then
+      function
+      | Lumber -> 0
+      | Wool -> 0
+      | Grain -> 200 - player.lumber
+      | Brick -> 0
+      | Ore -> 300 - player.ore
+      | Null -> 0
+    else if want_build_road st then
+      function
+      | Lumber -> 100 - player.lumber
+      | Wool -> 0
+      | Grain -> 0
+      | Brick -> 100 - player.brick
+      | Ore -> 0
+      | Null -> 0
+    else if want_buy_card st then
+      function
+      | Lumber -> 0
+      | Wool -> 100 - player.wool
+      | Grain -> 100 - player.grain
+      | Brick -> 0
+      | Ore -> 100 - player.ore
+      | Null -> 0
+    else function _ -> 0
+  in
+  let cmp a b = compare (value a) (value b) in
+  match hand |> shuffle |> List.sort cmp |> List.rev with
+  | h :: x :: _ -> h, x
+  | _ -> failwith "Impossible"
+
+let want_play_road_building = failwith "TODO"
+
+let want_play_knight = failwith "TODO"
+
+let num_buildings tile =
+  tile.buildings |> List.filter (fun (_, (c, _)) -> c <> White) |> List.length
+
+let robber_opt color st =
+  let ok = List.fold_left (fun acc (_, (c, _)) -> acc && c <> color) true in
+  let candidates = List.filter (fun t -> ok t.buildings) st.canvas.tiles in
+  List.fold_left (
+    fun acc t ->
+      let len = num_buildings t in
+      if snd acc < len then Some t, len else acc
+  ) (None, 0) candidates |> fst
+
+let choose_robber_spot color st =
+  match robber_opt color st with
+  | None -> List.hd st.canvas.tiles
+  | Some tile -> tile
+
 (* if with a plan then keep resource for it else random *)
-let choose_discard_resource st color =
-  let hand = list_of_resources st color |> shuffle in
+let choose_discard_resource color st =
+  let hand = list_of_resources color st |> shuffle in
   let value =
     if want_build_settlement st then
       function
