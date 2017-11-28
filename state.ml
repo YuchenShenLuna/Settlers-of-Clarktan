@@ -1,6 +1,7 @@
 open Elements
 open Player
 open Command
+open Tile
 
 (*****************************************************************************
  *                                DEFINITIONS                                *
@@ -42,8 +43,7 @@ let init_canvas () =
   let center = 500., 375. in
   let length = 50. in
   let apothem =  length *. sqrt 3. /. 2. in
-  let open Tile in
-  {
+    {
     tiles = [
       { indices = [3; 4; 15; 14; 13; 2];
         dice = roll ();
@@ -182,47 +182,47 @@ let init_canvas () =
     ports = [
       {
         neighbors = (2,3);
-        resource =random_resource ();
+        demand = random_resource ();
         rate=2;
       };
       {
         neighbors = (5,6);
-        resource =random_resource ();
+        demand = random_resource ();
         rate=3;
       };
       {
         neighbors = (12,23);
-        resource =random_resource ();
+        demand = random_resource ();
         rate=2;
       };
       {
         neighbors = (19,20);
-        resource =random_resource ();
+        demand = random_resource ();
         rate=3;
       };
       {
         neighbors = (32,43);
-        resource =random_resource ();
+        demand = random_resource ();
         rate=2;
       };
       {
         neighbors = (34,45);
-        resource =random_resource ();
+        demand = random_resource ();
         rate=2;
       };
       {
         neighbors = (52,53);
-        resource =random_resource ();
+        demand = random_resource ();
         rate=2;
       };
       {
         neighbors = (57,58);
-        resource =random_resource ();
+        demand = random_resource ();
         rate=3;
       };
       {
         neighbors = (60,61);
-        resource =random_resource ();
+        demand = random_resource ();
         rate=3;
       };
     ]
@@ -264,7 +264,6 @@ let fetch_neighbors num =
   List.filter (fun x -> List.mem x possible_index) lst
 
 let check_initialize_build_settlement ind st =
-  let open Tile in
   let neighbors = fetch_neighbors ind in
   let tiles = st.canvas.tiles in
   let rec help lst num =
@@ -283,7 +282,6 @@ let check_initialize_build_settlement ind st =
     if res = false then false else true
 
 let init_build_settlement ind color st =
-  let open Tile in
   let b = check_initialize_build_settlement ind st in
   if b = false then
     failwith "Cannot build settlement at this place"
@@ -296,7 +294,6 @@ let init_build_settlement ind color st =
     {st with canvas = {tiles = new_tiles; ports = st.canvas.ports}}
 
 let check_initialize_build_road (i0, i1) st color =
-  let open Tile in
   let tiles = st.canvas.tiles in
   let rec help lst num =
     match lst with
@@ -333,7 +330,6 @@ let check_initialize_build_road (i0, i1) st color =
       (help tiles i1 = color && has_no_road i1_neighbors)
 
 let init_build_road (i0, i1) color st =
-  let open Tile in
   let b = check_initialize_build_road (i0, i1) st color in
   if b = false then
     failwith "Cannot build road at this place"
@@ -346,7 +342,6 @@ let init_build_road (i0, i1) color st =
     in {st with canvas = {tiles = new_tiles; ports = st.canvas.ports}}
 
 let init_generate_resources color st =
-  let open Tile in
   let info =
     st.canvas.tiles
     |> List.map (fun x -> (x.buildings, x.resource))
@@ -378,7 +373,6 @@ let init_generate_resources color st =
  * fewer than two roads in between and settlement must have own color's
  * road in one end, and whether the settlement is build upon an empty place *)
 let check_build_settlement num st color =
-  let open Tile in
   let ind_lst = fetch_neighbors num in
   let tile_lst = st.canvas.tiles in
   let rec help lst num =
@@ -409,7 +403,6 @@ let check_build_settlement num st color =
       List.fold_left (fun acc x -> acc || help' tile_lst x = color) false ind_lst
 
 let can_build_settlement ind st color =
-  let open Tile in
   let num_settlements =
     st.canvas.tiles
     |> List.map (fun x -> x.buildings)
@@ -430,7 +423,6 @@ let can_build_settlement ind st color =
     else true
 
 let build_settlement ind st =
-  let open Tile in
   let _ = can_build_settlement ind st st.turn in
   let new_players =
     st.players
@@ -450,7 +442,6 @@ let build_settlement ind st =
                      ports = st.canvas.ports}}
 
 let check_build_road (i0, i1) st color =
-  let open Tile in
   let ind_lst_i0 = List.filter (fun x -> x <> i0 && x <> i1)
       (fetch_neighbors i0) in
   let ind_lst_i1 = List.filter (fun x -> x <> i0 && x <> i1)
@@ -487,7 +478,6 @@ let check_build_road (i0, i1) st color =
         acc || help' tile_lst i1 x = color) false ind_lst_i1
 
 let can_build_road (i0, i1) st color =
-  let open Tile in
   let num_roads =
     st.canvas.tiles
     |> List.map (fun x -> x.roads)
@@ -507,7 +497,6 @@ let can_build_road (i0, i1) st color =
     else true
 
 let build_road (i0, i1) st =
-  let open Tile in
   let _ = can_build_road (i0, i1) st st.turn in
   let new_players =
     st.players
@@ -530,7 +519,6 @@ let build_road (i0, i1) st =
  * checks whether a city follows the rule of being build upon a settlement
  * that is of the same color *)
 let check_build_cities num st color =
-  let open Tile in
   let tile_lst = st.canvas.tiles in
   let rec help lst num =
     match lst with
@@ -543,7 +531,6 @@ let check_build_cities num st color =
   help tile_lst num = (color, 1)
 
 let can_build_city ind st color =
-  let open Tile in
   let num_cities =
     st.canvas.tiles
     |> List.map (fun x -> x.buildings)
@@ -563,7 +550,6 @@ let can_build_city ind st color =
     else true
 
 let build_city ind st =
-  let open Tile in
   let _ = can_build_city ind st st.turn in
   let new_players =
     st.players |>
@@ -653,7 +639,6 @@ let ports_of_player_helper st indices_list=
 (* [ports_of_player st color] returns ports for player with color [color]
  * at state [st] *)
 let ports_of_player st color =
-  let open Tile in
   let indices =
     List.fold_left (fun acc t -> acc @ List.fold_left (fun lst (i, (c, _)) ->
         if c = color then i :: lst else lst) [] t.buildings) [] st.canvas.tiles
@@ -663,7 +648,7 @@ let ports_of_player st color =
  * player with color [color] and resource [rs] at state [st] *)
 let ports_of_player_with_specific_resource st color rs=
   let ports_belong_to_player = ports_of_player st color in
-  List.fold_left (fun acc x -> if x.resource = rs then x::acc else acc)
+  List.fold_left (fun acc x -> if x.demand = rs then x::acc else acc)
     [] ports_belong_to_player
 
 (* [ports_of_player_with_specific_resource_with_best_rate st color rs]
@@ -785,7 +770,6 @@ let check_num_resources color st =
   num_resources player Ore
 
 let play_robber st ind =
-  let open Tile in
   let pos_stealees =
     (List.nth st.canvas.tiles ind).buildings
     |> List.map (fun (_, (col, _)) -> col)
@@ -839,7 +823,6 @@ let play_knight st ind =
   in {st' with players = new_players}
 
 let play_road_build st (i0, i1) (j0, j1) =
-  let open Tile in
   let player = List.filter (fun x -> x.color = st.turn) st.players |> List.hd in
   if player.road_building < 1 then
     failwith "No Road Building Card"
@@ -895,7 +878,7 @@ let play_year_of_plenty st r1 r2 =
  *                                 RESOURCES                                 *
  *****************************************************************************)
 
-let fetch_tiles num tiles =
+let tiles_of_roll num tiles =
   List.filter (fun x -> x.Tile.dice = num) tiles
 
 (* [check_robber tile st] checks whether a robber is at tile [tile] under
@@ -906,8 +889,7 @@ let check_robber tile st =
   else List.nth st.canvas.tiles robber_ind = tile
 
 let generate_resource st num =
-  let open Tile in
-  let tiles = fetch_tiles num st.canvas.tiles in
+  let tiles = tiles_of_roll num st.canvas.tiles in
   let info =
     List.flatten
       (List.map
@@ -972,7 +954,7 @@ let discard_resource color st lst =
       in {st with players = new_players}
 
 (*****************************************************************************
- *                                  POINTS                                   *
+ *                                  TROPHY                                   *
  *****************************************************************************)
 
 (* [fetch_road st] fetches the roads at given state [st]*)
@@ -984,7 +966,6 @@ let fetch_roads st =
     else if e1 > e2 then 1
     else 0
   in
-  let open Tile in
   List.fold_left
     (
       fun acc t ->
@@ -998,7 +979,6 @@ let fetch_roads st =
 (* [find_possible_owner_of_road_one_tile st rd_list road] finds all possible
  * owners of the given road [road] at state [st] *)
 let rec find_possible_owner_of_road_one_tile st rd_list (s,e) =
-  let open Tile in
   match rd_list with
   | [] -> None
   | h::t ->
@@ -1009,7 +989,6 @@ let rec find_possible_owner_of_road_one_tile st rd_list (s,e) =
 
 (* [find_owner_of_road st rd] finds the owner of the road [rd] at state [st] *)
 let find_owner_of_road st rd =
-  let open Tile in
   List.fold_left (fun acc x ->
       if find_possible_owner_of_road_one_tile st (x.roads) rd <> None then
         find_possible_owner_of_road_one_tile st x.roads rd
@@ -1076,28 +1055,6 @@ let largest_army st =
         else updated_player) st.players in
     { st with players=updated_player_list }
 
-(* [calc_score st color] calculates the score for player with color [color]
- * at state [st] *)
-let calc_score st color =
-  let open Tile in
-  let build_score =
-    st.canvas.tiles
-    |> List.map (fun x -> x.buildings)
-    |> List.flatten
-    |> List.sort_uniq compare
-    |> List.filter (fun (ind, (c, rate)) -> c=color)
-    |> List.map (fun (ind, (c, rate)) -> rate)
-    |> List.fold_left (fun acc x -> acc + x) 0
-  in
-  let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
-  let victory_card_score = player.victory_point * 2 in
-  let longest_road_score = if player.longest_road then 2 else 0 in
-  let largest_army_score = if player.largest_army then 2 else 0 in
-  build_score + victory_card_score + longest_road_score + largest_army_score
-
-let check_win st color =
-  calc_score st color >= 10
-
 (*****************************************************************************
  *                                    DO                                     *
  *****************************************************************************)
@@ -1110,7 +1067,7 @@ let end_turn st =
   let turn = (List.nth st.players ((index 0 st.players + 1) mod 4)).color in
   {st with turn}
 
-let do_player st cmd clr_opt =
+let do_player cmd clr_opt st =
   match cmd with
   | Setup (i, rd) ->
     begin
@@ -1156,3 +1113,35 @@ let do_player st cmd clr_opt =
   | Invalid -> st
 
 let do_ai st = failwith "TODO"
+
+(*****************************************************************************
+ *                                   TEST                                    *
+ *****************************************************************************)
+
+let score color st =
+    let build_score =
+    st.canvas.tiles
+    |> List.map (fun x -> x.buildings)
+    |> List.flatten
+    |> List.sort_uniq compare
+    |> List.filter (fun (ind, (c, rate)) -> c=color)
+    |> List.map (fun (ind, (c, rate)) -> rate)
+    |> List.fold_left (fun acc x -> acc + x) 0
+  in
+  let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
+  let victory_card_score = player.victory_point * 2 in
+  let longest_road_score = if player.longest_road then 2 else 0 in
+  let largest_army_score = if player.largest_army then 2 else 0 in
+  build_score + victory_card_score + longest_road_score + largest_army_score
+
+let check_win color st =
+  score color st >= 10
+
+let settlements color st = failwith "TODO"
+let cities color st = failwith "TODO"
+let roads color st = failwith "TODO"
+let ports color st = failwith "TODO"
+let cards color st = failwith "TODO"
+let resources color st = failwith "TODO"
+let robber st = st.robber
+let turn st = st.turn

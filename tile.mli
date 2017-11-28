@@ -11,8 +11,9 @@ type tile = {
   roads : (road * color) list
 }
 
-(* [corners t] returns a list of the coordinates of the corners of tile [t]. *)
+(* [corners t] is a list of the coordinates of the corners of tile [t]. *)
 val corners : tile -> (float * float) list
 
-(* [corners t] returns a list of the midpoints of the edges of tile [t]. *)
+(* [edges t] is a list of the coordinates of the midpoints of the edges
+ * of tile [t]. *)
 val edges : tile -> (float * float) list

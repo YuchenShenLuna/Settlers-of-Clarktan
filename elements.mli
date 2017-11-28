@@ -1,6 +1,4 @@
-(* Elements module keeps useful informations used throughout the project *)
-
-(* color is the type of different colors for different players *)
+(* [color] represents a color, which identifies a player. *)
 type color =
   | Red
   | Yellow
@@ -20,8 +18,9 @@ type resource =
 (* [road] represents a road *)
 type road = int * int
 
+(* [port] represents a port, which offers a favorable exchange rate. *)
 type port = {
   neighbors : int * int;
-  resource : resource;
+  demand : resource;
   rate : int
 }

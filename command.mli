@@ -1,8 +1,5 @@
 open Elements
 
-(* Command takes in a player's command, via a mouse click or terminal entry
- * and parses it accordingly. *)
-
 (* [command] represents a command input by a player. *)
 type command =
   | Setup of int * road

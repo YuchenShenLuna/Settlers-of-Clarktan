@@ -17,6 +17,6 @@ type road = int * int
 
 type port = {
   neighbors : int * int;
-  resource : resource;
+  demand : resource;
   rate : int
 }
