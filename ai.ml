@@ -4,6 +4,8 @@ open State
 
 open DevCard
 
+open Tile
+
 (* [get_probability_dice num] gets the relative probability for dice number
  * [num] to appear *)
 let get_probability_dice num =
@@ -37,18 +39,24 @@ let get_probability_card st res =
 
 (* [get_possible_house_ind st col f] returns a list of
  * possible indexes on which we can build a settlement or city based on
- * different checking functions [f]. [f] is either can_build_settlements
- * or can_build_city *)
+ * different checking functions [f]. *)
 let get_possible_house_ind st col f =
   let rec from i j acc = if i > j then acc else from i (j-1) (j::acc) in
   let lst = (from 2 8 []) @ (from 12 20 []) @ (from 22 43 []) @
             (from 45 52 []) @ (from 57 63 []) in
-  List.filter (fun x -> f x st col) lst
+  List.filter (fun x -> f col x st) lst
+
+let can_build_settlement_ai col x st =
+  try can_build_settlement col x st with
+  | _ -> false
+
+let can_build_city_ai col x st =
+  try can_build_city col x st with
+  | _ -> false
 
 (* [get_accesible res col st] returns a list of resources obtainable for player
  * identified by color [col] at state [st] *)
-let get_accessible resources col st =
-  let open Tile in
+let get_accessible_resources col st =
   st.canvas.tiles
     |> List.map (fun x -> (x.buildings, x.resource))
     |> List.map (fun (l, r) -> List.map (fun (_,(c, _)) -> (c, r)) l)
@@ -56,11 +64,52 @@ let get_accessible resources col st =
     |> List.sort_uniq compare
     |> List.map (fun (c, r) -> r)
 
+let obtainable_resources ind st =
+  st.canvas.tiles
+  |> List.filter (fun x -> List.mem ind x.indices)
+  |> List.map (fun x -> x.resource)
+
+let initial_resource_priority = function
+  | Lumber -> 3
+  | Wool -> 2
+  | Brick -> 3
+  | Ore -> 2
+  | Grain -> 1
+  | Null -> 0
+
+let obtain_bordering_dices ind st =
+  st.canvas.tiles
+  |> List.filter (fun x -> List.mem ind x.indices)
+  |> List.map (fun x -> x.dice)
+
+let calc_value_settlement ind st =
+  let resources = obtainable_resources ind st in
+  let dices = obtain_bordering_dices ind st in
+  let res_pts =
+    resources
+    |> List.map (fun x -> 5 * (initial_resource_priority x))
+    |> List.fold_left (fun acc x -> acc + x) 0
+  in
+  let dice_pts =
+    dices
+    |> List.map (fun x -> get_probability_dice x)
+    |> List.fold_left (fun acc x -> acc + x) 0
+  in
+  res_pts + dice_pts
+
 (* for buildings, consider:
  * 1. how many VP the building is worth
  * 2. given current resources, figure out what to build or to wait
  * 3. by building it, what other building options for the future becomes avaiable *)
-let init_choose_settlement_build st = failwith "TODO"
+
+(* 1. dice num with higher prob  2. covers more resources with good priority *)
+let init_choose_settlement_build st col =
+  let possible_ind = get_possible_house_ind st col can_build_settlement_ai in
+  let values = List.map (fun x -> (calc_value_settlement x st, x)) possible_ind in
+  let info =
+    List.fold_left (fun (accx, accy) (x, y) ->
+        if x > accx then (x, y) else (accx, accy)) (-1, -1) values in
+  (snd info)
 
 let init_choose_road_build = failwith "TODO"
 
