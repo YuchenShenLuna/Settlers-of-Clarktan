@@ -43,6 +43,10 @@ let get_possible_house_ind st col f =
             (from 45 52 []) @ (from 57 63 []) in
   List.filter (fun x -> f col x st) lst
 
+let init_can_build_settlement_ai col x st =
+  try check_initialize_build_settlement x st with
+  | _ -> false
+
 let can_build_settlement_ai col x st =
   try can_build_settlement col x st with
   | _ -> false
@@ -51,15 +55,30 @@ let can_build_city_ai col x st =
   try can_build_city col x st with
   | _ -> false
 
+let get_possible_settlemnt_ind st col f =
+  get_possible_house_ind st col can_build_settlement_ai
+
+let get_possible_city_ind st col f =
+  get_possible_house_ind st col can_build_city_ai
+
 (* [get_accesible res col st] returns a list of resources obtainable for player
  * identified by color [col] at state [st] *)
 let get_accessible_resources col st =
   st.canvas.tiles
-    |> List.map (fun x -> (x.buildings, x.resource))
-    |> List.map (fun (l, r) -> List.map (fun (_,(c, _)) -> (c, r)) l)
-    |> List.flatten
-    |> List.sort_uniq compare
-    |> List.map (fun (c, r) -> r)
+  |> List.map (fun x -> (x.buildings, x.resource))
+  |> List.map (fun (l, r) -> List.map (fun (_,(c, _)) -> (c, r)) l)
+  |> List.flatten
+  |> List.sort_uniq compare
+  |> List.map (fun (c, r) -> r)
+
+let get_accessible_resources_by_inds col lst st =
+  let tiles = st.canvas.tiles in
+  let get_tile ind = List.filter (fun x -> List.mem ind x.indices) tiles in
+  lst
+  |> List.map (fun x -> get_tile x)
+  |> List.flatten
+  |> List.sort_uniq compare
+  |> List.map (fun x -> x.resource)
 
 let get_unaccessible_resources col st =
   let res_lst = [Lumber; Ore; Grain; Brick; Wool] in
@@ -84,12 +103,12 @@ let obtain_bordering_dices ind st =
   |> List.filter (fun x -> List.mem ind x.indices)
   |> List.map (fun x -> x.dice)
 
-let calc_value_settlement ind st =
+let init_calc_value_settlement ind st f =
   let resources = obtainable_resources ind st in
   let dices = obtain_bordering_dices ind st in
   let res_pts =
     resources
-    |> List.map (fun x -> 5 * (initial_resource_priority x))
+    |> List.map (fun x -> 5 * (f x))
     |> List.fold_left (fun acc x -> acc + x) 0
   in
   let dice_pts =
@@ -106,8 +125,11 @@ let calc_value_settlement ind st =
 
 (* 1. dice num with higher prob  2. covers more resources with good priority *)
 let init_choose_first_settlement_build st col =
-  let possible_ind = get_possible_house_ind st col can_build_settlement_ai in
-  let values = List.map (fun x -> (calc_value_settlement x st, x)) possible_ind in
+  let possible_ind = get_possible_house_ind st col init_can_build_settlement_ai in
+  let values =
+    List.map (fun x ->
+        (init_calc_value_settlement x st initial_resource_priority, x)) possible_ind
+  in
   let info =
     List.fold_left (fun (accx, accy) (x, y) ->
         if x > accx then (x, y) else (accx, accy)) (-1, -1) values in
@@ -129,14 +151,17 @@ let is_sublist lst1 lst2 =
 
 (* depends on what resource it does not have access to, and dice num probability *)
 let init_choose_second_settlement_build st col =
-  let possible_ind = get_possible_house_ind st col can_build_settlement_ai in
+  let possible_ind = get_possible_house_ind st col init_can_build_settlement_ai in
   let needed_res = get_unaccessible_resources col st in
   let info =
     possible_ind
     |> List.filter (fun x -> is_sublist needed_res (obtainable_resources x st))
   in
   if List.length info <> 0 then
-    let values = List.map (fun x -> (calc_value_settlement x st, x)) info in
+    let values =
+      List.map (fun x ->
+          (init_calc_value_settlement x st initial_resource_priority, x)) info
+    in
     let lst =
     List.fold_left (fun (accx, accy) (x, y) ->
           if x > accx then (x, y) else (accx, accy)) (-1, -1) values in
@@ -148,7 +173,10 @@ let init_choose_second_settlement_build st col =
       |> List.filter (fun x -> is_sublist needed_res' (obtainable_resources x st))
     in
     if List.length info' <> 0 then
-      let values' = List.map (fun x -> (calc_value_settlement x st, x)) info' in
+      let values' =
+        List.map (fun x ->
+            (init_calc_value_settlement x st initial_resource_priority, x)) info'
+      in
       let lst' =
         List.fold_left (fun (accx, accy) (x, y) ->
             if x > accx then (x, y) else (accx, accy)) (-1, -1) values' in
@@ -162,9 +190,57 @@ let index_obtainable_in_one_road = failwith "TODO"
 
 let index_obtainable_in_two_roads = failwith "TODO"
 
-let choose_road = failwith "TODO"
+let index_obtainable_in_three_roads = failwith "TODO"
 
-let choose_settlement = failwith "TODO"
+let obtain_score color st =
+  let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
+  player.score
+
+let resource_priority_diff_stage color st res =
+  let score = obtain_score color st in
+  if score < 5 then
+    match res with
+    | Lumber -> 3
+    | Wool   -> 2
+    | Brick  -> 3
+    | Ore    -> 2
+    | Grain  -> 1
+    | Null   -> 0
+  else if score < 9 then
+    match res with
+    | Lumber -> 2
+    | Wool   -> 1
+    | Brick  -> 2
+    | Ore    -> 3
+    | Grain  -> 3
+    | Null   -> 0
+  else
+    match res with
+    | Lumber -> 1
+    | Wool   -> 2
+    | Brick  -> 1
+    | Ore    -> 3
+    | Grain  -> 3
+    | Null   -> 0
+
+let calc_value_settlement ind st color f =
+  let resources = obtainable_resources ind st in
+  let dices = obtain_bordering_dices ind st in
+  let res_pts =
+    resources
+    |> List.map (fun x -> 5 * (f x))
+    |> List.fold_left (fun acc x -> acc + x) 0
+  in
+  let dice_pts =
+    dices
+    |> List.map (fun x -> get_probability_dice x)
+    |> List.fold_left (fun acc x -> acc + x) 0
+  in
+  res_pts + dice_pts
+
+let choose_settlement st color = failwith "TODO"
+
+let choose_road = failwith "TODO"
 
 let choose_city = failwith "TODO"
 
