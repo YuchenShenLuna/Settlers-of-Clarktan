@@ -65,6 +65,9 @@ val init_generate_resources : color -> state -> state
 (*****************************************************************************
  *                                   BUILD                                   *
  *****************************************************************************)
+(* [fetch_neighbors i] fetches the neighboring intersections of the
+ * settlement with index [i]*)
+val fetch_neighbors : int -> int list
 
 (* returns: if a settlement can be built at given index [ind] for the player
  * identified by color [color] at state [st].

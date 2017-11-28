@@ -103,7 +103,7 @@ let calc_value_settlement ind st =
  * 3. by building it, what other building options for the future becomes avaiable *)
 
 (* 1. dice num with higher prob  2. covers more resources with good priority *)
-let init_choose_settlement_build st col =
+let init_choose_first_settlement_build st col =
   let possible_ind = get_possible_house_ind st col can_build_settlement_ai in
   let values = List.map (fun x -> (calc_value_settlement x st, x)) possible_ind in
   let info =
@@ -111,9 +111,22 @@ let init_choose_settlement_build st col =
         if x > accx then (x, y) else (accx, accy)) (-1, -1) values in
   (snd info)
 
-let init_choose_road_build = failwith "TODO"
+let init_possible_roads st col ind =
+  let border_roads = fetch_neighbors ind in
+  List.filter (fun x -> check_initialize_build_road (ind, x) st col) border_roads
+
+let init_choose_road_build st col ind =
+  let possible_roads = init_possible_roads st col ind in
+  let i1 = Random.int (List.length possible_roads) in
+  (ind, List.nth possible_roads i1)
+
+let init_choose_second_settlement_build st col = failwith "TODO"
 
 let make_build_plan = failwith "TODO"
+
+let index_obtainable_in_one_road = failwith "TODO"
+
+let index_obtainable_in_two_roads = failwith "TODO"
 
 let choose_road = failwith "TODO"
 
