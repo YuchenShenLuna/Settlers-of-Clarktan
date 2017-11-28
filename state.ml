@@ -171,7 +171,53 @@ let init_canvas () =
         buildings = [];
         roads = [] };
     ];
-    ports = failwith "TODO"
+    ports = [
+      {
+        neighbors = (2,3);
+        resource =random_resource ();
+        rate=2;
+      };
+      {
+        neighbors = (5,6);
+        resource =random_resource ();
+        rate=3;
+      };
+      {
+        neighbors = (12,23);
+        resource =random_resource ();
+        rate=2;
+      };
+      {
+        neighbors = (19,20);
+        resource =random_resource ();
+        rate=3;
+      };
+      {
+        neighbors = (32,43);
+        resource =random_resource ();
+        rate=2;
+      };
+      {
+        neighbors = (34,45);
+        resource =random_resource ();
+        rate=2;
+      };
+      {
+        neighbors = (52,53);
+        resource =random_resource ();
+        rate=2;
+      };
+      {
+        neighbors = (57,58);
+        resource =random_resource ();
+        rate=3;
+      };
+      {
+        neighbors = (60,61);
+        resource =random_resource ();
+        rate=3;
+      };
+    ]
   }
 
 let init_state () =
