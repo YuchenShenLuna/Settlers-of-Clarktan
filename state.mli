@@ -123,6 +123,8 @@ val buy_devcard : state -> state
 (*****************************************************************************
  *                                   TRADE                                   *
  *****************************************************************************)
+(*[ports_of_player] returns to the port list of the player*)
+val ports_of_player : state -> color -> port list
 
 (* [trade_with_player st l1 l2 color st] updates the state when player at
  * state [st] trades with the bank.

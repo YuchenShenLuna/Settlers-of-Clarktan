@@ -170,17 +170,48 @@ let choose_city = failwith "TODO"
 
 let want_build_settlement st = failwith "TODO"
 
-let want_build_road st = failwith "TODO"
+let want_build_road = failwith "TODO"
 
-let want_build_city st = failwith "TODO"
-
-let want_init_trade = failwith "TODO"
+let want_build_city = failwith "TODO"
 
 let init_trade = failwith "TODO"
 
-let want_accept_trade_player = failwith "TODO"
+let want_accept_trade_player st ai rs other_pl rs'=
+  let open Player in
+  (*if other player has score higher then 7, then do not trade*)
+  if other_pl.score > 7 then false else
+    (*if rs you use to trade is ore, then do not trade*)
+  if rs=Ore then false else true
 
-let want_trade_bank = failwith "TODO"
+
+let want_init_trade st ai rs other_pl rs'=
+  let open Player in
+  (*if other player has score higher then 7, then do not trade*)
+  if other_pl.score > 7 then false else
+    (*if rs you use to trade is ore, then do not trade*)
+  if rs=Ore then false else
+    (*if other_pl does not have the resource you want, then do not trade*)
+  if (num_resources other_pl.color rs' st = 0 )then false else true
+
+let want_to_trade st ai = failwith "TODO"
+
+let want_to_trade_with_all_other_players st pl pl_list rs rs'=
+  let open Player in
+  let boolean_list=
+    List.map (fun x-> if (x.color=pl.color || want_init_trade st pl rs x rs') then
+                 true else false) pl_list in
+  let number_of_true= List.fold_left (fun acc x-> if x then acc+1 else acc) 0 boolean_list in
+  if number_of_true = 4 then true else false
+
+
+let want_trade_bank st ai rs rs'=
+  let open Player in
+  (*if ai player wants to trade*)
+  if want_to_trade st ai=false then false
+  else
+  (*while there are no ports for the ai player and other players want to trade with him*)
+    (List.length (ports_of_player st (ai.color)))==0
+  && want_to_trade_with_all_other_players st ai st.players rs rs'=false
 
 let want_trade_ports = failwith "TODO"
 
