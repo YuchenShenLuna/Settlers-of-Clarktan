@@ -45,6 +45,15 @@ let get_possible_house_ind st col f =
             (from 45 52 []) @ (from 57 63 []) in
   List.filter (fun x -> f x st col) lst
 
+let get_accessible resources col st =
+  let open Tile in
+  st.canvas.tiles
+    |> List.map (fun x -> (x.buildings, x.resource))
+    |> List.map (fun (l, r) -> List.map (fun (_,(c, _)) -> (c, r)) l)
+    |> List.flatten
+    |> List.sort_uniq compare
+    |> List.map (fun (c, r) -> r)
+
 (* for buildings, consider:
  * 1. how many VP the building is worth
  * 2. given current resources, figure out what to build or to wait
