@@ -14,7 +14,6 @@ type command =
   | RoadBuilding of road * road
   | YearOfPlenty of resource * resource
   | Monopoly of resource
-  | VictoryPoint
   | Robber of int
   | DomesticTrade of (resource * int) list * (resource * int) list
   | MaritimeTrade of (resource * int) * (resource * int)

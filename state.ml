@@ -1,5 +1,6 @@
 open Elements
 open Player
+open Command
 
 type canvas = {
   tiles: Tile.tile list;
@@ -1078,6 +1079,44 @@ let play_year_of_plenty st r1 r2 =
     List.map (fun p -> if p.color = st.turn then player'' else p) st.players in
   {st with players}
 
-let do_player st = failwith "TODO"
+let do_player st cmd clr_opt =
+  match cmd with
+  | Setup (i, rd) -> init_build_road rd st.turn (init_build_settlement i st.turn st)
+  | BuildSettlement i -> build_settlement i st st.turn
+  | BuildCity i -> build_city i st st.turn
+  | BuildRoad rd -> build_road rd st st.turn
+  | BuyCard -> buy_devcard st.turn st
+  | Knight i -> play_knight st st.turn i
+  | RoadBuilding (rd0, rd1) -> failwith "TODO: Fix road building."
+  | YearOfPlenty (rs0, rs1) -> play_year_of_plenty st rs0 rs1
+  | Monopoly rs -> play_monopoly st rs
+  | Robber i -> play_robber st st.turn i
+  | DomesticTrade (lst0, lst1) ->
+    begin
+      match clr_opt with
+      | None -> invalid_arg "Requires a color."
+      | Some clr -> trade_with_player st lst0 lst1 clr
+    end
+  | MaritimeTrade (p0, p1) ->
+    begin
+      match clr_opt with
+      | None -> invalid_arg "Requires a color."
+      | Some clr ->
+        begin
+          match trade_with_port st [p0] [p1] st.turn with
+          | exception (Failure _) -> trade_with_bank st [p0] [p1] st.turn
+          | stx -> stx
+        end
+    end
+  | Discard lst ->
+    begin
+      match clr_opt with
+      | None -> invalid_arg "Requires a color."
+      | Some clr -> discard_resource clr st lst
+    end
+  | EndTurn -> end_turn st
+  | Accept b -> st
+  | Quit -> st
+  | Invalid -> st
 
 let do_ai st = failwith "TODO"

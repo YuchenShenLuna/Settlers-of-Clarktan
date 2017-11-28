@@ -55,11 +55,10 @@ val check_win : state -> color -> bool
 val discard_resource : color -> state -> (resource*int) list -> state
 
 (* [do_player st] returns the state after a player finishes a turn *)
-val do_player : state -> state
+val do_player : state -> Command.command -> color option -> state
 
 (* [do_ai st] returns the state after an AI finishes a turn *)
 val do_ai : state -> state
-
 
 (* [end_turn st] updates the player's state when his turn is ended
  * raises: Not_found if player does not exist *)

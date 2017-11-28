@@ -10,7 +10,6 @@ type command =
   | RoadBuilding of road * road
   | YearOfPlenty of resource * resource
   | Monopoly of resource
-  | VictoryPoint
   | Robber of int
   | DomesticTrade of (resource * int) list * (resource * int) list
   | MaritimeTrade of (resource * int) * (resource * int)
@@ -170,7 +169,6 @@ let parse_text tiles str =
           | h :: [] -> Monopoly h
           | _ -> Invalid
         end
-      else if List.mem "victory" t then VictoryPoint
       else if List.mem "year" t || List.mem "plenty" t then
         begin
           match extract_resources t with
