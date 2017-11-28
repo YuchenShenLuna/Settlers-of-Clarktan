@@ -123,6 +123,12 @@ val buy_devcard : state -> state
 (*****************************************************************************
  *                                   TRADE                                   *
  *****************************************************************************)
+
+(*[ports_of_player_with_specific_resource st cl rs] returns ports with resource rs for
+   player with specific color cl in state st *)
+val ports_of_player_with_specific_resource : state -> color -> resource -> port list
+
+
 (*[ports_of_player] returns to the port list of the player*)
 val ports_of_player : state -> color -> port list
 
