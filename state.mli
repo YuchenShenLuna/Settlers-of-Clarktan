@@ -32,6 +32,14 @@ val init_canvas : unit -> canvas
  * canvas, which includes tiles and ports, and other relevant fields *)
 val init_state : unit -> state
 
+(* [check_initialize_build_settlement ind st] checks whether a settlement
+ * can be build at state [st] *)
+val check_initialize_build_settlement : int -> state -> bool
+
+(* [check_initialize_build_road road st col] checks whether a road can
+ * be build at state [st] for player with color [col] *)
+val check_initialize_build_road : road -> state -> color -> bool
+
 (* [init_build_settlement ind color st] changes the state when player
  * with color [color] at state [st] builds a settlement at index [ind]
  * raises: Failure "Cannot build settlement at this place" if the player's
@@ -79,18 +87,6 @@ val can_build_road : road -> state -> color -> bool
  * raises: Failure with specific message when city cannot be build at
  * given index *)
 val can_build_city : int -> state -> color -> bool
-
-(* [check_initialize_build_settlement ind st] checks whether a settlement
- * can be build at state [st] *)
-val check_initialize_build_settlement : int -> state -> bool
-
-(* [check_initialize_build_road road st col] checks whether a road can
- * be build at state [st] for player with color [col] *)
-val check_initialize_build_road : road -> state -> color -> bool
-
-(* [check_win st col] calculates score for player with color [col]
-   at state [st] and checks whether the player has won the game *)
-val check_win : state -> color -> bool
 
 (* [build_settlement ind st col] returns the new state after player with color
  * [col] at state [st] builds a new settlement at index [ind].
