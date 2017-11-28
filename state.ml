@@ -644,13 +644,6 @@ let play_knight st color ind =
                          knights_activated = x.knights_activated+1}) st'.players
   in {st' with players = new_players}
 
-(* returns: whether a settlement can be build at given index [ind]
- * for player with color [color] under state [st]
- * check: 1. whether player's number of settlements < 5
-          2. resource is enough [1 lumber, 1 brick, 1 ore, i wool]
-          3. whether check_build_settlements returns true
- * raises: Failure with specific message when settlement cannot be build
- * at given index *)
 let can_build_settlements ind st color =
   let open Tile in
   let num_settlements =
@@ -672,13 +665,6 @@ let can_build_settlements ind st color =
       failwith "You do not have enough resource to build a settlement"
     else true
 
-(* returns: whether a road can be build at given index [ind]
- * for player with color [color] under state [st]
- * check: 1. whether players number of roads < 15
-          2. resource is enough [1 lumber, 1 brick]
-          3. whether check_build_road returns true
- * raises: Failure with specific message when road cannot be build at
- * given index *)
 let can_build_road (i0, i1) st color =
   let open Tile in
   let num_roads =
@@ -699,13 +685,6 @@ let can_build_road (i0, i1) st color =
       failwith "You do not have enough resource to build a road"
     else true
 
-(* returns: whether a city can be build at given index [ind]
- * for player with color [color] under state [st]
- * check: 1. whether players number of cities < 4
-          2. resource is enough [3 grains, 2 ores]
-          3. whether check_build_cities returns true
- * raises: Failure with specific message when city cannot be build at
- * given index *)
 let can_build_city ind st color =
   let open Tile in
   let num_cities =

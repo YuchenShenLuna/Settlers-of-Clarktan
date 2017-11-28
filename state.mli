@@ -1,4 +1,5 @@
 open Elements
+
 open Player
 
 (* representation type for canvas background *)
@@ -15,8 +16,6 @@ type state = {
   players: Player.player list;
   canvas : canvas
 }
-
-
 
 (* [build_settlement ind st col] returns the new state after player with color
  * [col] at state [st] builds a new settlement at index [ind].
@@ -41,6 +40,33 @@ val build_city : int -> state -> color -> state
  * raises: Failure with specific messages when resource card cannot be
  * bought at the time *)
 val buy_devcard : color -> state -> state
+
+(* returns: whether a settlement can be build at given index [ind]
+ * for player with color [color] under state [st]
+ * check: 1. whether player's number of settlements < 5
+          2. resource is enough [1 lumber, 1 brick, 1 ore, i wool]
+          3. whether check_build_settlements returns true
+ * raises: Failure with specific message when settlement cannot be build
+ * at given index *)
+val can_build_settlements : int -> state -> color -> bool
+
+(* returns: whether a road can be build at given index [ind]
+ * for player with color [color] under state [st]
+ * check: 1. whether players number of roads < 15
+          2. resource is enough [1 lumber, 1 brick]
+          3. whether check_build_road returns true
+ * raises: Failure with specific message when road cannot be build at
+ * given index *)
+val can_build_road : road -> state -> color -> bool
+
+(* returns: whether a city can be build at given index [ind]
+ * for player with color [color] under state [st]
+ * check: 1. whether players number of cities < 4
+          2. resource is enough [3 grains, 2 ores]
+          3. whether check_build_cities returns true
+ * raises: Failure with specific message when city cannot be build at
+ * given index *)
+val can_build_city : int -> state -> color -> bool 
 
 (* [check_win st col] calculates score for player with color [col]
    at state [st] and checks whether the player has won the game *)
@@ -110,8 +136,8 @@ val play_knight : state -> color -> int -> state
  * robber by dice 7 *)
 val play_robber : state -> color -> int -> state
 
-(* [play_road_build st col road] updates the state when player with color
- * [col] builds a road at [road]
+(* [play_road_build st col road1 road2] updates the state when player with color
+ * [col] builds a road at [road1] and another at [road2]
  * raises: Failure when a road cannot be build at the chosen spot *)
 val play_road_build : state -> color -> road -> road -> state
 
