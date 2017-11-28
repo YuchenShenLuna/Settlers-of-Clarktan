@@ -113,7 +113,7 @@ val play_robber : state -> color -> int -> state
 (* [play_road_build st col road] updates the state when player with color
  * [col] builds a road at [road]
  * raises: Failure when a road cannot be build at the chosen spot *)
-val play_road_build : state -> color -> road -> state
+val play_road_build : state -> color -> road -> road -> state
 
 (* [play_monopoly st r] updates the state when player plays monopoly
  * card at state [st] to acquire resouces [r] *)

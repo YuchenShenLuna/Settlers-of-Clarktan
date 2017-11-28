@@ -451,14 +451,14 @@ let check_build_cities num st color =
 let fetch_tiles num tiles =
   List.filter (fun x -> x.Tile.dice = num) tiles
 
-let play_road_build st color (i0, i1) =
+let play_road_build st color (i0, i1) (j0, j1) =
   let open Tile in
   let player = List.filter (fun x -> x.color = color) st.players |> List.hd in
   if player.road_building < 1 then
     failwith "No Road Building Card"
   else
     if check_build_road (i0, i1) st color = false then
-      failwith "Cannot Build Road"
+      failwith "Cannot Build Road at given first place"
   else
     let new_tiles =
       List.map (fun t -> if List.mem i0 t.indices && List.mem i1 t.indices then
@@ -468,8 +468,17 @@ let play_road_build st color (i0, i1) =
       List.map (fun x -> if x <> player then x
                  else {player with road_building = player.road_building-1})
                     st.players in
-    {st with canvas = {tiles = new_tiles; ports=st.canvas.ports};
-             players = new_players}
+    let st' = {st with canvas = {tiles = new_tiles; ports=st.canvas.ports};
+                       players = new_players}
+    in
+    if check_build_road (j0, j1) st' color = false then
+      failwith "Cannot Build Road at given second place"
+    else
+    let new_tiles' =
+      List.map (fun t -> if List.mem i0 t.indices && List.mem i1 t.indices then
+                           {t with roads=((i0, i1), color)::t.roads}
+                 else t) st'.canvas.tiles in
+    {st' with canvas = {tiles = new_tiles'; ports=st.canvas.ports}}
 
 (* [calc_score st color] calculates the score for player with color [color]
  * at state [st] *)
