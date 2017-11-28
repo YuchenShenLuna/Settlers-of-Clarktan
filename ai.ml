@@ -170,9 +170,9 @@ let choose_city = failwith "TODO"
 
 let want_build_settlement st = failwith "TODO"
 
-let want_build_road = failwith "TODO"
+let want_build_road st = failwith "TODO"
 
-let want_build_city = failwith "TODO"
+let want_build_city st = failwith "TODO"
 
 let init_trade = failwith "TODO"
 
@@ -259,7 +259,8 @@ let choose_discard_resource st color =
       | Brick -> 1
       | Ore -> 0
       | Null -> 0
-    else if want_build_city st then
+    else
+    if want_build_city st then
       function
       | Lumber -> 0
       | Wool -> 0
