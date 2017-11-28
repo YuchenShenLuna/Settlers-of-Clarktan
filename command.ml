@@ -22,6 +22,8 @@ type command =
 let distance (x1, y1) (x2, y2) =
   sqrt ((x1 -. x2) ** 2. +. (y1 -. y2) ** 2.)
 
+(* [nearby_intersection tiles (x, y)] is Some intersection (i.e., hex corner)
+ * near the coordinates (x, y), if there is one, and None, otherwise. *)
 let nearby_intersection (tiles : Tile.tile list) (x, y) =
   let open Tile in
   let search acc (t : Tile.tile) =
@@ -36,6 +38,8 @@ let nearby_intersection (tiles : Tile.tile list) (x, y) =
   in
   List.fold_left search None tiles
 
+(* [nearby_edge tiles (x, y)] is Some edge (i.e., hex edge) near the
+ * coordinates (x, y), if there is one, and None, otherwise. *)
 let nearby_edge (tiles : Tile.tile list) (x, y) =
   let open Tile in
   let search acc (t : Tile.tile) =
@@ -51,6 +55,8 @@ let nearby_edge (tiles : Tile.tile list) (x, y) =
   in
   List.fold_left search None tiles
 
+(* [nearby_tile tiles (x, y)] is Some tile near the coordinates (x, y),
+ * if there is one, and None, otherwise. *)
 let nearby_tile (tiles : Tile.tile list) (x, y) =
   let open Tile in
   let f acc (t : Tile.tile) =
@@ -65,6 +71,8 @@ let parse_mouse_click () =
   let info = wait_next_event [ Button_down; Button_up ] in
   float_of_int info.mouse_x, float_of_int info.mouse_y
 
+(* [resource_of_string str] is Some resource that represents str, if there is
+ * one, and None, otherwise. *)
 let resource_of_string = function
   | "lumber" | "wood"  | "timber"  -> Some Lumber
   | "wool"   | "sheep" | "fleece"  -> Some Wool
@@ -73,6 +81,8 @@ let resource_of_string = function
   | "ore"    | "ores"  | "mineral" -> Some Ore
   | _ -> None
 
+(* [extract_resources tokens] is a list of all the resources that represent
+ * the elements of the string list [tokens]. *)
 let extract_resources =
   List.fold_left (
     fun acc str ->
@@ -81,6 +91,8 @@ let extract_resources =
       | Some r -> r :: acc
   ) []
 
+(* [extract_resources tokens] is a list of all the integers that represent
+ * the elements of the string list [tokens]. *)
 let extract_ints =
   List.fold_left (
     fun acc str ->
@@ -89,6 +101,8 @@ let extract_ints =
       | i -> i :: acc
   ) []
 
+(* [split_list elt acc lst] is a list of the elements in [lst] that occur
+ * before [elt], plus a list of the elements in [lst] that occur after [elt]. *)
 let rec split_list elt acc = function
   | [] -> List.rev acc, []
   | h :: t ->
@@ -97,7 +111,7 @@ let rec split_list elt acc = function
 
 let parse_text tiles str =
   let str' = str |> String.trim |> String.lowercase_ascii in
-  match Str.split (Str.regexp "[ \n\r\x0c\t]+") str' with
+  match Str.split (Str.regexp "[ \n\r\x0c\t?.!]+") str' with
   | [] -> Invalid
   | h :: t ->
     match h with

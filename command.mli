@@ -1,9 +1,9 @@
 open Elements
 
-(* Command module takes in player's command, either through mouse click
- * or terminal entry, and parses them accordingly. *)
+(* Command takes in a player's command, via a mouse click or terminal entry
+ * and parses it accordingly. *)
 
-(* command represents possible types of commands *)
+(* [command] represents a command input by a player. *)
 type command =
   | Setup of int * road
   | BuildSettlement of int
@@ -23,5 +23,9 @@ type command =
   | Quit
   | Invalid
 
-(* [parse str] parses the command given by [str] to type command *)
+(* [parse_mouse_click ()] waits for a mouse event and returns the coordinates
+ * of the first mouse click to occur. *)
+val parse_mouse_click : unit -> float * float
+
+(* [parse str] is the command that represents the input [str]. *)
 val parse_text : Tile.tile list -> string -> command
