@@ -732,8 +732,12 @@ let trade_with_player color to_remove to_add st =
  *                          PLAY A DEVELOPMENT CARD                          *
  *****************************************************************************)
 
+let get_player color st = List.find (fun p -> p.color = color) st.players
+
 (* [num_resources player] returns the number of resources for player [player] *)
-let num_resources player = function
+let num_resources color resource st =
+  let player = get_player color st in
+  match resource with
   | Lumber -> player.lumber
   | Wool   -> player.wool
   | Grain  -> player.grain
@@ -744,12 +748,11 @@ let num_resources player = function
 (* [check_num_resources col st] returns the number of resources the player
  * with color [color] has at state [st] *)
 let check_num_resources color st =
-  let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
-  num_resources player Lumber +
-  num_resources player Wool +
-  num_resources player Grain +
-  num_resources player Brick +
-  num_resources player Ore
+  num_resources color Lumber st +
+  num_resources color Wool st +
+  num_resources color Grain st +
+  num_resources color Brick st +
+  num_resources color Ore st
 
 let play_robber ind st =
   let pos_stealees =
@@ -837,7 +840,7 @@ let play_monopoly rs st =
     if p.color = st.turn then
       p :: lst, n
     else
-      let m = num_resources p rs in
+      let m = num_resources p.color rs st in
       (remove_resources p m rs) :: lst, n + m
   in
   let result = List.fold_left steal ([], 0) st.players in
@@ -1096,8 +1099,6 @@ let do_player cmd color_opt st =
 (*****************************************************************************
  *                                   TEST                                    *
  *****************************************************************************)
-
-let get_player color st = List.find (fun p -> p.color = color) st.players
 
 let score color st =
     let build_score =

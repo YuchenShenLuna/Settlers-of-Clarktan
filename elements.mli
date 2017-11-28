@@ -30,4 +30,4 @@ type intersection = int
 type edge = int * int
 
 (* [shuffle lst] is a permutation of [lst]. *)
-val shuffle : devcard list -> devcard list
+val shuffle : 'a list -> 'a list

@@ -174,6 +174,10 @@ val play_year_of_plenty : resource -> resource -> state -> state
 (* [tiles_of_roll i] is the list of tiles associated with dice roll [i]. *)
 val tiles_of_roll : int -> state -> Tile.tile list
 
+(* [num_resources c r s] is the number of resources of type [r] held by the
+ * player identified by color [c]. *)
+val num_resources : color -> resource -> state -> int
+
 (* [generate_resource st num] generates the resource at dice roll
  * [num] under state [st] and updates the state after generation. *)
 val generate_resource : int -> state -> state

@@ -1,7 +1,6 @@
 open Elements
-
 open State
-
+open Player
 open Tile
 
 (* [get_probability_dice num] gets the relative probability for dice number
@@ -169,11 +168,11 @@ let choose_settlement = failwith "TODO"
 
 let choose_city = failwith "TODO"
 
-let want_build_settlement = failwith "TODO"
+let want_build_settlement st = failwith "TODO"
 
-let want_build_road = failwith "TODO"
+let want_build_road st = failwith "TODO"
 
-let want_build_city = failwith "TODO"
+let want_build_city st = failwith "TODO"
 
 let want_init_trade = failwith "TODO"
 
@@ -185,7 +184,7 @@ let want_trade_bank = failwith "TODO"
 
 let want_trade_ports = failwith "TODO"
 
-let want_buy_card = failwith "TODO"
+let want_buy_card st = failwith "TODO"
 
 let want_play_monopoly = failwith "TODO"
 
@@ -202,8 +201,57 @@ let want_play_knight = failwith "TODO"
 
 let choose_robber_spot = failwith "TODO"
 
+let get_player color st = List.find (fun p -> p.color = color) st.players
+
+let list_of_resources st color =
+  let rec f r n acc = if n = 0 then acc else f r (n - 1) (r :: acc) in
+  let cons r = f r (num_resources color r st) in
+  [] |> cons Lumber |> cons Wool |> cons Grain |> cons Brick |> cons Ore
+
+let rec take n acc = function
+  | [] -> acc
+  | h :: t -> if n <= 0 then acc else take (n - 1) (h :: acc) t
+
 (* if with a plan then keep resource for it else random *)
-let choose_discard_resource = failwith "TODO"
+let choose_discard_resource st color =
+  let hand = list_of_resources st color |> shuffle in
+  let value =
+    if want_build_settlement st then
+      function
+      | Lumber -> 1
+      | Wool -> 1
+      | Grain -> 1
+      | Brick -> 1
+      | Ore -> 0
+      | Null -> 0
+    else if want_build_city st then
+      function
+      | Lumber -> 0
+      | Wool -> 0
+      | Grain -> 2
+      | Brick -> 0
+      | Ore -> 3
+      | Null -> 0
+    else if want_build_road st then
+      function
+      | Lumber -> 1
+      | Wool -> 0
+      | Grain -> 0
+      | Brick -> 1
+      | Ore -> 0
+      | Null -> 0
+    else if want_buy_card st then
+      function
+      | Lumber -> 0
+      | Wool -> 1
+      | Grain -> 1
+      | Brick -> 0
+      | Ore -> 1
+      | Null -> 0
+    else function _ -> 0
+  in
+  let cmp a b = compare (value a) (value b) in
+  hand |> List.sort cmp |> take (List.length hand / 2) []
 
 let want_end_turn = failwith "TODO"
 
