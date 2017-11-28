@@ -22,64 +22,34 @@ type command =
 let distance (x1, y1) (x2, y2) =
   sqrt ((x1 -. x2) ** 2. +. (y1 -. y2) ** 2.)
 
-let nearby_settlement (tiles : Tile.tile list) (x, y) =
+let nearby_intersection (tiles : Tile.tile list) (x, y) =
   let open Tile in
-  let find_intersection acc (t : Tile.tile) =
+  let search acc (t : Tile.tile) =
     if acc = None
     then List.fold_left (
         fun acc p ->
           if fst acc = None && distance (x, y) p < 0.1 *. t.edge
-          then let index = List.nth t.indices (snd acc) in
-            match List.assoc_opt index t.buildings with
-            | None -> Some index, 0
-            | Some (White, _) -> Some index, 0
-            | _ -> None, snd acc + 1
+          then Some (List.nth t.indices (snd acc)), 0
           else fst acc, snd acc + 1
       ) (None, 0) (Tile.corners t) |> fst
     else acc
   in
-  List.fold_left find_intersection None tiles
+  List.fold_left search None tiles
 
-let nearby_city (tiles : Tile.tile list) (x, y) =
+let nearby_edge (tiles : Tile.tile list) (x, y) =
   let open Tile in
-  let find_settlement acc (t : Tile.tile) =
-    if acc = None
-    then List.fold_left (
-        fun acc p ->
-          if fst acc = None && distance (x, y) p < 0.1 *. t.edge
-          then let index = List.nth t.indices (snd acc) in
-            match List.assoc_opt index t.buildings with
-            | Some (_, 2) -> Some index, 0
-            | _ -> None, snd acc + 1
-          else fst acc, snd acc + 1
-      ) (None, 0) (Tile.corners t) |> fst
-    else acc
-  in
-  List.fold_left find_settlement None tiles
-
-let nearby_road (tiles : Tile.tile list) (x, y) =
-  let open Tile in
-  let find_edge acc (t : Tile.tile) =
+  let search acc (t : Tile.tile) =
     if acc = None
     then List.fold_left (
         fun acc p ->
           if fst acc = None && distance (x, y) p < 0.5 *. t.edge
-          then
-            let index0 = List.nth t.indices (snd acc) in
-            let index1 = List.nth t.indices ((snd acc + 1) mod 6) in
-            match List.assoc_opt (index0, index1) t.roads with
-            | Some White -> Some (index0, index1), 0
-            | Some _ -> None, snd acc + 1
-            | None ->
-              match List.assoc_opt (index1, index0) t.roads with
-              | Some White -> Some (index1, index0), 0
-              | Some _ -> None, snd acc + 1
-              | None -> Some (index0, index1), 0
+          then Some (List.nth t.indices (snd acc),
+                     List.nth t.indices ((snd acc + 1) mod 6)), 0
           else fst acc, snd acc + 1
       ) (None, 0) (Tile.edges t) |> fst
     else acc
   in
-  List.fold_left find_edge None tiles
+  List.fold_left search None tiles
 
 let nearby_tile (tiles : Tile.tile list) (x, y) =
   let open Tile in
@@ -90,7 +60,7 @@ let nearby_tile (tiles : Tile.tile list) (x, y) =
   in
   List.fold_left f (None, 0) tiles |> fst
 
-let parse_mouse () =
+let parse_mouse_click () =
   let open Graphics in
   let info = wait_next_event [ Button_down; Button_up ] in
   float_of_int info.mouse_x, float_of_int info.mouse_y
@@ -139,19 +109,19 @@ let parse_text tiles str =
     | "build" | "construct" | "make" | "create" | "establish" ->
       if List.mem "settlement" t then
         begin
-          match () |> parse_mouse |> nearby_settlement tiles with
+          match () |> parse_mouse_click |> nearby_intersection tiles with
           | None -> Invalid
           | Some i -> BuildSettlement i
         end
       else if List.mem "city" t then
         begin
-          match () |> parse_mouse |> nearby_city tiles with
+          match () |> parse_mouse_click |> nearby_intersection tiles with
           | None -> Invalid
           | Some i -> BuildCity i
         end
       else if List.mem "road" t then
         begin
-          match () |> parse_mouse |> nearby_road tiles with
+          match () |> parse_mouse_click |> nearby_edge tiles with
           | None -> Invalid
           | Some i -> BuildRoad i
         end
@@ -159,7 +129,7 @@ let parse_text tiles str =
     | "play" | "activate" | "use" ->
       if List.mem "knight" t then
         begin
-          match () |> parse_mouse |> nearby_tile tiles with
+          match () |> parse_mouse_click |> nearby_tile tiles with
           | None -> Invalid
           | Some i -> Knight i
         end
@@ -177,11 +147,11 @@ let parse_text tiles str =
         end
       else if List.mem "road" t then
         begin
-          match () |> parse_mouse |> nearby_road tiles with
+          match () |> parse_mouse_click |> nearby_edge tiles with
           | None -> Invalid
           | Some i0 ->
             begin
-              match () |> parse_mouse |> nearby_road tiles with
+              match () |> parse_mouse_click |> nearby_edge tiles with
               | None -> Invalid
               | Some i1 -> RoadBuilding (i0, i1)
             end
@@ -207,7 +177,7 @@ let parse_text tiles str =
     | _ ->
       if List.mem "robber" (h :: t) then
         begin
-          match () |> parse_mouse |> nearby_tile tiles with
+          match () |> parse_mouse_click |> nearby_tile tiles with
           | None -> Invalid
           | Some i -> Robber i
         end
