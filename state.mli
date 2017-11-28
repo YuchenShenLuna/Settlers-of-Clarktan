@@ -4,6 +4,13 @@ open Elements
  *                                DEFINITIONS                                *
  *****************************************************************************)
 
+(* [port] represents a port, which offers a favorable exchange rate. *)
+type port = {
+  neighbors : int * int;
+  demand : resource;
+  rate : int
+}
+
 (* [canvas] represents the game board. *)
 type canvas = {
   tiles : Tile.tile list;
@@ -32,23 +39,23 @@ val init_state : unit -> state
 
 (* [check_initialize_build_settlement ind st] checks whether a settlement
  * can be built at state [st]. *)
-val check_initialize_build_settlement : int -> state -> bool
+val check_initialize_build_settlement : intersection -> state -> bool
 
 (* [check_initialize_build_road road st col] checks whether a road can
  * be built at state [st] for player with color [col]. *)
-val check_initialize_build_road : road -> state -> color -> bool
+val check_initialize_build_road : edge -> state -> color -> bool
 
 (* [init_build_settlement ind color st] changes the state when player
  * with color [color] at state [st] builds a settlement at index [ind].
  * raises: Failure "Cannot build settlement at this place" if the player's
  * chosen spot cannot have a settlement built. *)
-val init_build_settlement : int -> color -> state -> state
+val init_build_settlement : intersection -> color -> state -> state
 
 (* [init_build_road road color st] changes the state when player
  * with color [color] at state [st] builds a road at index [road].
  * raises : Failure "Cannot build road at this place" if the player's
  * chosen spot cannot have a road built. *)
-val init_build_road : road -> color -> state -> state
+val init_build_road : edge -> color -> state -> state
 
 (* [init_generate_resources color st] changes the state when in the initial
  * phase the player with color [color] gets the auto-generated resources
@@ -66,7 +73,7 @@ val init_generate_resources : color -> state -> state
           3. if check_build_settlements returns true
  * raises: Failure with specific message if the settlement cannot be built
  * at the given index. *)
-val can_build_settlement : int -> state -> color -> bool
+val can_build_settlement : color -> intersection -> state -> bool
 
 (* returns: if a road can be built at given index [ind] for the player
  * identified by color [color] at state [st].
@@ -75,7 +82,7 @@ val can_build_settlement : int -> state -> color -> bool
           3. if check_build_road returns true
  * raises: Failure with specific message if road cannot be built at
  * the given index. *)
-val can_build_road : road -> state -> color -> bool
+val can_build_road : color -> edge -> state -> bool
 
 (* returns: whether a city can be built at given index [ind] for the player
  * identified by color [color] at state [st]
@@ -84,27 +91,27 @@ val can_build_road : road -> state -> color -> bool
           3. if check_build_cities returns true
  * raises: Failure with specific message when city cannot be built at
  * given index *)
-val can_build_city : int -> state -> color -> bool
+val can_build_city : color -> intersection -> state -> bool
 
 (* [build_settlement ind st col] returns the new state after player with color
  * [col] at state [st] builds a new settlement at index [ind].
  * raises: Failure with message relevant to the error of player when settlement
  * cannot be built at the chosen index *)
-val build_settlement : int -> state -> state
+val build_settlement : intersection -> state -> state
 
 (* [build_road road st col] returns the new state after player with color
  * [col] at state [st] builds a new road at index [road].
  * raises: Failure with message relevant to the error of player when road
  * cannot be built at the chosen index *)
-val build_road : road -> state -> state
+val build_road : edge -> state -> state
 
 (* [build_city ind st col] returns the new state after player with color
  * [col] at state [st] builds a new city at index [ind].
  * raises: Failure with message relevant to the error of player when city
  * cannot be built at the chosen index *)
-val build_city : int -> state -> state
+val build_city : intersection -> state -> state
 
-(* [buy_devcard col st] updates the state [st] when player with color
+(* [buy_devcard color st] updates the state [st] when player with color
  * [col] buys a development card using resources.
  * raises: Failure with specific messages when resource card cannot be
  * bought at the time *)
@@ -114,23 +121,23 @@ val buy_devcard : state -> state
  *                                   TRADE                                   *
  *****************************************************************************)
 
-(* [trade_with_player st l1 l2 col st] updates the state when player at
+(* [trade_with_player st l1 l2 color st] updates the state when player at
  * state [st] trades with the bank.
  * raises: Failure when player cannot have a valid trade *)
 val trade_with_bank :
-  state -> (resource * int) list -> (resource * int) list -> color -> state
+  color -> (resource * int) list -> (resource * int) list -> state -> state
 
-(* [trade_with_port st l1 l2 col st] updates the state when player at
+(* [trade_with_port st l1 l2 color st] updates the state when player at
  * state [st] trades with a port.
  * raises: Failure when player cannot have a valid trade *)
 val trade_with_port :
-  state -> (resource * int) list -> (resource * int) list -> color -> state
+  color -> (resource * int) list -> (resource * int) list -> state -> state
 
-(* [trade_with_player st l1 l2 col st] updates the state when player at
+(* [trade_with_player st l1 l2 color st] updates the state when player at
  * state [st] trades with another player.
  * raises: Failure when player cannot have a valid trade *)
 val trade_with_player :
-  state -> (resource * int) list -> (resource * int) list -> color -> state
+  color -> (resource * int) list -> (resource * int) list -> state -> state
 
 (*****************************************************************************
  *                          PLAY A DEVELOPMENT CARD                          *
@@ -138,42 +145,42 @@ val trade_with_player :
 
 (* [play_robber st i] is the state after the player moves the robber to
  * robber to terrain hex [i]. *)
-val play_robber : state -> int -> state
+val play_robber : int -> state -> state
 
-(* [play_knight st col ind] is the state [st] after the current player
+(* [play_knight st color ind] is the state [st] after the current player
  * plays a knight card and moves the robber to terrain hex [ind]. *)
-val play_knight : state -> int -> state
+val play_knight : int -> state -> state
 
-(* [play_road_build st col road1 road2] is the state after the current
+(* [play_road_build st color road1 road2] is the state after the current
  * player builds a road at [road1] and another at [road2].
  * raises: Failure when a road cannot be built at the chosen spot. *)
-val play_road_build : state -> road -> road -> state
+val play_road_build : edge -> edge -> state -> state
 
 (* [play_monopoly st r] is the state after the current player activates the
  * monopoly card at state [st] to acquire resource type [r]. *)
-val play_monopoly : state -> resource -> state
+val play_monopoly : resource -> state -> state
 
 (* [play_year_of_plenty st r1 r2] is the state after a player plays a
  * year_of_plenty card at state [st] to acquire resources [r1] [r2]. *)
-val play_year_of_plenty : state -> resource -> resource -> state
+val play_year_of_plenty : resource -> resource -> state -> state
 
 (*****************************************************************************
  *                                 RESOURCES                                 *
  *****************************************************************************)
 
 (* [tiles_of_roll i] is the list of tiles associated with dice roll [i]. *)
-val tiles_of_roll : int -> Tile.tile list -> Tile.tile list
+val tiles_of_roll : int -> state -> Tile.tile list
 
 (* [generate_resource st num] generates the resource at dice roll
  * [num] under state [st] and updates the state after generation. *)
-val generate_resource : state -> int -> state
+val generate_resource : int -> state -> state
 
 (* [discard_resource] discards resources for a player when the robber has been
  * activated. If the player does not have over seven resources, the original
  * state is returned.
  * raises: Failure "you need to discard more resources";
  *         Failure "you need to discard fewer resources" *)
-val discard_resource : color -> state -> (resource*int) list -> state
+val discard_resource : color -> (resource * int) list -> state -> state
 
 (*****************************************************************************
  *                                  TROPHY                                   *
@@ -193,7 +200,7 @@ val largest_army : state -> state
  * raises: Not_found if the player whose turn it is does not exist. *)
 val end_turn : state -> state
 
-(* [do_player cmd clr st] is the game state after a command [cmd] is
+(* [do_player cmd color st] is the game state after a command [cmd] is
  * executed. *)
 val do_player : Command.command -> color option -> state -> state
 
@@ -204,35 +211,35 @@ val do_ai : state -> state
  *                                   TEST                                    *
  *****************************************************************************)
 
-(* [score clr st] is the score of the player identified by color [clr]. *)
+(* [score color st] is the score of the player identified by color [color]. *)
 val score : color -> state -> int
 
-(* [check_win clr st] indicates whether the player identified by color [clr]
+(* [check_win color st] indicates whether the player identified by color [color]
  * has won the game *)
 val check_win : color -> state -> bool
 
-(* [settlements clr st] is a list of indices that represent settlements
- * built by the player identified by color [clr]. *)
-val settlements : color -> state -> int list
+(* [settlements color st] is a list of indices that represent settlements
+ * built by the player identified by color [color]. *)
+val settlements : color -> state -> intersection list
 
-(* [cities clr st] is a list of indices that represent cities built by the
- * player identified by color [clr]. *)
-val cities : color -> state -> int list
+(* [cities color st] is a list of indices that represent cities built by the
+ * player identified by color [color]. *)
+val cities : color -> state -> intersection list
 
-(* [roads clr st] is a list of pairs of indices that represent roads built
- * by the player identified by color [clr]. *)
-val roads : color -> state -> int list
+(* [roads color st] is a list of pairs of indices that represent roads built
+ * by the player identified by color [color]. *)
+val roads : color -> state -> edge list
 
-(* [ports clr st] is a list of pairs of indices that represent ports
- * accessible by the player identified by color [clr]. *)
-val ports : color -> state -> int list
+(* [ports color st] is a list of pairs of indices that represent ports
+ * accessible by the player identified by color [color]. *)
+val ports : color -> state -> edge list
 
-(* [cards clr st] is a list of the development cards held by the player
- * identified by color [clr]. *)
+(* [cards color st] is a list of the development cards held by the player
+ * identified by color [color]. *)
 val cards : color -> state -> (DevCard.devcard * int) list
 
-(* [resources clr st] is a list of the resources held by the player
- * identified by color [clr]. *)
+(* [resources color st] is a list of the resources held by the player
+ * identified by color [color]. *)
 val resources : color -> state -> (resource * int) list
 
 (* [robber st] is current location of the robber. *)

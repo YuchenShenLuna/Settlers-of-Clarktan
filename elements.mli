@@ -15,12 +15,8 @@ type resource =
   | Ore
   | Null
 
-(* [road] represents a road *)
-type road = int * int
+(* [intersection] represents an intersection.*)
+type intersection = int
 
-(* [port] represents a port, which offers a favorable exchange rate. *)
-type port = {
-  neighbors : int * int;
-  demand : resource;
-  rate : int
-}
+(* [edge] represents an edge *)
+type edge = int * int

@@ -13,10 +13,6 @@ type resource =
   | Ore
   | Null
 
-type road = int * int
+type intersection = int
 
-type port = {
-  neighbors : int * int;
-  demand : resource;
-  rate : int
-}
+type edge = int * int

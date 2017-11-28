@@ -2,13 +2,13 @@ open Elements
 
 (* [command] represents a command input by a player. *)
 type command =
-  | Setup of int * road
+  | Setup of int * edge
   | BuildSettlement of int
   | BuildCity of int
-  | BuildRoad of road
+  | BuildRoad of edge
   | BuyCard
   | Knight of int
-  | RoadBuilding of road * road
+  | RoadBuilding of edge * edge
   | YearOfPlenty of resource * resource
   | Monopoly of resource
   | Robber of int

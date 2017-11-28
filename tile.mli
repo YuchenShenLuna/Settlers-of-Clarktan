@@ -2,13 +2,13 @@ open Elements
 
 (* [tile] represents a terrain hex. *)
 type tile = {
-  indices : int list;
+  indices : intersection list;
   dice : int;
   resource : resource;
   center : float * float;
   edge : float;
-  buildings : (int * (color * int)) list;
-  roads : (road * color) list
+  buildings : (intersection * (color * int)) list;
+  roads : (edge * color) list
 }
 
 (* [corners t] is a list of the coordinates of the corners of tile [t]. *)
