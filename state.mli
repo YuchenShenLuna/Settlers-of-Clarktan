@@ -204,9 +204,6 @@ val end_turn : state -> state
  * executed. *)
 val do_player : Command.command -> color option -> state -> state
 
-(* [do_ai st] is the state after a bot completes a turn. *)
-val do_ai : state -> state
-
 (*****************************************************************************
  *                                   TEST                                    *
  *****************************************************************************)
