@@ -20,7 +20,7 @@ type canvas = {
 
 type state = {
   robber : int;
-  deck: devcard list;
+  deck: card list;
   turn : color;
   players : Player.player list;
   canvas : canvas
@@ -548,7 +548,7 @@ let build_city ind st =
   {st with players = new_players;
            canvas = {tiles = new_tiles; ports = st.canvas.ports}}
 
-let buy_devcard st =
+let buy_card st =
   let player = List.hd (List.filter (fun x -> x.color=st.turn) st.players) in
   if player.grain < 1 || player.ore < 1 || player.wool < 1 then
     failwith "Not enough resource to buy development card"
@@ -1060,7 +1060,7 @@ let do_move cmd color_opt st =
   | BuildSettlement i -> build_settlement i st
   | BuildCity i -> build_city i st
   | BuildRoad rd -> build_road rd st
-  | BuyCard -> buy_devcard st
+  | BuyCard -> buy_card st
   | PlayKnight i -> play_knight i st
   | PlayRoadBuilding (rd0, rd1) -> play_road_build rd0 rd1 st
   | PlayYearOfPlenty (rs0, rs1) -> play_year_of_plenty rs0 rs1 st

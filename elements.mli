@@ -15,8 +15,8 @@ type resource =
   | Ore
   | Null
 
-(* [devcard] represents a development card. *)
-type devcard =
+(* [card] represents a development card. *)
+type card =
   | Knight
   | RoadBuilding
   | YearOfPlenty
