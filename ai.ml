@@ -283,9 +283,35 @@ let index_obtainable_in_one_road st color =
   |> List.flatten
   |> List.filter (fun x -> check_build_settlement x st color)
 
-let index_obtainable_in_two_roads = failwith "TODO"
+let roads_in_one st color =
+  st.canvas.tiles
+  |> List.map (fun x -> x.roads)
+  |> List.flatten
+  |> List.sort_uniq compare
+  |> List.filter (fun (edge, col) -> col = color)
+  |> List.map (fun ((a1, a2), b) -> [a1; a2])
+  |> List.flatten
+  |> List.filter (fun x -> has_settlement x st = false)
+  |> List.map (fun x -> (x, fetch_neighbors x))
+  |> List.map (fun (a, b) -> List.map (fun y -> (a, y)) b)
+  |> List.flatten
+  |> List.filter (fun (a, b) -> check_build_settlement b st color)
 
-let index_obtainable_in_three_roads = failwith "TODO"
+let fetch_road_in_one ind st color =
+  let help ind st color =
+    let roads = roads_in_one st color in
+    if List.assoc_opt ind roads <> None then
+      (List.assoc_opt ind roads, Some ind)
+    else
+      let roads_reversed = List.map (fun (a, b) -> (b, a)) roads in
+      (List.assoc_opt ind roads_reversed, Some ind)
+  in
+  let result = help ind st color in
+  match result with
+  | Some a, Some b -> (a, b)
+  | _, _ -> failwith "No available road"
+
+let index_obtainable_in_two_roads = failwith "TODO"
 
 let choose_settlement st color =
   let possibles = get_possible_settlement_ind st color can_build_settlement_ai in
