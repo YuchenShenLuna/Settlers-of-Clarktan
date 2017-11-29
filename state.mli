@@ -96,6 +96,24 @@ val can_build_road : color -> edge -> state -> bool
  * given index *)
 val can_build_city : color -> intersection -> state -> bool
 
+(* [check_build_settlement num st color] checks whether a settlement can be
+ * build at index [num] at state [st] for player with color [color]. This
+ * checks whether a settlement follows the rule of no two settlements have
+ * fewer than two roads in between and settlement must have own color's
+ * road in one end, and whether the settlement is build upon an empty place *)
+val check_build_settlement : int -> state -> color -> bool
+
+(* [check_build_road road st col] checks whether a road can be build at index
+ * [road] at state [st] for player identified by color [col]. This only checks
+ * the distance rules, not resources nor availability. *)
+val check_build_road : edge -> state -> color -> bool
+
+(* [check_build_cities num st color] checks whether a city can be
+ * build at index [num] at state [st] for player with color [color]. This
+ * checks whether a city follows the rule of being build upon a settlement
+ * that is of the same color *)
+val check_build_cities : int -> state -> color -> bool
+
 (* [build_settlement ind st col] returns the new state after player with color
  * [col] at state [st] builds a new settlement at index [ind].
  * raises: Failure with message relevant to the error of player when settlement

@@ -347,11 +347,6 @@ let init_generate_resources color st =
  *                                   BUILD                                   *
  *****************************************************************************)
 
-(* [check_build_settlement num st color] checks whether a settlement can be
- * build at index [num] at state [st] for player with color [color]. This
- * checks whether a settlement follows the rule of no two settlements have
- * fewer than two roads in between and settlement must have own color's
- * road in one end, and whether the settlement is build upon an empty place *)
 let check_build_settlement num st color =
   let ind_lst = fetch_neighbors num in
   let tile_lst = st.canvas.tiles in
@@ -449,7 +444,7 @@ let check_build_road (i0, i1) st color =
       | Some (color, _) -> color
   in
   let res' = help tile_lst i0 = color || help tile_lst i1 = color in
-  if res' = true then
+  if res' then
     true
   else
     List.fold_left (fun acc x ->
@@ -494,10 +489,6 @@ let build_road (i0, i1) st =
            canvas = {tiles = new_tiles;
                      ports = st.canvas.ports}}
 
-(* [check_build_cities num st color] checks whether a city can be
- * build at index [num] at state [st] for player with color [color]. This
- * checks whether a city follows the rule of being build upon a settlement
- * that is of the same color *)
 let check_build_cities num st color =
   let tile_lst = st.canvas.tiles in
   let rec help lst num =

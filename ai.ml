@@ -111,7 +111,7 @@ let can_build_city_ai col x st =
   try can_build_city col x st with
   | _ -> false
 
-let get_possible_settlemnt_ind st col f =
+let get_possible_settlement_ind st col f =
   get_possible_house_ind st col can_build_settlement_ai
 
 let get_possible_city_ind st col f =
@@ -244,7 +244,7 @@ let init_choose_second_settlement_build st col =
  *                                   BUILD                                   *
  *****************************************************************************)
 
-let calc_value_settlement ind st color =
+let calc_value_house ind st color =
   let resources = obtainable_resources ind st in
   let dices = obtain_bordering_dices ind st in
   let res_pts =
@@ -261,17 +261,45 @@ let calc_value_settlement ind st color =
 
 let make_build_plan = failwith "TODO"
 
-let index_obtainable_in_one_road = failwith "TODO"
+let has_settlement ind st =
+  let info =
+    st.canvas.tiles
+    |> List.map (fun x -> x.buildings)
+    |> List.flatten
+    |> List.sort_uniq compare
+  in
+  List.assoc_opt ind info <> None
+
+let index_obtainable_in_one_road st color =
+  st.canvas.tiles
+  |> List.map (fun x -> x.roads)
+  |> List.flatten
+  |> List.sort_uniq compare
+  |> List.filter (fun (edge, col) -> col = color)
+  |> List.map (fun ((a1, a2), b) -> [a1; a2])
+  |> List.flatten
+  |> List.filter (fun x -> has_settlement x st = false)
+  |> List.map (fun x -> fetch_neighbors x)
+  |> List.flatten
+  |> List.filter (fun x -> check_build_settlement x st color)
 
 let index_obtainable_in_two_roads = failwith "TODO"
 
 let index_obtainable_in_three_roads = failwith "TODO"
 
-let choose_settlement st color = failwith "TODO"
+let choose_settlement st color =
+  let possibles = get_possible_settlement_ind st color can_build_settlement_ai in
+  List.fold_left
+    (fun acc x -> if calc_value_house x > calc_value_house acc
+      then x else acc) (List.hd possibles) possibles
 
 let choose_road = failwith "TODO"
 
-let choose_city = failwith "TODO"
+let choose_city st color =
+  let possibles = get_possible_city_ind st color can_build_city_ai in
+  List.fold_left
+    (fun acc x -> if calc_value_house x > calc_value_house acc
+      then x else acc) (List.hd possibles) possibles
 
 let want_build_settlement st = failwith "TODO"
 
