@@ -3,6 +3,10 @@ open State
 open Player
 open Tile
 
+(*****************************************************************************
+ *                                  HELPERS                                  *
+ *****************************************************************************)
+
 (* [get_probability_dice num] gets the relative probability for dice number
  * [num] to appear *)
 let get_probability_dice num =
@@ -33,6 +37,58 @@ let get_probability_card st res =
   | YearOfPlenty -> count YearOfPlenty
   | Monopoly -> count Monopoly
   | VictoryPoint -> count VictoryPoint
+
+let obtain_score color st =
+  let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
+  player.score
+
+let resource_priority_diff_stage color st res =
+  let score = obtain_score color st in
+  if score < 5 then
+    match res with
+    | Lumber -> 3
+    | Wool   -> 2
+    | Brick  -> 3
+    | Ore    -> 2
+    | Grain  -> 1
+    | Null   -> 0
+  else if score < 9 then
+    match res with
+    | Lumber -> 2
+    | Wool   -> 1
+    | Brick  -> 2
+    | Ore    -> 3
+    | Grain  -> 3
+    | Null   -> 0
+  else
+    match res with
+    | Lumber -> 1
+    | Wool   -> 2
+    | Brick  -> 1
+    | Ore    -> 3
+    | Grain  -> 3
+    | Null   -> 0
+
+let get_player color st = List.find (fun p -> p.color = color) st.players
+
+let list_of_resources color st =
+  let rec f r n acc = if n = 0 then acc else f r (n - 1) (r :: acc) in
+  let cons r = f r (num_resource color r st) in
+  [] |> cons Lumber |> cons Wool |> cons Grain |> cons Brick |> cons Ore
+
+let rec take n acc = function
+  | [] -> acc
+  | h :: t -> if n <= 0 then acc else take (n - 1) (h :: acc) t
+
+(*****************************************************************************
+ *                                STRATEGY                                   *
+ *****************************************************************************)
+
+(* TODO: Potentially lay out different strategies. *)
+
+(*****************************************************************************
+ *                              INITIAL PHASE                                *
+ *****************************************************************************)
 
 (* [get_possible_house_ind st col f] returns a list of
  * possible indexes on which we can build a settlement or city based on
@@ -184,44 +240,9 @@ let init_choose_second_settlement_build st col =
     else
       init_choose_first_settlement_build st col
 
-let make_build_plan = failwith "TODO"
-
-let index_obtainable_in_one_road = failwith "TODO"
-
-let index_obtainable_in_two_roads = failwith "TODO"
-
-let index_obtainable_in_three_roads = failwith "TODO"
-
-let obtain_score color st =
-  let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
-  player.score
-
-let resource_priority_diff_stage color st res =
-  let score = obtain_score color st in
-  if score < 5 then
-    match res with
-    | Lumber -> 3
-    | Wool   -> 2
-    | Brick  -> 3
-    | Ore    -> 2
-    | Grain  -> 1
-    | Null   -> 0
-  else if score < 9 then
-    match res with
-    | Lumber -> 2
-    | Wool   -> 1
-    | Brick  -> 2
-    | Ore    -> 3
-    | Grain  -> 3
-    | Null   -> 0
-  else
-    match res with
-    | Lumber -> 1
-    | Wool   -> 2
-    | Brick  -> 1
-    | Ore    -> 3
-    | Grain  -> 3
-    | Null   -> 0
+(*****************************************************************************
+ *                                   BUILD                                   *
+ *****************************************************************************)
 
 let calc_value_settlement ind st color f =
   let resources = obtainable_resources ind st in
@@ -238,6 +259,14 @@ let calc_value_settlement ind st color f =
   in
   res_pts + dice_pts
 
+let make_build_plan = failwith "TODO"
+
+let index_obtainable_in_one_road = failwith "TODO"
+
+let index_obtainable_in_two_roads = failwith "TODO"
+
+let index_obtainable_in_three_roads = failwith "TODO"
+
 let choose_settlement st color = failwith "TODO"
 
 let choose_road = failwith "TODO"
@@ -252,13 +281,16 @@ let want_build_city st = failwith "TODO"
 
 let want_buy_card st = failwith "TODO"
 
+(*****************************************************************************
+ *                                   TRADE                                   *
+ *****************************************************************************)
+
 let want_accept_trade_player st ai rs other_pl rs'=
   let open Player in
   (*if other player has score higher then 7, then do not trade*)
   if other_pl.score > 7 then false else
     (*if rs you use to trade is ore, then do not trade*)
   if rs=Ore then false else true
-
 
 let want_init_trade st ai rs other_pl rs'=
   let open Player in
@@ -267,7 +299,7 @@ let want_init_trade st ai rs other_pl rs'=
     (*if rs you use to trade is ore, then do not trade*)
   if rs=Ore then false else
     (*if other_pl does not have the resource you want, then do not trade*)
-  if (num_resources other_pl.color rs' st = 0 )then false else true
+  if (num_resource other_pl.color rs' st = 0 )then false else true
 
 let want_to_trade st ai =
   if want_build_settlement st then false
@@ -299,27 +331,28 @@ let want_trade_ports st ai rs rs'=
   if (List.length (ports_of_player_with_specific_resource st (ai.color) rs')) = 0 then false else
   if want_to_trade_with_all_other_players st ai st.players rs rs' = true then false else true
 
+(*****************************************************************************
+ *                               ACHIEVEMENTS                                *
+ *****************************************************************************)
+
+let want_largest_army color st = failwith "TODO"
+
+let want_longest_road color st = failwith "TODO"
+
+(*****************************************************************************
+ *                             DEVELOPMENT CARDS                             *
+ *****************************************************************************)
 
 let want_play_monopoly = failwith "TODO"
 
 let want_play_year_of_plenty = failwith "TODO"
 
-let choose_monopoly st = Grain
-
-let get_player color st = List.find (fun p -> p.color = color) st.players
-
-let list_of_resources color st =
-  let rec f r n acc = if n = 0 then acc else f r (n - 1) (r :: acc) in
-  let cons r = f r (num_resources color r st) in
-  [] |> cons Lumber |> cons Wool |> cons Grain |> cons Brick |> cons Ore
-
-let rec take n acc = function
-  | [] -> acc
-  | h :: t -> if n <= 0 then acc else take (n - 1) (h :: acc) t
+let choose_monopoly st = failwith "TODO"
 
 let choose_two_plenty_resource color st =
   let player = get_player color st in
-  let hand = [ Lumber; Lumber; Wool; Wool; Grain; Grain; Brick; Brick; Ore; Ore ] in
+  let hand = [ Lumber; Lumber; Wool; Wool; Grain;
+               Grain; Brick; Brick; Ore; Ore ] in
   let value =
     if want_build_settlement st then
       function
@@ -362,8 +395,21 @@ let choose_two_plenty_resource color st =
   | _ -> failwith "Impossible"
 
 let want_play_road_building = failwith "TODO"
+let blocked color st = failwith "TODO"
+let blocked_bad color st = failwith "TODO"
+let num_all_cards color st = failwith "TODO"
+let bought_this_turn color st card = failwith "TODO"
 
-let want_play_knight = failwith "TODO"
+let want_play_knight color st =
+  num_all_resources color st <= 7
+  && not (bought_this_turn color st Knight)
+  && (blocked_bad color st
+      || List.fold_left (
+        fun acc p ->
+          if p.color != color then not (blocked_bad p.color st) || acc else acc
+      ) false st.players
+      || want_largest_army color st
+      || num_all_cards color st >= 10)
 
 let num_buildings tile =
   tile.buildings |> List.filter (fun (_, (c, _)) -> c <> White) |> List.length
@@ -381,6 +427,10 @@ let choose_robber_spot color st =
   match robber_opt color st with
   | None -> List.hd st.canvas.tiles
   | Some tile -> tile
+
+(*****************************************************************************
+ *                              MISCELLANEOUS                                *
+ *****************************************************************************)
 
 (* if with a plan then keep resource for it else random *)
 let choose_discard_resource color st =
@@ -424,8 +474,10 @@ let choose_discard_resource color st =
   let cmp a b = compare (value a) (value b) in
   hand |> List.sort cmp |> take (List.length hand / 2) []
 
-let want_end_turn = failwith "TODO"
+let time_out = failwith "TODO"
 
-let robot_times_out = failwith "TODO"
+(*****************************************************************************
+ *                                    DO                                     *
+ *****************************************************************************)
 
 let do_ai = failwith "TODO"

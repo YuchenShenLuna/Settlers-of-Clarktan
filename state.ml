@@ -734,8 +734,8 @@ let trade_with_player color to_remove to_add st =
 
 let get_player color st = List.find (fun p -> p.color = color) st.players
 
-(* [num_resources player] returns the number of resources for player [player] *)
-let num_resources color resource st =
+(* [num_resource player] returns the number of resources for player [player] *)
+let num_resource color resource st =
   let player = get_player color st in
   match resource with
   | Lumber -> player.lumber
@@ -745,21 +745,19 @@ let num_resources color resource st =
   | Ore    -> player.ore
   | Null   -> 0
 
-(* [check_num_resources col st] returns the number of resources the player
- * with color [color] has at state [st] *)
-let check_num_resources color st =
-  num_resources color Lumber st +
-  num_resources color Wool st +
-  num_resources color Grain st +
-  num_resources color Brick st +
-  num_resources color Ore st
+let num_all_resources color st =
+  num_resource color Lumber st +
+  num_resource color Wool st +
+  num_resource color Grain st +
+  num_resource color Brick st +
+  num_resource color Ore st
 
 let play_robber ind st =
   let pos_stealees =
     (List.nth st.canvas.tiles ind).buildings
     |> List.map (fun (_, (col, _)) -> col)
     |> List.sort_uniq compare
-    |> List.filter (fun x -> check_num_resources x st > 0) in
+    |> List.filter (fun x -> num_all_resources x st > 0) in
   let shuffle lst =
     let i = Random.int (List.length lst) in
     List.nth lst i
@@ -840,7 +838,7 @@ let play_monopoly rs st =
     if p.color = st.turn then
       p :: lst, n
     else
-      let m = num_resources p.color rs st in
+      let m = num_resource p.color rs st in
       (remove_resources p m rs) :: lst, n + m
   in
   let result = List.fold_left steal ([], 0) st.players in
@@ -909,12 +907,12 @@ let generate_resource num st =
   in help st info
 
 let discard_resource color lst st =
-  if check_num_resources color st < 7 then st
+  if num_all_resources color st < 7 then st
   else
     let num_in_lst = List.fold_left (fun acc (a, b) -> acc + b) 0 lst in
-    if num_in_lst < check_num_resources color st then
+    if num_in_lst < num_all_resources color st then
       failwith "you need to discard more resources"
-    else if num_in_lst > check_num_resources color st then
+    else if num_in_lst > num_all_resources color st then
       failwith "you need to discard fewer resources"
     else
       let new_players =
@@ -939,7 +937,7 @@ let discard_resource color lst st =
       in {st with players = new_players}
 
 (*****************************************************************************
- *                                  TROPHY                                   *
+ *                               ACHIEVEMENT                                 *
  *****************************************************************************)
 
 (* [fetch_edges st] fetches the roads at given state [st]*)
@@ -1051,7 +1049,7 @@ let end_turn st =
   let turn = (List.nth st.players ((index 0 st.players + 1) mod 4)).color in
   { st with turn }
 
-let do_player cmd color_opt st =
+let do_move cmd color_opt st =
   match cmd with
   | Setup (i, rd) ->
     begin
