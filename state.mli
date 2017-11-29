@@ -20,7 +20,7 @@ type canvas = {
 (* [state] represents the state of the game. *)
 type state = {
   robber : int;
-  deck : devcard list;
+  deck : card list;
   turn : color;
   players : Player.player list;
   canvas : canvas
@@ -132,11 +132,11 @@ val build_road : edge -> state -> state
  * cannot be built at the chosen index *)
 val build_city : intersection -> state -> state
 
-(* [buy_devcard color st] updates the state [st] when player with color
+(* [buy_card color st] updates the state [st] when player with color
  * [col] buys a development card using resources.
  * raises: Failure with specific messages when resource card cannot be
  * bought at the time *)
-val buy_devcard : state -> state
+val buy_card : state -> state
 
 (*****************************************************************************
  *                                   TRADE                                   *
@@ -270,7 +270,7 @@ val ports : color -> state -> edge list
 
 (* [cards color st] is a list of the development cards held by the player
  * identified by color [color]. *)
-val cards : color -> state -> (devcard * int) list
+val cards : color -> state -> (card * int) list
 
 (* [resources color st] is a list of the resources held by the player
  * identified by color [color]. *)

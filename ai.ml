@@ -72,7 +72,7 @@ let resource_priority_diff_stage color st res =
 let get_player color st = List.find (fun p -> p.color = color) st.players
 
 let list_of_resources color st =
-  let rec f r n acc = if n = 0 then acc else f r (n - 1) (r :: acc) in
+  let rec f r n acc = if n <= 0 then acc else f r (n - 1) (r :: acc) in
   let cons r = f r (num_resource color r st) in
   [] |> cons Lumber |> cons Wool |> cons Grain |> cons Brick |> cons Ore
 
@@ -293,7 +293,7 @@ let choose_settlement st color =
     (fun acc x -> if calc_value_house x > calc_value_house acc
       then x else acc) (List.hd possibles) possibles
 
-let choose_road = failwith "TODO"
+let choose_road color st = failwith "TODO"
 
 let choose_city st color =
   let possibles = get_possible_city_ind st color can_build_city_ai in
@@ -301,63 +301,52 @@ let choose_city st color =
     (fun acc x -> if calc_value_house x > calc_value_house acc
       then x else acc) (List.hd possibles) possibles
 
-let want_build_settlement st = failwith "TODO"
+let want_build_settlement color st = failwith "TODO"
 
-let want_build_road st = failwith "TODO"
+let want_build_road color st = failwith "TODO"
 
-let want_build_city st = failwith "TODO"
+let want_build_city color st = failwith "TODO"
 
-let want_buy_card st = failwith "TODO"
+let want_buy_card color st =
+  num_resource color Wool st > 0
+  && num_resource color Grain st > 0
+  && num_resource color Ore st > 0
+  && not (want_build_settlement color st)
+  && not (want_build_road color st)
+  && not (want_build_city color st)
+  && (num_all_resources color st > 7
+      || failwith "TODO")
 
 (*****************************************************************************
  *                                   TRADE                                   *
  *****************************************************************************)
 
 let want_accept_trade_player st ai rs other_pl rs'=
-  let open Player in
-  (*if other player has score higher then 7, then do not trade*)
-  if other_pl.score > 7 then false else
-    (*if rs you use to trade is ore, then do not trade*)
-  if rs=Ore then false else true
+  other_pl.score <= 7 && rs <> Ore
 
 let want_init_trade st ai rs other_pl rs'=
-  let open Player in
-  (*if other player has score higher then 7, then do not trade*)
-  if other_pl.score > 7 then false else
-    (*if rs you use to trade is ore, then do not trade*)
-  if rs=Ore then false else
-    (*if other_pl does not have the resource you want, then do not trade*)
-  if (num_resource other_pl.color rs' st = 0 )then false else true
+  other_pl.score <= 7 && rs <> Ore && num_resource other_pl.color rs' st > 0
 
 let want_to_trade st ai =
-  if want_build_settlement st then false
-  else if want_build_road st then false
-  else if want_build_city st then false
-  else if want_buy_card st then false
-  else true
+  not (want_build_settlement ai.color st)
+  && not (want_build_road ai.color st)
+  && not (want_build_city ai.color st)
+  && not (want_buy_card ai.color st)
 
 let want_to_trade_with_all_other_players st pl pl_list rs rs'=
-  let open Player in
-  let boolean_list=
-    List.map (fun x-> if (x.color=pl.color || want_init_trade st pl rs x rs') then
-                 true else false) pl_list in
+  let boolean_list =
+    List.map (fun x-> x.color=pl.color || want_init_trade st pl rs x rs') pl_list in
   let number_of_true= List.fold_left (fun acc x-> if x then acc+1 else acc) 0 boolean_list in
-  if number_of_true = 4 then true else false
+  number_of_true = 4
 
-
-let want_trade_bank st ai rs rs'=
-  let open Player in
-  (*if ai player wants to trade*)
-  if want_to_trade st ai=false then false
-  else
-  (*while there are no ports for the ai player and other players want to trade with him*)
-    (List.length (ports_of_player st (ai.color)))==0
-  && want_to_trade_with_all_other_players st ai st.players rs rs'=false
+let want_trade_bank st ai rs rs' =
+  want_to_trade st ai
+  && List.length (ports_of_player st ai.color) = 0
+  && not (want_to_trade_with_all_other_players st ai st.players rs rs')
 
 let want_trade_ports st ai rs rs'=
-  (*if the ai player has ports that have the resource he wants, and he does not want to trade with other player*)
-  if (List.length (ports_of_player_with_specific_resource st (ai.color) rs')) = 0 then false else
-  if want_to_trade_with_all_other_players st ai st.players rs rs' = true then false else true
+  List.length (ports_of_player_with_specific_resource st ai.color rs') > 0
+  && not (want_to_trade_with_all_other_players st ai st.players rs rs')
 
 (*****************************************************************************
  *                               ACHIEVEMENTS                                *
@@ -371,18 +360,76 @@ let want_longest_road color st = failwith "TODO"
  *                             DEVELOPMENT CARDS                             *
  *****************************************************************************)
 
-let want_play_monopoly = failwith "TODO"
+let num_card color card s =
+  let player = get_player color s in
+  match card with
+  | Knight -> player.knight
+  | RoadBuilding -> player.road_building
+  | YearOfPlenty -> player.year_of_plenty
+  | Monopoly -> player.monopoly
+  | VictoryPoint -> player.victory_point
 
-let want_play_year_of_plenty = failwith "TODO"
+let num_all_cards color s =
+  num_card color Knight s
+  + num_card color RoadBuilding s
+  + num_card color YearOfPlenty s
 
-let choose_monopoly st = failwith "TODO"
+let has_card color card s = num_card color card s > 0
 
-let choose_two_plenty_resource color st =
-  let player = get_player color st in
+let blocked color s = failwith "TODO"
+let blocked_bad color s = failwith "TODO"
+let bought_this_turn color s card = failwith "TODO"
+
+let want_play_knight color s =
+  num_all_resources color s <= 7
+  && not (bought_this_turn color s Knight)
+  && (blocked_bad color s
+      || List.fold_left (
+        fun acc p ->
+          if p.color != color then not (blocked_bad p.color s) || acc else acc
+      ) false s.players
+      || want_largest_army color s
+      || num_all_cards color s > 10)
+
+let want_play_road_building color s =
+  has_card color RoadBuilding s
+  && failwith "TODO"
+
+let want_play_year_of_plenty color s =
+  has_card color YearOfPlenty s
+  && failwith "TODO"
+
+let want_play_monopoly color s =
+  has_card color Monopoly s
+  && failwith "TODO"
+
+let choose_two_roads color s = failwith "TODO"
+
+let choose_robber_spot color s =
+  let robber_opt color s =
+    let ok = List.fold_left (fun acc (_, (c, _)) -> acc && c <> color) true in
+    let candidates = List.filter (fun t -> ok t.buildings) s.canvas.tiles in
+    let num_buildings tile =
+      tile.buildings
+      |> List.filter (fun (_, (c, _)) -> c <> White)
+      |> List.length
+    in
+    List.fold_left (
+      fun acc t ->
+        let len = num_buildings t in
+        if snd acc < len then Some t, len else acc
+    ) (None, 0) candidates |> fst
+  in
+  match robber_opt color s with
+  | None -> List.hd s.canvas.tiles
+  | Some tile -> tile
+
+let choose_two_resources color s =
+  let player = get_player color s in
   let hand = [ Lumber; Lumber; Wool; Wool; Grain;
                Grain; Brick; Brick; Ore; Ore ] in
   let value =
-    if want_build_settlement st then
+    if want_build_settlement color s then
       function
       | Lumber -> 100 - player.lumber
       | Wool -> 100 - player.wool
@@ -391,7 +438,7 @@ let choose_two_plenty_resource color st =
       | Ore -> 0
       | Null -> 0
     else
-    if want_build_city st then
+    if want_build_city color s then
       function
       | Lumber -> 0
       | Wool -> 0
@@ -399,7 +446,7 @@ let choose_two_plenty_resource color st =
       | Brick -> 0
       | Ore -> 300 - player.ore
       | Null -> 0
-    else if want_build_road st then
+    else if want_build_road color s then
       function
       | Lumber -> 100 - player.lumber
       | Wool -> 0
@@ -407,7 +454,7 @@ let choose_two_plenty_resource color st =
       | Brick -> 100 - player.brick
       | Ore -> 0
       | Null -> 0
-    else if want_buy_card st then
+    else if want_buy_card color s then
       function
       | Lumber -> 0
       | Wool -> 100 - player.wool
@@ -422,49 +469,16 @@ let choose_two_plenty_resource color st =
   | h :: x :: _ -> h, x
   | _ -> failwith "Impossible"
 
-let want_play_road_building = failwith "TODO"
-let blocked color st = failwith "TODO"
-let blocked_bad color st = failwith "TODO"
-let num_all_cards color st = failwith "TODO"
-let bought_this_turn color st card = failwith "TODO"
-
-let want_play_knight color st =
-  num_all_resources color st <= 7
-  && not (bought_this_turn color st Knight)
-  && (blocked_bad color st
-      || List.fold_left (
-        fun acc p ->
-          if p.color != color then not (blocked_bad p.color st) || acc else acc
-      ) false st.players
-      || want_largest_army color st
-      || num_all_cards color st >= 10)
-
-let num_buildings tile =
-  tile.buildings |> List.filter (fun (_, (c, _)) -> c <> White) |> List.length
-
-let robber_opt color st =
-  let ok = List.fold_left (fun acc (_, (c, _)) -> acc && c <> color) true in
-  let candidates = List.filter (fun t -> ok t.buildings) st.canvas.tiles in
-  List.fold_left (
-    fun acc t ->
-      let len = num_buildings t in
-      if snd acc < len then Some t, len else acc
-  ) (None, 0) candidates |> fst
-
-let choose_robber_spot color st =
-  match robber_opt color st with
-  | None -> List.hd st.canvas.tiles
-  | Some tile -> tile
+let choose_monopoly color s = failwith "TODO"
 
 (*****************************************************************************
  *                              MISCELLANEOUS                                *
  *****************************************************************************)
 
-(* if with a plan then keep resource for it else random *)
-let choose_discard_resource color st =
-  let hand = list_of_resources color st |> shuffle in
+let choose_discard_resource color s =
+  let hand = list_of_resources color s |> shuffle in
   let value =
-    if want_build_settlement st then
+    if want_build_settlement color s then
       function
       | Lumber -> 1
       | Wool -> 1
@@ -473,7 +487,7 @@ let choose_discard_resource color st =
       | Ore -> 0
       | Null -> 0
     else
-    if want_build_city st then
+    if want_build_city color s then
       function
       | Lumber -> 0
       | Wool -> 0
@@ -481,7 +495,7 @@ let choose_discard_resource color st =
       | Brick -> 0
       | Ore -> 3
       | Null -> 0
-    else if want_build_road st then
+    else if want_build_road color s then
       function
       | Lumber -> 1
       | Wool -> 0
@@ -489,7 +503,7 @@ let choose_discard_resource color st =
       | Brick -> 1
       | Ore -> 0
       | Null -> 0
-    else if want_buy_card st then
+    else if want_buy_card color s then
       function
       | Lumber -> 0
       | Wool -> 1
