@@ -223,12 +223,12 @@ let resource_priority_diff_stage color st res =
     | Grain  -> 3
     | Null   -> 0
 
-let calc_value_settlement ind st color f =
+let calc_value_settlement ind st color =
   let resources = obtainable_resources ind st in
   let dices = obtain_bordering_dices ind st in
   let res_pts =
     resources
-    |> List.map (fun x -> 5 * (f x))
+    |> List.map (fun x -> 8 * (resource_priority_diff_stage color st x))
     |> List.fold_left (fun acc x -> acc + x) 0
   in
   let dice_pts =
