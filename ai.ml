@@ -544,7 +544,14 @@ let want_to_trade st ai rs_list=
 
 (*helper function calculate the potential score given the current state
   and current ai player (and its resources)*)
-let potential_score_not_trade st ai = failwith "unimplemented"
+let potential_score_not_trade st ai =
+  let res = get_next_resources (make_build_plan st ai.color) in
+  let score r = if List.mem r res then 7 else resource_priority_diff_stage ai.color st r in
+  (score Lumber) * ai.lumber +
+  (score Wool) * ai.wool +
+  (score Brick) * ai.brick +
+  (score Grain) * ai.grain +
+  (score Ore) * ai.ore
 
 (*helper function calculates the potential score by replacing the resource in rs_list with
   corresponding resource in rs'_list*)
