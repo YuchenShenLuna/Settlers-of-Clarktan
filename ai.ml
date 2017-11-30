@@ -93,12 +93,6 @@ let rec take n acc = function
   | h :: t -> if n <= 0 then acc else take (n - 1) (h :: acc) t
 
 (*****************************************************************************
- *                                STRATEGY                                   *
- *****************************************************************************)
-
-(* TODO: Potentially lay out different strategies. *)
-
-(*****************************************************************************
  *                              INITIAL PHASE                                *
  *****************************************************************************)
 
@@ -709,7 +703,12 @@ let want_longest_road color st = failwith "TODO"
  *                             DEVELOPMENT CARDS                             *
  *****************************************************************************)
 
-let num_card color card s =
+let max_score s =
+  List.fold_left (
+    fun acc x -> if acc < x.score then x.score else acc
+  ) 0 s.players
+
+let num_card card color s =
   let player = get_player color s in
   match card with
   | Knight -> player.knight
@@ -719,40 +718,46 @@ let num_card color card s =
   | VictoryPoint -> player.victory_point
 
 let num_all_cards color s =
-  num_card color Knight s
-  + num_card color RoadBuilding s
-  + num_card color YearOfPlenty s
+  num_card Knight color s
+  + num_card RoadBuilding color s
+  + num_card YearOfPlenty color s
+  + num_card Monopoly color s
+  + num_card VictoryPoint color s
 
-let has_card color card s = num_card color card s > 0
+let has_card card color s = num_card card color s > 0
 
-let blocked color s = failwith "TODO"
-let blocked_bad color s = failwith "TODO"
-let bought_this_turn color s card = failwith "TODO"
+(* [blocked_bad color s] indicates if the robber is on an influential terrain
+ * hex that the player with color [color] has settled. *)
+let blocked color s =
+  let hex = List.nth s.canvas.tiles s.robber in
+  List.fold_left (fun acc (_, (c, _)) -> c = color || acc) false hex.buildings
+  && (abs (hex.dice - 7) < 2
+      || score color s <= 2
+      || if max_score s < 5 then hex.resource = Lumber || hex.resource = Brick
+      else hex.resource = Ore || hex.resource = Grain)
 
 let want_play_knight color s =
-  num_all_resources color s <= 7
-  && not (bought_this_turn color s Knight)
-  && (blocked_bad color s
+  has_card Knight color s
+  && num_all_resources color s <= 7
+  && (blocked color s
       || List.fold_left (
         fun acc p ->
-          if p.color != color then not (blocked_bad p.color s) || acc else acc
+          if p.color != color then not (blocked p.color s) || acc else acc
       ) false s.players
       || want_largest_army color s
       || num_all_cards color s > 10)
 
 let want_play_road_building color s =
-  has_card color RoadBuilding s
-  && failwith "TODO"
+  has_card RoadBuilding color s && want_build_road color s
 
 let want_play_year_of_plenty color s =
-  has_card color YearOfPlenty s
-  && failwith "TODO"
+  let need_two = failwith "" in
+  has_card YearOfPlenty color s
+  && need_two color s
 
 let want_play_monopoly color s =
-  has_card color Monopoly s
-  && failwith "TODO"
-
-let choose_two_roads color s = failwith "TODO"
+  has_card Monopoly color s
+  && max_score s >= 7
 
 let choose_robber_spot color s =
   let robber_opt color s =
@@ -778,47 +783,57 @@ let choose_two_resources color s =
   let hand = [ Lumber; Lumber; Wool; Wool; Grain;
                Grain; Brick; Brick; Ore; Ore ] in
   let value =
-    if want_build_settlement color s then
+    match make_build_plan s color with
+    | Build_Settlement _ ->
+      begin
+        function
+        | Lumber -> 1 - player.lumber
+        | Wool -> 1 - player.wool
+        | Grain -> 1 - player.grain
+        | Brick -> 1 - player.brick
+        | Ore -> -100
+        | Null -> -100
+    end
+    | Build_City _ ->
+      begin
       function
-      | Lumber -> 100 - player.lumber
-      | Wool -> 100 - player.wool
-      | Grain -> 100 - player.grain
-      | Brick -> 100 - player.brick
-      | Ore -> 0
-      | Null -> 0
-    else
-    if want_build_city color s then
-      function
-      | Lumber -> 0
-      | Wool -> 0
-      | Grain -> 200 - player.lumber
-      | Brick -> 0
-      | Ore -> 300 - player.ore
-      | Null -> 0
-    else if want_build_road color s then
-      function
-      | Lumber -> 100 - player.lumber
-      | Wool -> 0
-      | Grain -> 0
-      | Brick -> 100 - player.brick
-      | Ore -> 0
-      | Null -> 0
-    else if want_buy_card color s then
-      function
-      | Lumber -> 0
-      | Wool -> 100 - player.wool
-      | Grain -> 100 - player.grain
-      | Brick -> 0
-      | Ore -> 100 - player.ore
-      | Null -> 0
-    else function _ -> 0
+      | Lumber -> -100
+      | Wool -> -100
+      | Grain -> 2 - player.lumber
+      | Brick -> -100
+      | Ore -> 3 - player.ore
+      | Null -> -100
+    end
+    | Build_Road _ ->
+      begin
+        function
+        | Lumber -> 1 - player.lumber
+        | Wool -> -100
+        | Grain -> -100
+        | Brick -> 1 - player.brick
+        | Ore -> -100
+        | Null -> -100
+      end
+    | Neither _ ->
+      if want_buy_card color s then
+        function
+        | Lumber -> -100
+        | Wool -> 1 - player.wool
+        | Grain -> 1 - player.grain
+        | Brick -> -100
+        | Ore -> 1 - player.ore
+        | Null -> -100
+      else function Null -> -100 | _ -> 1
   in
   let cmp a b = compare (value a) (value b) in
   match hand |> shuffle |> List.sort cmp |> List.rev with
   | h :: x :: _ -> h, x
   | _ -> failwith "Impossible"
 
-let choose_monopoly color s = failwith "TODO"
+let choose_monopoly color s =
+  match get_next_resources (make_build_plan s color) with
+  | [] -> failwith "Impossible"
+  | h :: _ -> h
 
 (*****************************************************************************
  *                              MISCELLANEOUS                                *
