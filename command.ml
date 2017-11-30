@@ -1,6 +1,7 @@
 open Elements
 
 type command =
+  | Start
   | Setup of int * edge
   | BuildSettlement of int
   | BuildCity of int
@@ -11,9 +12,8 @@ type command =
   | PlayYearOfPlenty of resource * resource
   | PlayMonopoly of resource
   | Robber of int
-  | DomesticTrade of (resource * int) list * (resource * int) list
-  | MaritimeTrade of (resource * int) * (resource * int)
-  | Accept of bool
+  | DomesticTrade of bool * (resource * int) list * (resource * int) list
+  | MaritimeTrade of bool * (resource * int) * (resource * int)
   | Discard of (resource * int) list
   | EndTurn
   | Quit
@@ -117,8 +117,6 @@ let parse_text tiles str =
     match h with
     | "end" | "done" | "finished" -> EndTurn
     | "quit" | "exit" -> Quit
-    | "accept" -> Accept true
-    | "decline" -> Accept false
     | "buy" | "purchase" -> BuyCard
     | "build" | "construct" | "make" | "create" | "establish" ->
       if List.mem "settlement" t then
@@ -178,8 +176,8 @@ let parse_text tiles str =
           let give = List.combine (extract_resources l1) (extract_ints l1) in
           let take = List.combine (extract_resources l2) (extract_ints l2) in
           if List.mem "maritime" t || List.mem "bank" t
-          then MaritimeTrade (List.nth give 0, List.nth take 0)
-          else DomesticTrade (give, take)
+          then MaritimeTrade (false, List.nth give 0, List.nth take 0)
+          else DomesticTrade (false, give, take)
       end
     | "discard" | "burn" ->
       begin
