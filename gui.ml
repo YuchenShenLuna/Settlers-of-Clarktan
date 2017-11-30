@@ -6,6 +6,7 @@ open Images
 open Png
 open Elements
 open Jpeg
+open Player
 
 let round (x, y) = int_of_float x, int_of_float y
 
@@ -57,12 +58,18 @@ let make_transp img =
 let get_img_transparent img =
   Png.load img [] |> array_of_image |> make_transp |> make_image
 
-let make_dice img =
-let replace = Array.map (fun col -> if 0 - col < 1 then white else col) in
-Array.map (fun arr -> replace arr) img
+let make_num img =
+  let replace = Array.map (fun col -> if 16777215 - col < 10000000 then transp else col) in
+  Array.map (fun arr -> replace arr) img
 
-let get_dice_img img =
-  Png.load img [] |> array_of_image |> make_transp |> make_dice |> make_image
+let get_img_num img =
+  Png.load img [] |> array_of_image |> make_num |> make_image
+
+let get_img_home img =
+  let make_home img =
+  let replace = Array.map (fun col -> if 16777215 - col < 71000 then transp else col) in
+  Array.map (fun arr -> replace arr) img
+in Png.load img [] |> array_of_image |> make_home |> make_image
 
 let fetch = function
   | Brick -> "assets/whitebrick.png"
@@ -73,17 +80,38 @@ let fetch = function
   | Lumber -> "assets/whitelumber.png"
 
 let fetch' = function
-  | 2 -> "assets/2.png"
-  | 3 -> "assets/3.png"
-  | 4 -> "assets/4.png"
-  | 5 -> "assets/5.png"
-  | 6 -> "assets/6.png"
-  | _ -> "assets/2.png"
+  | 2 -> "assets/dice2.png"
+  | 3 -> "assets/dice3.png"
+  | 4 -> "assets/dice4.png"
+  | 5 -> "assets/dice5.png"
+  | 6 -> "assets/dice6.png"
+  | 7 -> "assets/dice7.png"
+  | 8 -> "assets/dice8.png"
+  | 9 -> "assets/dice9.png"
+  | 10 -> "assets/dice10.png"
+  | 11 -> "assets/dice11.png"
+  | 12 -> "assets/dice12.png"
+  | _ -> "assets/dice0.png"
+
+
+let update_resource color st res =
+  try
+    let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
+    match res with
+    | Grain -> string_of_int player.grain
+    | Lumber -> string_of_int player.lumber
+    | Brick -> string_of_int player.brick
+    | Ore -> string_of_int player.ore
+    | Wool -> string_of_int player.wool
+    | Null -> "0"
+  with _ -> "0"
 
 let draw_canvas s =
   clear_graph ();
   let water = get_img "assets/water.png" in
   draw_image water 0 0;
+  let home = get_img_home "assets/home.png" in
+  draw_image home 270 600;
   let player = get_img "assets/smallplayer.png" in
   draw_image player 0 0;
   let alan = get_img "assets/smallalan.png" in
@@ -102,13 +130,25 @@ let draw_canvas s =
       match t |> Tile.lower_left |> round with
         | x, y -> draw_image (get_img_transparent (fetch t.resource)) x y
     end;
-    let x = t.center |> fst |> (-.) (0.25 *. t.edge) |> (~-.) |> int_of_float in
-    let y = t.center |> snd |> (-.) (0.25 *. t.edge) |> (~-.) |> int_of_float in
-    Graphics.moveto x y;
+    let x = t.center |> fst |> (-.) (0.2 *. t.edge) |> (~-.) |> int_of_float in
+    let y = t.center |> snd |> (-.) (0.2 *. t.edge) |> (~-.) |> int_of_float in
+    moveto x y;
     (* t.dice |> string_of_int |> Graphics.draw_string *)
-    draw_image (get_dice_img (fetch' t.dice)) x y
+    draw_image (get_img_num (fetch' t.dice)) x y
   in
-  List.iter f s.canvas.tiles
+  List.iter f s.canvas.tiles;
+  draw_image (get_img_transparent "assets/resourcecards.png") 270 0;
+  moveto 300 140;
+  draw_string ("grain: "^(update_resource s.turn s Grain));
+  moveto 390 140;
+  draw_string ("ore: "^(update_resource s.turn s Ore));
+  moveto 475 140;
+  draw_string ("brick: "^(update_resource s.turn s Brick));
+  moveto 560 140;
+  draw_string ("lumber: "^(update_resource s.turn s Lumber));
+  moveto 650 140;
+  draw_string ("wool: "^(update_resource s.turn s Wool))
+
 
 (* let draw_robber = failwith "TODO"
 
