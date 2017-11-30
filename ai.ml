@@ -645,7 +645,26 @@ let potential_score_not_trade st ai =
 
 (*helper function calculates the potential score by replacing the resource in rs_list with
   corresponding resource in rs'_list*)
-let potential_score_trade st ai rs_list rs'_list =failwith "unimplemented"
+let potential_score_trade st ai rs_list rs'_list =
+  let player_reduce_resource=
+    List.fold_left (fun acc (r,n) -> match r with
+        | Lumber -> {ai with lumber=ai.lumber - n}
+        | Wool -> {ai with wool=ai.wool - n}
+        | Grain ->  {ai with grain=ai.grain - n}
+        | Brick -> {ai with brick=ai.brick - n}
+        | Ore-> {ai with ore=ai.ore - n}
+    | Null -> ai
+      ) ai rs_list in
+      let player_gain_resource=
+        List.fold_left (fun acc (r,n) -> match r with
+            | Lumber -> {player_reduce_resource with lumber=player_reduce_resource.lumber + n}
+            | Wool -> {player_reduce_resource with wool=player_reduce_resource.wool + n}
+            | Grain ->  {player_reduce_resource with grain=player_reduce_resource.grain + n}
+            | Brick -> {player_reduce_resource with brick=player_reduce_resource.brick + n}
+            | Ore-> {player_reduce_resource with ore=player_reduce_resource.ore + n}
+        | Null -> player_reduce_resource
+          ) player_reduce_resource rs'_list in
+    potential_score_not_trade st player_gain_resource
 
 let best_resource st cl=
   let resource_list = list_of_resources cl st in
@@ -674,9 +693,9 @@ let want_trade_bank st ai rs_lst rs'_lst =
   && not (List.mem false (List.map (fun (r,n) -> if find_best_rate st ai.color r = 4 then true else false) rs_lst))
 
 let want_trade_ports st ai rs_lst rs'_lst=
-  List.length (ports_of_player_with_specific_resource st ai.color rs'_lst) > 0
-  &&   want_to_trade st ai rs_lst
+  want_to_trade st ai rs_lst
   && (potential_score_not_trade st ai < potential_score_trade st ai rs_lst rs'_lst)
+  && not (List.mem false (List.map (fun (r,n) -> if find_best_rate st ai.color r < 4 then true else false) rs_lst))
 
 (*****************************************************************************
  *                               ACHIEVEMENTS                                *
