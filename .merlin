@@ -2,3 +2,6 @@ B _build
 PKG oUnit
 PKG str
 PKG ANSITerminal
+PKG CamlImages
+PKG Images
+PKG Png
