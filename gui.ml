@@ -4,10 +4,13 @@ open Graphics
 open Camlimages
 open Images
 open Png
+open Elements
 
-let rec round = function
+let round (x, y) = int_of_float x, int_of_float y
+
+let rec round_list = function
   | [] -> []
-  | h :: t -> (h |> fst |> int_of_float, h |> snd |> int_of_float) :: round t
+  | h :: t -> (h |> fst |> int_of_float, h |> snd |> int_of_float) :: round_list t
 
 let array_of_image img =
   match img with
@@ -36,14 +39,26 @@ let array_of_image img =
         Array.init w (fun j ->
           let {r = r; g = g; b = b} = Rgb24.unsafe_get bitmap j i in
           rgb r g b))
-  | Rgba32 _ | Cmyk32 _ -> failwith "RGBA and CMYK not supported"
+  | Rgba32 _ -> failwith "RGBA not supported"
+  | Cmyk32 _ -> failwith "CMYK not supported"
 
 let print_color_array img =
   let arr = Png.load img [] |> array_of_image in
   print_endline (string_of_int (Array.get (Array.get arr 0) 0))
-(* Loads image from files to color array array *)
+
 let get_img img =
-   Png.load img [] |> array_of_image |> make_image
+  Png.load img [] |> array_of_image |> make_image
+
+let make_transp img =
+  let replace = Array.map (fun col -> if col = white then transp else col) in
+  Array.map (fun arr -> replace arr) img
+
+let get_img_transparent img =
+  Png.load img [] |> array_of_image |> make_transp |> make_image
+
+let fetch = function
+  | Brick -> "assets/trybrick.png"
+  | _ -> "assets/trybrick.png"
 
 let draw_canvas s =
   clear_graph ();
@@ -51,11 +66,18 @@ let draw_canvas s =
   draw_image player 0 0;
   let alan = get_img "assets/smallalan.png" in
   draw_image alan 0 500;
-  let f t = t |> Tile.corners |> round |> Array.of_list |> Graphics.draw_poly;
+  let mike = get_img "assets/smallmike.png" in
+  draw_image mike 800 500;
+  let zikiu = get_img "assets/smallzikiu.png" in
+  draw_image zikiu 800 0;
+  (* let f t = t |> Tile.corners |> round |> Array.of_list |> Graphics.draw_poly;
     let x = t.center |> fst |> (-.) (0.1 *. t.edge) |> (~-.) |> int_of_float in
     let y = t.center |> snd |> (-.) (0.1 *. t.edge) |> (~-.) |> int_of_float in
     Graphics.moveto x y;
-    t.dice |> string_of_int |> Graphics.draw_string
+     t.dice |> string_of_int |> Graphics.draw_string *)
+  let f t =
+    match t |> Tile.lower_left |> round with
+    | x, y -> draw_image (get_img_transparent (fetch t.resource)) x y
   in
   List.iter f s.canvas.tiles
 

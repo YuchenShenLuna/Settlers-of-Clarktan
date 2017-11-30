@@ -30,3 +30,10 @@ let edges t =
       let next = ((i + 1) mod 6) |> List.nth c in
       (fst elt +. fst next) /. 2., (snd elt +. snd next) /. 2.
   ) c
+
+let lower_left t =
+  let x = fst t.center in
+  let y = snd t.center in
+  let l = t.edge in
+  let c = sqrt 3. /. 2. in
+  x -. l *. c, y -. c

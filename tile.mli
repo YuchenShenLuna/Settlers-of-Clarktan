@@ -17,3 +17,5 @@ val corners : tile -> (float * float) list
 (* [edges t] is a list of the coordinates of the midpoints of the edges
  * of tile [t]. *)
 val edges : tile -> (float * float) list
+
+val lower_left : tile -> float * float
