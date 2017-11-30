@@ -2,6 +2,7 @@ open Elements
 
 (* [command] represents a command input by a player. *)
 type command =
+  | Start
   | Setup of int * edge
   | BuildSettlement of int
   | BuildCity of int
@@ -12,9 +13,8 @@ type command =
   | PlayYearOfPlenty of resource * resource
   | PlayMonopoly of resource
   | Robber of int
-  | DomesticTrade of (resource * int) list * (resource * int) list
-  | MaritimeTrade of (resource * int) * (resource * int)
-  | Accept of bool
+  | DomesticTrade of bool * (resource * int) list * (resource * int) list
+  | MaritimeTrade of bool * (resource * int) * (resource * int)
   | Discard of (resource * int) list
   | EndTurn
   | Quit

@@ -589,11 +589,12 @@ let want_buy_card color st =
   num_resource color Wool st > 0
   && num_resource color Grain st > 0
   && num_resource color Ore st > 0
+  && st.deck <> []
   && not (want_build_settlement color st)
   && not (want_build_road color st)
   && not (want_build_city color st)
   && (num_all_resources color st > 7
-      || failwith "TODO")
+      || List.length st.deck > 10)
 
 (* [get_next_resources p] returns a list of resources you would need most at
  * current state for the current player, the [p] should be the result for
@@ -751,9 +752,7 @@ let want_play_road_building color s =
   has_card RoadBuilding color s && want_build_road color s
 
 let want_play_year_of_plenty color s =
-  let need_two = failwith "" in
   has_card YearOfPlenty color s
-  && need_two color s
 
 let want_play_monopoly color s =
   has_card Monopoly color s
