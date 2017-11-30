@@ -183,7 +183,8 @@ let init_choose_first_settlement_build st col =
   let possible_ind = get_possible_house_ind st col init_can_build_settlement_ai in
   let values =
     List.map (fun x ->
-        (init_calc_value_settlement x st initial_resource_priority, x)) possible_ind
+        (init_calc_value_settlement x st initial_resource_priority, x))
+      possible_ind
   in
   let info =
     List.fold_left (fun (accx, accy) (x, y) ->
@@ -414,7 +415,7 @@ let possible_city st color =
 type plan =
   | Build_Settlement of int
   | Build_City of int
-  | Build_Road of edge
+  | Build_Road of edge * plan
   | Neither
 
 let make_build_plan st color =
@@ -438,30 +439,35 @@ let make_build_plan st color =
     let settlement_one =
       index_obtainable_in_one_road st color
       |> List.map (fun x -> (calc_value_house x st color, x))
-      |> List.fold_left (fun (acc1, acc2) (a, b) -> if a > acc1 then (a, b) else (acc1, acc2)) (0, 0)
+      |> List.fold_left (fun (acc1, acc2) (a, b) ->
+          if a > acc1 then (a, b) else (acc1, acc2)) (0, 0)
       |> snd
     in
     let settlement_two =
     index_obtainable_in_two_roads st color
     |> List.map (fun x -> (calc_value_house x st color, x))
-    |> List.fold_left (fun (acc1, acc2) (a, b) -> if a > acc1 then (a, b) else (acc1, acc2)) (0, 0)
+    |> List.fold_left (fun (acc1, acc2) (a, b) -> if a > acc1 then (a, b)
+                        else (acc1, acc2)) (0, 0)
     |> snd
     in
     let city =
       possible_city st color
       |> List.map (fun x -> (calc_value_house x st color, x))
-      |> List.fold_left (fun (acc1, acc2) (a, b) -> if a > acc1 then (a, b) else (acc1, acc2)) (0, 0)
+      |> List.fold_left (fun (acc1, acc2) (a, b) -> if a > acc1 then (a, b)
+                          else (acc1, acc2)) (0, 0)
       |> snd
     in
     let val_set1 = calc_value_house settlement_one in
     let val_set2 = calc_value_house settlement_two in
     let val_c = calc_value_house city in
     if val_set1 >= val_set2 && val_set1 >= val_c then
-      Build_Road (choose_road settlement_one color st)
+      Build_Road ((choose_road settlement_one color st),
+                  Build_Settlement settlement_one)
     else if val_set2 >= val_set1 && val_set2 >=val_c then
-      Build_Road (choose_road settlement_two color st)
+      Build_Road ((choose_road settlement_two color st),
+                  Build_Settlement settlement_two)
     else
-      Build_Road (choose_road city color st)
+      Build_Road ((choose_road city color st), Build_City city)
   else
     Neither
 
