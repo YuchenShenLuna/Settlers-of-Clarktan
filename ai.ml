@@ -368,10 +368,25 @@ let roads =
    (49, 50); (50, 61); (61, 60); (60, 59); (59, 48); (48, 49); (51, 52);
    (52, 63); (63, 62); (62, 61); (61, 50); (50, 51)]
 
-let get_random_possible_road st col =
+let get_the_road st col =
   let info = List.filter (fun x -> check_build_road x st col) roads in
-  if info = [] then None
-  else Some (List.nth info (List.length info))
+  if info = [] then
+    None
+  else
+    let update_tiles rd =
+      let tiles = st.canvas.tiles in
+      tiles
+      |> List.map (fun x ->
+          if List.mem (fst rd) x.indices && List.mem (snd rd) x.indices then
+            {x with roads = (rd, col)::x.roads}
+          else x)
+    in
+    let get_state rd = {st with canvas = {tiles = update_tiles rd;
+                                          ports = st.canvas.ports}} in
+    Some (List.fold_left
+            (fun acc x -> if longest_road_length (get_state x) col >
+                             longest_road_length (get_state acc) col then x
+              else acc) (0, 0) info)
 
 let choose_road ind color st =
   let ind_one = index_obtainable_in_one_road st color in
@@ -381,7 +396,7 @@ let choose_road ind color st =
   else if List.mem ind ind_two then
     (fetch_roads_in_two ind st color |> List.hd |> fst)
   else
-    match get_random_possible_road st color with
+    match get_the_road st color with
     | None -> failwith "no road building possible"
     | Some r -> r
 
@@ -416,7 +431,7 @@ type plan =
   | Build_Settlement of int
   | Build_City of int
   | Build_Road of edge * plan
-  | Neither
+  | Neither of plan
 
 let make_build_plan st color =
   let can_settlement = enough_res_for_settlement st color in
@@ -467,9 +482,9 @@ let make_build_plan st color =
       Build_Road ((choose_road settlement_two color st),
                   Build_Settlement settlement_two)
     else
-      Build_Road ((choose_road city color st), Build_City city)
+      Neither (Build_City city)
   else
-    Neither
+    Neither (Build_Road ((0, 0), Build_Settlement 0))
 
 let want_build_settlement color st =
   match make_build_plan st color with
@@ -495,6 +510,17 @@ let want_buy_card color st =
   && not (want_build_city color st)
   && (num_all_resources color st > 7
       || failwith "TODO")
+
+(* [get_next_resources p] returns a list of resources you would need most at
+ * current state for the current player, the [p] should be the result for
+ * (make_build_plan st color) *)
+let rec get_next_resources p =
+  match p with
+  | Neither (Build_Road _) -> [Brick; Lumber]
+  | Neither (Build_City _) -> [Ore; Grain]
+  | Build_Road (_, p') -> get_next_resources p'
+  | Build_Settlement _ -> [Brick; Lumber]
+  | _ -> [Brick; Lumber]
 
 (*****************************************************************************
  *                                   TRADE                                   *
