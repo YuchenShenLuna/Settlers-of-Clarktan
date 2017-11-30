@@ -391,13 +391,95 @@ let choose_city st color =
     (fun acc x -> if calc_value_house x > calc_value_house acc
       then x else acc) (List.hd possibles) possibles
 
-let make_build_plan = failwith "TODO"
+let enough_res_for_settlement st color =
+  let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
+  player.ore > 0 && player.wool > 0 && player.lumber > 0 && player.brick > 0
 
-let want_build_settlement color st = failwith "TODO"
+let enough_res_for_city st color =
+  let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
+  player.ore > 2 && player.grain > 3
 
-let want_build_road color st = failwith "TODO"
+let enough_res_for_road st color =
+  let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
+  player.lumber > 0 && player.brick > 0
 
-let want_build_city color st = failwith "TODO"
+let possible_city st color =
+  st.canvas.tiles
+  |> List.map (fun x -> x.buildings)
+  |> List.flatten
+  |> List.sort_uniq compare
+  |> List.filter (fun (a, (col, t)) -> col = color && t = 1)
+  |> List.map (fun (a, (col, t)) -> a)
+  |> List.sort_uniq compare
+
+type plan =
+  | Build_Settlement of int
+  | Build_City of int
+  | Build_Road of edge
+  | Neither
+
+let make_build_plan st color =
+  let can_settlement = enough_res_for_settlement st color in
+  let can_city = enough_res_for_city st color in
+  let can_road = enough_res_for_road st color in
+  if can_settlement && can_city then
+    let settlement = choose_settlement st color in
+    let city = choose_city st color in
+    if calc_value_house settlement > calc_value_house city then
+      Build_Settlement settlement
+    else
+      Build_City city
+  else if can_settlement then
+    let settlement = choose_settlement st color in
+    Build_Settlement settlement
+  else if can_city then
+    let city = choose_city st color in
+    Build_City city
+  else if can_road then
+    let settlement_one =
+      index_obtainable_in_one_road st color
+      |> List.map (fun x -> (calc_value_house x st color, x))
+      |> List.fold_left (fun (acc1, acc2) (a, b) -> if a > acc1 then (a, b) else (acc1, acc2)) (0, 0)
+      |> snd
+    in
+    let settlement_two =
+    index_obtainable_in_two_roads st color
+    |> List.map (fun x -> (calc_value_house x st color, x))
+    |> List.fold_left (fun (acc1, acc2) (a, b) -> if a > acc1 then (a, b) else (acc1, acc2)) (0, 0)
+    |> snd
+    in
+    let city =
+      possible_city st color
+      |> List.map (fun x -> (calc_value_house x st color, x))
+      |> List.fold_left (fun (acc1, acc2) (a, b) -> if a > acc1 then (a, b) else (acc1, acc2)) (0, 0)
+      |> snd
+    in
+    let val_set1 = calc_value_house settlement_one in
+    let val_set2 = calc_value_house settlement_two in
+    let val_c = calc_value_house city in
+    if val_set1 >= val_set2 && val_set1 >= val_c then
+      Build_Road (choose_road settlement_one color st)
+    else if val_set2 >= val_set1 && val_set2 >=val_c then
+      Build_Road (choose_road settlement_two color st)
+    else
+      Build_Road (choose_road city color st)
+  else
+    Neither
+
+let want_build_settlement color st =
+  match make_build_plan st color with
+  | Build_Settlement _ -> true
+  | _ -> false
+
+let want_build_road color st =
+  match make_build_plan st color with
+  | Build_Road _ -> true
+  | _ -> false
+
+let want_build_city color st =
+  match make_build_plan st color with
+  | Build_City _ -> true
+  | _ -> false
 
 let want_buy_card color st =
   num_resource color Wool st > 0
