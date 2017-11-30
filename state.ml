@@ -978,7 +978,7 @@ let get_player_out_of_some pl=
   | None -> failwith "impossible"
 
   (*longest_road_helper returns the longest_road just for one player*)
-let longest_road_helper st cl=
+let longest_road_length st cl=
   let roads = fetch_roads_of_one_player cl st in
   let successors n e =
     List.map (fun (_, v) -> v) (List.filter (fun (u, _) -> n = u) e)
@@ -1017,7 +1017,7 @@ let longest_road st =
   let color =
     List.fold_left (
       fun acc c ->
-        let l = longest_road_helper st c in
+        let l = longest_road_length st c in
         if l > snd acc && l >= 5
         then (c, l) else acc
     ) (White, 0) [Red; Yellow; Blue; Green] |> fst in

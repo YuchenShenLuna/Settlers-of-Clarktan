@@ -225,6 +225,8 @@ val discard_resource : color -> (resource * int) list -> state -> state
 
 val get_player : color -> state -> Player.player
 
+val longest_road_length :  state -> color ->int
+
 (* [longest_road st] is the player who has the longest road achievement. *)
 val longest_road : state -> state
 
