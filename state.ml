@@ -631,17 +631,40 @@ let ports_of_player_with_specific_resource_with_best_rate st color rs=
   let ports_of_player_with_resource_wanted =
     ports_of_player_with_specific_resource st color rs
   in
-  List.fold_left (fun acc x -> if x.rate < acc.rate then x else acc)
+  if (List.length ports_of_player_with_resource_wanted)=0 then None else
+  Some (List.fold_left (fun acc x -> if x.rate < acc.rate then x else acc)
     (List.hd ports_of_player_with_resource_wanted)
-    ports_of_player_with_resource_wanted
+    ports_of_player_with_resource_wanted)
 
 (* [trade_ok st p r1 r2] returns whether a trade can be valid *)
-let trade_ok st p (rs, n) (rs', n') =
+let trade_ok st p1 p2_opt (rs, n) (rs', n') =
+  let number_ok =
+    match rs with
+    | Lumber -> p1.lumber>=n
+    | Wool  -> p1.wool >=n
+    | Grain -> p1.grain>=n
+    | Brick -> p1.brick >=n
+    | Ore ->p1.brick >=n
+    | Null ->true in
+  match p2_opt with
+  | None ->
   if n / n' >= 4 then true
   else
     let best_port =
-      (ports_of_player_with_specific_resource_with_best_rate st p.color rs) in
-    if n / n' >= best_port.rate then true else false
+      (ports_of_player_with_specific_resource_with_best_rate st p1.color rs) in
+    begin
+      match best_port with
+      | Some port -> if n / n' >= port.rate then number_ok else false
+      | None -> false
+    end
+  | Some p2 ->
+    match rs' with
+    | Lumber -> p2.lumber>=n' && number_ok
+    | Wool  -> p2.wool >=n' && number_ok
+    | Grain -> p2.grain>=n' && number_ok
+    | Brick -> p2.brick >=n' && number_ok
+    | Ore ->p2.ore >=n' && number_ok
+    | Null ->true && number_ok
 
 (* [remove_resources player n r] removes [n] resource [r] for player [player]*)
 let remove_resources player n r = add_resources player (-n) r |> player_ok
@@ -657,7 +680,7 @@ let trade_with_bank color to_remove to_add st =
   let length_of_resource_pass_trade_ok =
     List.fold_left (
       fun acc x ->
-        if trade_ok st player x (List.nth to_add (index_of to_remove x))
+        if trade_ok st player None x (List.nth to_add (index_of to_remove x))
         then 1 + acc else acc
     ) 0 to_remove
   in
@@ -679,7 +702,7 @@ let trade_with_port color to_remove to_add st =
   let length_of_resource_pass_trade_ok =
     List.fold_left (
       fun acc x ->
-        if trade_ok st player x (List.nth to_add (index_of to_remove x))
+        if trade_ok st player None x  (List.nth to_add (index_of to_remove x))
         then 1 + acc else acc
       ) 0 to_remove
   in
@@ -696,14 +719,15 @@ let trade_with_port color to_remove to_add st =
     { st with players }
   else raise (Failure "the trade with port is not valid")
 
-(* [check_whether_trade_is_ok_for_one_player st r a cl] checks whether a trade
+      (*[check_whether_trade_is_ok_for_one_player st r a cl] checks whether a trade
  * is valid for player at state [st] *)
-let check_whether_trade_is_ok_for_one_player st to_remove to_add cl=
-  let player = List.find (fun p -> p.color = cl) st.players in
+let check_whether_trade_is_ok_for_one_player st to_remove to_add cl cl'=
+  let current_player = List.find (fun p -> p.color = cl) st.players in
+  let player = List.find (fun p -> p.color = cl') st.players in
   let length_of_resource_pass_trade_ok =
     List.fold_left (
       fun acc x ->
-        if trade_ok st player x (List.nth to_add (index_of to_remove x))
+        if trade_ok st  current_player (Some player)  x (List.nth to_add (index_of to_remove x))
         then 1 + acc else acc
     ) 0 to_remove
   in
@@ -711,9 +735,9 @@ let check_whether_trade_is_ok_for_one_player st to_remove to_add cl=
 
 let trade_with_player color to_remove to_add st =
   let condition_one =
-    check_whether_trade_is_ok_for_one_player st to_remove to_add st.turn in
+    check_whether_trade_is_ok_for_one_player st to_remove to_add st.turn color in
   let condition_two =
-    check_whether_trade_is_ok_for_one_player st to_add to_remove color in
+    check_whether_trade_is_ok_for_one_player st to_add to_remove color st.turn in
   if condition_one && condition_two then
     let st' = trade_with_bank st.turn to_remove to_add st in
     trade_with_bank color to_add to_remove st'

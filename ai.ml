@@ -516,32 +516,32 @@ let potential_score_not_trade st ai = failwith "unimplemented"
 
 (*helper function calculates the potential score by replacing the resource in rs_list with
   corresponding resource in rs'_list*)
-let potential_score_trade_with_other_player st ai rs_list rs'_list =failwith "unimplemented"
+let potential_score_trade st ai rs_list rs'_list =failwith "unimplemented"
+
+let best_resource st cl=
+  let resource_list = list_of_resources cl st in
+  List.fold_left (fun acc x ->if (resource_priority_diff_stage  cl st x)
+                                 > (resource_priority_diff_stage  cl st acc)then  x else acc )
+    (List.hd resource_list) resource_list
 
 let want_accept_trade_player st ai rs_list other_pl rs'_list=
-  (potential_score_not_trade st ai < potential_score_trade_with_other_player st ai rs_list rs'_list) &&
-  not (List.mem Ore (List.map (fun (r,n) -> r) rs_list)) && other_pl.score <=6
+  (potential_score_not_trade st ai < potential_score_trade st ai rs_list rs'_list) &&
+  not (List.mem (best_resource st ai.color) (List.map (fun (r,n) -> r) rs_list)) && other_pl.score <=8
+  && (other_pl.score - ai.score)<=5
 
 let want_init_trade st ai rs_list other_pl rs'_list=
-  (*other_pl.score <= 7 && rs <> Ore && num_resource other_pl.color rs' st > 0*)
-  (potential_score_not_trade st ai < potential_score_trade_with_other_player st ai rs_list rs'_list) &&
-  List.mem Ore (List.map (fun (r,n) -> r) rs_list) && other_pl.score <=6
+(potential_score_not_trade st ai < potential_score_trade st ai rs_list rs'_list) &&
+not (List.mem (best_resource st ai.color) (List.map (fun (r,n) -> r) rs_list)) && other_pl.score <=8
+&& (other_pl.score - ai.score)<=5
 
+let want_trade_bank st ai rs_lst rs'_lst =
+  want_to_trade st ai rs_lst
+  && (potential_score_not_trade st ai < potential_score_trade st ai rs_lst rs'_lst)
 
-let want_to_trade_with_all_other_players st pl pl_list rs rs'=
-  let boolean_list =
-    List.map (fun x-> x.color=pl.color || want_init_trade st pl rs x rs') pl_list in
-  let number_of_true= List.fold_left (fun acc x-> if x then acc+1 else acc) 0 boolean_list in
-  number_of_true = 4
-
-let want_trade_bank st ai rs rs' =
-  want_to_trade st ai rs
-  && List.length (ports_of_player st ai.color) = 0
-  && not (want_to_trade_with_all_other_players st ai st.players rs rs')
-
-let want_trade_ports st ai rs rs'=
-  List.length (ports_of_player_with_specific_resource st ai.color rs') > 0
-  && not (want_to_trade_with_all_other_players st ai st.players rs rs')
+let want_trade_ports st ai rs_lst rs'_lst=
+  List.length (ports_of_player_with_specific_resource st ai.color rs'_lst) > 0
+  &&   want_to_trade st ai rs_lst
+  && (potential_score_not_trade st ai < potential_score_trade st ai rs_lst rs'_lst)
 
 (*****************************************************************************
  *                               ACHIEVEMENTS                                *
