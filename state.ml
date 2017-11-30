@@ -1120,7 +1120,7 @@ let score color st =
     |> List.fold_left (fun acc x -> acc + x) 0
   in
   let player = get_player color st in
-  let victory_card_score = player.victory_point * 2 in
+  let victory_card_score = player.victory_point in
   let longest_road_score = if player.longest_road then 2 else 0 in
   let largest_army_score = if player.largest_army then 2 else 0 in
   build_score + victory_card_score + longest_road_score + largest_army_score
