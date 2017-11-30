@@ -142,7 +142,7 @@ val buy_card : state -> state
  *                                   TRADE                                   *
  *****************************************************************************)
 
-val ports_of_player_with_specific_resource_with_best_rate: state -> color -> resource -> port 
+val ports_of_player_with_specific_resource_with_best_rate: state -> color -> resource -> port option
 (*[ports_of_player_with_specific_resource st cl rs] returns ports with resource rs for
    player with specific color cl in state st *)
 val ports_of_player_with_specific_resource : state -> color -> resource -> port list

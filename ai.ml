@@ -534,9 +534,15 @@ let want_init_trade st ai rs_list other_pl rs'_list=
 not (List.mem (best_resource st ai.color) (List.map (fun (r,n) -> r) rs_list)) && other_pl.score <=8
 && (other_pl.score - ai.score)<=5
 
+let find_best_rate st cl rs =
+  match (ports_of_player_with_specific_resource_with_best_rate st cl rs) with
+    | None -> 4
+    | Some p -> p.rate
+
 let want_trade_bank st ai rs_lst rs'_lst =
   want_to_trade st ai rs_lst
   && (potential_score_not_trade st ai < potential_score_trade st ai rs_lst rs'_lst)
+  && not (List.mem false (List.map (fun (r,n) -> if find_best_rate st ai.color r = 4 then true else false) rs_lst))
 
 let want_trade_ports st ai rs_lst rs'_lst=
   List.length (ports_of_player_with_specific_resource st ai.color rs'_lst) > 0

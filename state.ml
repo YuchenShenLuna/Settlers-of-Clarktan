@@ -619,7 +619,7 @@ let ports_of_player st color =
 
 (* [ports_of_player_with_specific_resource st color rs] returns ports for
  * player with color [color] and resource [rs] at state [st] *)
-let ports_of_player_with_specific_resource st color rs=
+let ports_of_player_with_specific_resource st color rs : port list =
   let ports_belong_to_player = ports_of_player st color in
   List.fold_left (fun acc x -> if x.demand = rs then x::acc else acc)
     [] ports_belong_to_player
@@ -627,14 +627,14 @@ let ports_of_player_with_specific_resource st color rs=
 (* [ports_of_player_with_specific_resource_with_best_rate st color rs]
  * returns ports for player with color [color] and resource [rs]
  * at state [st] *)
-let ports_of_player_with_specific_resource_with_best_rate st color rs=
+let ports_of_player_with_specific_resource_with_best_rate st color rs : port option =
   let ports_of_player_with_resource_wanted =
     ports_of_player_with_specific_resource st color rs
   in
-  if (List.length ports_of_player_with_resource_wanted)=0 then None else
-  Some (List.fold_left (fun acc x -> if x.rate < acc.rate then x else acc)
-    (List.hd ports_of_player_with_resource_wanted)
-    ports_of_player_with_resource_wanted)
+  match ports_of_player_with_resource_wanted with
+  | [] -> None
+  | h :: t -> Some (List.fold_left (fun acc (x : port) -> if x.rate < acc.rate then x else acc)
+    h ports_of_player_with_resource_wanted)
 
 (* [trade_ok st p r1 r2] returns whether a trade can be valid *)
 let trade_ok st p1 p2_opt (rs, n) (rs', n') =
