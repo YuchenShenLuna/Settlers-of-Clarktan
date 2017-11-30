@@ -4,7 +4,7 @@
 val draw_canvas : State.state -> unit
 
 (* [draw_robber] draws the robber onto the canvas of the game *)
-val draw_robber : unit -> unit
+(* val draw_robber : unit -> unit
 
 (* [update_player_info] draws player informations in the game *)
-val update_player_info : unit -> unit
+val update_player_info : unit -> unit *)
