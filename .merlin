@@ -5,3 +5,4 @@ PKG ANSITerminal
 PKG CamlImages
 PKG Images
 PKG Png
+PKG Jpeg

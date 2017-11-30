@@ -5,6 +5,7 @@ open Camlimages
 open Images
 open Png
 open Elements
+open Jpeg
 
 let round (x, y) = int_of_float x, int_of_float y
 
@@ -50,15 +51,19 @@ let get_img img =
   Png.load img [] |> array_of_image |> make_image
 
 let make_transp img =
-  let replace = Array.map (fun col -> if col = white then transp else col) in
+  let replace = Array.map (fun col -> if 16777215 - col < 500000 then transp else col) in
   Array.map (fun arr -> replace arr) img
 
 let get_img_transparent img =
   Png.load img [] |> array_of_image |> make_transp |> make_image
 
 let fetch = function
-  | Brick -> "assets/trybrick.png"
-  | _ -> "assets/trybrick.png"
+  | Brick -> "assets/whitebrick.png"
+  | Null -> "assets/whitedesert.png"
+  | Wool -> "assets/whitesheep.png"
+  | Grain -> "assets/whitegrain.png"
+  | Ore -> "assets/whiteore.png"
+  | Lumber -> "assets/whitelumber.png"
 
 let draw_canvas s =
   clear_graph ();
