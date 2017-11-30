@@ -69,7 +69,6 @@ let resource_priority_diff_stage color st res =
     | Grain  -> 3
     | Null   -> 0
 
-let get_player color st = List.find (fun p -> p.color = color) st.players
 
 let list_of_resources color st =
   let rec f r n acc = if n <= 0 then acc else f r (n - 1) (r :: acc) in
@@ -347,17 +346,39 @@ let want_buy_card color st =
  *                                   TRADE                                   *
  *****************************************************************************)
 
-let want_accept_trade_player st ai rs other_pl rs'=
-  other_pl.score <= 7 && rs <> Ore
 
-let want_init_trade st ai rs other_pl rs'=
-  other_pl.score <= 7 && rs <> Ore && num_resource other_pl.color rs' st > 0
+(*general function to judge whether the ai player should trade, mainly deal with
+  some extreme cases*)
+let want_to_trade st ai rs_list=
+  (* if some kind of resource of ai that need to use to trade is less than 2, then do not trade*)
+  let check_resource_use_to_trade rs_list= List.map
+      (fun (r,n) -> match r with
+         | Ore -> ai.ore >=2
+         | Lumber -> ai.lumber>=2
+         | Wool -> ai.wool>=2
+         | Grain -> ai.grain>=2
+         | Brick -> ai.brick >=2
+         | Null ->  0 = 0) rs_list in
+ not (List.mem false  (check_resource_use_to_trade rs_list))
 
-let want_to_trade st ai =
-  not (want_build_settlement ai.color st)
-  && not (want_build_road ai.color st)
-  && not (want_build_city ai.color st)
-  && not (want_buy_card ai.color st)
+
+(*helper function calculate the potential score given the current state
+  and current ai player (and its resources)*)
+let potential_score_not_trade st ai = failwith "unimplemented"
+
+(*helper function calculates the potential score by replacing the resource in rs_list with
+  corresponding resource in rs'_list*)
+let potential_score_trade_with_other_player st ai rs_list rs'_list =failwith "unimplemented"
+
+let want_accept_trade_player st ai rs_list other_pl rs'_list=
+  (potential_score_not_trade st ai < potential_score_trade_with_other_player st ai rs_list rs'_list) &&
+  not (List.mem Ore (List.map (fun (r,n) -> r) rs_list)) && other_pl.score <=6
+
+let want_init_trade st ai rs_list other_pl rs'_list=
+  (*other_pl.score <= 7 && rs <> Ore && num_resource other_pl.color rs' st > 0*)
+  (potential_score_not_trade st ai < potential_score_trade_with_other_player st ai rs_list rs'_list) &&
+  List.mem Ore (List.map (fun (r,n) -> r) rs_list) && other_pl.score <=6
+
 
 let want_to_trade_with_all_other_players st pl pl_list rs rs'=
   let boolean_list =
@@ -366,7 +387,7 @@ let want_to_trade_with_all_other_players st pl pl_list rs rs'=
   number_of_true = 4
 
 let want_trade_bank st ai rs rs' =
-  want_to_trade st ai
+  want_to_trade st ai rs
   && List.length (ports_of_player st ai.color) = 0
   && not (want_to_trade_with_all_other_players st ai st.players rs rs')
 

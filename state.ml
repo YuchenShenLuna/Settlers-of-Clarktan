@@ -931,8 +931,10 @@ let discard_resource color lst st =
  *                               ACHIEVEMENT                                 *
  *****************************************************************************)
 
-(* [fetch_edges st] fetches the roads at given state [st]*)
-let fetch_edges st =
+let get_player color st = List.find (fun p -> p.color = color) st.players
+
+(* [fetch_roads_of_one_player st] fetches the roads at given state [st]*)
+let fetch_roads_of_one_player color st =
   let cmp (s1, e1) (s2, e2) =
     if s1 < s2 then -1
     else if s1 > s2 then 1
@@ -940,14 +942,15 @@ let fetch_edges st =
     else if e1 > e2 then 1
     else 0
   in
-  List.fold_left
-    (
-      fun acc t ->
-        acc @ List.mapi (
-          fun i j ->
-            let k = List.nth t.indices ((i + 1) mod 6) in
-            if j < k then j, k else k, j
-        ) t.indices
+  List.fold_left (fun acc t ->
+      (t.indices
+       |> List.mapi (fun i j ->
+           let k = List.nth t.indices ((i + 1) mod 6) in
+           if j < k then j, k else k, j)
+       |> List.filter (fun (i, j) ->
+           List.assoc_opt (i, j) t.roads = Some color
+           || List.assoc_opt (j, i) t.roads = Some color)
+      ) @ acc
     ) [] st.canvas.tiles |> List.sort_uniq cmp
 
 (* [find_possible_owner_of_road_one_tile st rd_list road] finds all possible
@@ -974,8 +977,9 @@ let get_player_out_of_some pl=
   | Some p -> p
   | None -> failwith "impossible"
 
-let longest_road st =
-  let edges = fetch_edges st in
+  (*longest_road_helper returns the longest_road just for one player*)
+let longest_road_helper st cl=
+  let roads = fetch_roads_of_one_player cl st in
   let successors n e =
     List.map (fun (_, v) -> v) (List.filter (fun (u, _) -> n = u) e)
   in
@@ -988,7 +992,7 @@ let longest_road st =
         end
       else visited
     in rdfs [] start in
-  let longest_road=dfs edges (fst (List.hd edges)) in
+  (*longest_road=*)List.length (dfs roads (fst (List.hd roads)))-1 (*in
   if (List.length longest_road)-1 <5 then st else
     let possible_player=
       find_owner_of_road st ((List.hd longest_road),(List.nth longest_road 1 ))
@@ -1007,7 +1011,23 @@ let longest_road st =
           if x.color!=updated_player'.color
           then {x with longest_road=false}
           else updated_player') st.players in
-      { st with players }
+                                                     { st with players }*)
+
+let longest_road st =
+  let color =
+    List.fold_left (
+      fun acc c ->
+        let l = longest_road_helper st c in
+        if l > snd acc && l >= 5
+        then (c, l) else acc
+    ) (White, 0) [Red; Yellow; Blue; Green] |> fst in
+  let player = { (get_player color st) with longest_road = true } in
+  let players = List.map (
+      fun x -> if x.color = player.color
+        then player else { x with longest_road = false }
+    ) st.players in
+  { st with players }
+
 
 let largest_army st =
   let possible_player=
