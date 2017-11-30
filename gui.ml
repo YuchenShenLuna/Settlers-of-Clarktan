@@ -57,6 +57,13 @@ let make_transp img =
 let get_img_transparent img =
   Png.load img [] |> array_of_image |> make_transp |> make_image
 
+let make_dice img =
+let replace = Array.map (fun col -> if 0 - col < 1 then white else col) in
+Array.map (fun arr -> replace arr) img
+
+let get_dice_img img =
+  Png.load img [] |> array_of_image |> make_transp |> make_dice |> make_image
+
 let fetch = function
   | Brick -> "assets/whitebrick.png"
   | Null -> "assets/whitedesert.png"
@@ -65,8 +72,18 @@ let fetch = function
   | Ore -> "assets/whiteore.png"
   | Lumber -> "assets/whitelumber.png"
 
+let fetch' = function
+  | 2 -> "assets/2.png"
+  | 3 -> "assets/3.png"
+  | 4 -> "assets/4.png"
+  | 5 -> "assets/5.png"
+  | 6 -> "assets/6.png"
+  | _ -> "assets/2.png"
+
 let draw_canvas s =
   clear_graph ();
+  let water = get_img "assets/water.png" in
+  draw_image water 0 0;
   let player = get_img "assets/smallplayer.png" in
   draw_image player 0 0;
   let alan = get_img "assets/smallalan.png" in
@@ -81,8 +98,15 @@ let draw_canvas s =
     Graphics.moveto x y;
      t.dice |> string_of_int |> Graphics.draw_string *)
   let f t =
-    match t |> Tile.lower_left |> round with
-    | x, y -> draw_image (get_img_transparent (fetch t.resource)) x y
+    begin
+      match t |> Tile.lower_left |> round with
+        | x, y -> draw_image (get_img_transparent (fetch t.resource)) x y
+    end;
+    let x = t.center |> fst |> (-.) (0.25 *. t.edge) |> (~-.) |> int_of_float in
+    let y = t.center |> snd |> (-.) (0.25 *. t.edge) |> (~-.) |> int_of_float in
+    Graphics.moveto x y;
+    (* t.dice |> string_of_int |> Graphics.draw_string *)
+    draw_image (get_dice_img (fetch' t.dice)) x y
   in
   List.iter f s.canvas.tiles
 

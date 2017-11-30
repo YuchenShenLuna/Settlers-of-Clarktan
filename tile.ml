@@ -32,8 +32,6 @@ let edges t =
   ) c
 
 let lower_left t =
-  let x = fst t.center in
-  let y = snd t.center in
-  let l = t.edge in
-  let c = sqrt 3. /. 2. in
-  x -. l *. c, y -. c
+  let x = fst t.center -. t.edge *. sqrt 3. /. 2. in
+  let y = snd t.center -. t.edge in
+  x, y
