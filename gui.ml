@@ -141,6 +141,29 @@ let draw_player_infos st =
   moveto 10 270;
   draw_info Red st
 
+let get_card st card =
+  let player = List.hd (List.filter (fun x -> x.color = Red) st.players) in
+  match card with
+  | Knight -> string_of_int player.knight
+  | RoadBuilding -> string_of_int player.road_building
+  | YearOfPlenty -> string_of_int player.year_of_plenty
+  | Monopoly -> string_of_int player.monopoly
+  | VictoryPoint -> string_of_int player.victory_point
+
+let draw_card_infos st =
+  set_color white;
+  set_line_width 10;
+  moveto 208 450;
+  draw_string ("knight: "^(get_card st Knight));
+  moveto 208 420;
+  draw_string ("plenty: "^(get_card st YearOfPlenty));
+  moveto 208 390;
+  draw_string ("road: "^(get_card st RoadBuilding));
+  moveto 208 360;
+  draw_string ("monopoly: "^(get_card st Monopoly));
+  moveto 208 330;
+  draw_string ("victory: "^(get_card st VictoryPoint))
+
 let make_invisible img =
   let inv img =
   let replace = Array.map (fun col ->  transp) in
@@ -203,9 +226,14 @@ let draw_canvas s =
   fill_rect 5 265 193 20;
   fill_rect 800 475 193 20;
   fill_rect 800 265 193 20;
-  draw_player_infos s
+  draw_player_infos s;
+  draw_image (get_img_transparent "assets/development.png") 0 330;
+  set_color 0x4b86b4;
+  fill_rect 205 310 70 160;
+  draw_card_infos s
 
 let update_canvas s =
   invisible_robbers s;
   draw_resource s;
-  draw_player_infos s
+  draw_player_infos s;
+  draw_card_infos s
