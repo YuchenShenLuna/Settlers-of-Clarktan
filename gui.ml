@@ -211,6 +211,65 @@ let invisible_robbers st =
      in
      List.iter (fun x -> f x) st.canvas.tiles
 
+let index_to_coordinate st ind =
+  let tile =
+    st.canvas.tiles
+    |> List.filter (fun x -> List.mem ind x.indices)
+    |> List.hd
+  in
+  let corners = Tile.corners tile |> round_list in
+  let indices = tile.indices in
+  let count =
+    List.fold_left (fun acc x -> if x=ind then acc else acc+1) 0 indices in
+  List.nth corners count
+
+(* [update_houses st] updates the houses (cities and settlements) on canvas
+ * for all players under state [st]. *)
+let update_houses st =
+  let fetch color num =
+    match color, num with
+    | Red, 1 -> "assets/housered.png"
+    | Red, 2 -> "assets/scityred.png"
+    | Blue, 1 -> "assets/houseblue.png"
+    | Blue, 2 -> "assets/scityblue.png"
+    | Yellow, 1 -> "assets/houseyellow.png"
+    | Yellow, 2 -> "assets/scityyellow.png"
+    | Green, 1 -> "assets/housergreen.png"
+    | _, _ -> "assets/scitygreen.png"
+  in
+  let info =
+    st.canvas.tiles
+    |> List.map (fun x -> x.buildings)
+    |> List.flatten
+  in
+  List.iter (fun (ind, (col, num)) ->
+      draw_image (get_img_transparent (fetch col num))
+        (fst (index_to_coordinate st ind)) (snd (index_to_coordinate st ind))) info
+
+(* [update_roads st] updates the roads for the canvas for all players
+ * under state [st]. *)
+let update_roads st =
+  let info =
+    st.canvas.tiles
+    |> List.map (fun x -> x.roads)
+    |> List.flatten
+  in
+  let f edge col =
+    let help =
+      moveto (edge |> fst |> index_to_coordinate st |> fst)
+        (edge |> fst |> index_to_coordinate st |> snd);
+      lineto (edge |> snd |> index_to_coordinate st |> fst)
+        (edge |> snd |> index_to_coordinate st |> snd)
+    in
+    match col with
+    | Red -> set_color red; help
+    | Green -> set_color green; help
+    | Yellow -> set_color yellow; help
+    | Blue -> set_color blue; help
+    | _ -> ()
+  in
+  List.iter (fun (edge, col) -> f edge col) info
+
 let update_dice i1 i2 =
   let fetch_dice = function
     | 1 -> "assets/Die_1.png"
@@ -275,4 +334,6 @@ let update_canvas s =
   invisible_robbers s;
   draw_resource s;
   draw_player_infos s;
-  draw_card_infos s
+  draw_card_infos s;
+  update_houses s;
+  update_roads s
