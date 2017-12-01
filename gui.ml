@@ -108,12 +108,59 @@ let update_resource color st res =
     | Null -> "0"
   with _ -> "0"
 
-let draw_robber st =
-  let tile_num = st.robber in
-  let tile = List.nth st.canvas.tiles tile_num in
-  let center = round tile.center in
-  moveto (fst center) (snd center);
-  draw_image (get_img_robber "assets/smallrobber.png") ((fst center) - 25) ((snd center) - 25)
+let draw_resource s =
+  set_color white;
+  moveto 300 140;
+  draw_string ("grain: "^(update_resource s.turn s Grain));
+  moveto 390 140;
+  draw_string ("ore: "^(update_resource s.turn s Ore));
+  moveto 475 140;
+  draw_string ("brick: "^(update_resource s.turn s Brick));
+  moveto 560 140;
+  draw_string ("lumber: "^(update_resource s.turn s Lumber));
+  moveto 650 140;
+  draw_string ("wool: "^(update_resource s.turn s Wool))
+
+let draw_info color st =
+  let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
+  let num_res =
+    player.lumber + player.wool + player.grain + player.ore + player.brick in
+  let num_vic = player.score in
+  draw_string ("resources :"^(string_of_int num_res)^"  ");
+  draw_string ("victory points: "^(string_of_int num_vic))
+
+let draw_player_infos st =
+  set_color white;
+  set_line_width 10;
+  moveto 10 480;
+  draw_info Green st;
+  moveto 805 480;
+  draw_info Blue st;
+  moveto 805 270;
+  draw_info Yellow st;
+  moveto 10 270;
+  draw_info Red st
+
+let make_invisible img =
+  let inv img =
+  let replace = Array.map (fun col ->  transp) in
+  Array.map (fun arr -> replace arr) img
+  in Png.load img [] |> array_of_image |> inv |> make_image
+
+let invisible_robbers st =
+     let tile_num = st.robber in
+     let tile = List.nth st.canvas.tiles tile_num in
+     let f x =
+       let center = round x.center in
+       moveto (fst center) (snd center);
+       if x=tile then
+         draw_image (get_img_robber "assets/smallrobber.png")
+           ((fst center) - 25) ((snd center) - 25)
+       else
+         draw_image (make_invisible "assets/smallrobber.png")
+           ((fst center) - 25) ((snd center) - 25)
+     in
+     List.iter (fun x -> f x) st.canvas.tiles
 
 let draw_canvas s =
   clear_graph ();
@@ -147,18 +194,18 @@ let draw_canvas s =
   in
   List.iter f s.canvas.tiles;
   draw_image (get_img_transparent "assets/resourcecards.png") 270 0;
-  moveto 300 140;
-  draw_string ("grain: "^(update_resource s.turn s Grain));
-  moveto 390 140;
-  draw_string ("ore: "^(update_resource s.turn s Ore));
-  moveto 475 140;
-  draw_string ("brick: "^(update_resource s.turn s Brick));
-  moveto 560 140;
-  draw_string ("lumber: "^(update_resource s.turn s Lumber));
-  moveto 650 140;
-  draw_string ("wool: "^(update_resource s.turn s Wool));
-  draw_robber s
+  set_color 0x4b86b4;
+  fill_rect 295 135 400 20;
+  draw_resource s;
+  invisible_robbers s;
+  set_color 0x4b86b4;
+  fill_rect 5 475 193 20;
+  fill_rect 5 265 193 20;
+  fill_rect 800 475 193 20;
+  fill_rect 800 265 193 20;
+  draw_player_infos s
 
-(* let draw_robber = failwith "TODO"
-
-let update_player_info = failwith "TODO" *)
+let update_canvas s =
+  invisible_robbers s;
+  draw_resource s;
+  draw_player_infos s

@@ -718,8 +718,6 @@ let want_trade_ports st ai rs_lst rs'_lst=
 
 let want_largest_army color st = failwith "TODO"
 
-let want_longest_road color st = failwith "TODO"
-
 (*****************************************************************************
  *                             DEVELOPMENT CARDS                             *
  *****************************************************************************)
