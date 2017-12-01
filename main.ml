@@ -45,7 +45,7 @@ let rec repl (cmd : command) (clr_opt : color option) (s : state) =
 let main () =
   let state = init_state () in
   Graphics.open_graph " 1000x750";
-  Graphics.set_window_title "Clarktan";
+  Graphics.set_window_title "Settlers of Clarktan by Yuchen Shen, Yishu Zhang, Easther Jun";
   draw_canvas state;
   let _ = Sys.command("clear") in
   ANSITerminal.(print_string [red] "Welcome to the Settlers of Clarktan.");
