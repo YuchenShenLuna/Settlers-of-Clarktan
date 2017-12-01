@@ -6,7 +6,7 @@ open Elements
 let roll_dice () =
   let i1 = 1 + Random.int 6 in
   let i2 = 1 + Random.int 6 in
-  i1 + i2
+  ((i1, i2),(i1 + i2))
 
 let rec repl (cmd : command) (clr_opt : color option) (s : state) =
   let sx = do_move cmd clr_opt s in

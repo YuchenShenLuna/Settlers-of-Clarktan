@@ -1,6 +1,14 @@
 (* GUI module handles the GUI and user interface for the game *)
 
-(* [draw_canvas] draws the canvas background for the game *)
+(* [draw_canvas st] draws the canvas background for the game
+ * under current state [st]. *)
 val draw_canvas : State.state -> unit
 
+(* [update_canvas st] updates the non-static part of canvas for the game
+ * under current state [st]. *)
 val update_canvas : State.state -> unit
+
+(* [update_dice i1 i2] updates the dice image of canvas for the game
+ * according to the two dice numbers [i1] [i2], obtainable from the
+ * roll_dice function in main as a tuple. *)
+val update_dice : int -> int -> unit

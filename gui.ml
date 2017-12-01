@@ -8,12 +8,15 @@ open Elements
 open Jpeg
 open Player
 
+(* [round (x, y) transforms the floating point values of (x, y) into ints. ]*)
 let round (x, y) = int_of_float x, int_of_float y
 
+(* [round_list lst transforms the floating point values of lst into ints. ]*)
 let rec round_list = function
   | [] -> []
   | h :: t -> (h |> fst |> int_of_float, h |> snd |> int_of_float) :: round_list t
 
+(* [array_of_image img] transforms a given image to a color color array. *)
 let array_of_image img =
   match img with
   | Images.Index8 bitmap ->
@@ -44,35 +47,45 @@ let array_of_image img =
   | Rgba32 _ -> failwith "RGBA not supported"
   | Cmyk32 _ -> failwith "CMYK not supported"
 
+(* [get_img img] returns an image according to input file name. *)
 let get_img img =
   Png.load img [] |> array_of_image |> make_image
 
+(* [make_transp img] returns a changed version of [img] by turning the white
+ * parts to transparent. *)
 let make_transp img =
   let replace = Array.map (fun col -> if 16777215 - col < 500000 then transp else col) in
   Array.map (fun arr -> replace arr) img
 
+(* [get_img_transparent img] returns a transparent image according to the
+ * given file name. *)
 let get_img_transparent img =
   Png.load img [] |> array_of_image |> make_transp |> make_image
 
+(* [make_num img] styles the number images. *)
 let make_num img =
   let replace = Array.map (fun col -> if 16777215 - col < 10000000 then transp else col) in
   Array.map (fun arr -> replace arr) img
 
+(* [get_img_num img] returns an image for number *)
 let get_img_num img =
   Png.load img [] |> array_of_image |> make_num |> make_image
 
+(* [get_img_home img] returns the "settlers of clarktan" img. *)
 let get_img_home img =
   let make_home img =
   let replace = Array.map (fun col -> if 16777215 - col < 71000 then transp else col) in
   Array.map (fun arr -> replace arr) img
   in Png.load img [] |> array_of_image |> make_home |> make_image
 
+(* [get_img_robber img] returns the robber image. *)
 let get_img_robber img =
   let make_rob img =
   let replace = Array.map (fun col -> if 16777215 - col < 3000000 then transp else col) in
   Array.map (fun arr -> replace arr) img
 in Png.load img [] |> array_of_image |> make_rob |> make_image
 
+(* [fetch res] fetches the corresponding picture for resource [res] *)
 let fetch = function
   | Brick -> "assets/whitebrick.png"
   | Null -> "assets/whitedesert.png"
@@ -81,6 +94,7 @@ let fetch = function
   | Ore -> "assets/whiteore.png"
   | Lumber -> "assets/whitelumber.png"
 
+(* [fetch' num] fetches the corresponding picture for number [num] *)
 let fetch' = function
   | 2 -> "assets/dice2.png"
   | 3 -> "assets/dice3.png"
@@ -95,7 +109,9 @@ let fetch' = function
   | 12 -> "assets/dice12.png"
   | _ -> "assets/dice0.png"
 
-
+(* [update_resource col st res] updates the resource part of the GUI according
+ * to current player's color [col] and state [st], for just a single
+ * resource [res] *)
 let update_resource color st res =
   try
     let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
@@ -108,6 +124,7 @@ let update_resource color st res =
     | Null -> "0"
   with _ -> "0"
 
+(* [draw_resource s] draws the resource part of the canvas. *)
 let draw_resource s =
   set_color white;
   moveto 300 140;
@@ -121,6 +138,8 @@ let draw_resource s =
   moveto 650 140;
   draw_string ("wool: "^(update_resource s.turn s Wool))
 
+(* [draw_info col st] draws information for player of color [col] under
+ * current state [st]. *)
 let draw_info color st =
   let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
   let num_res =
@@ -129,6 +148,8 @@ let draw_info color st =
   draw_string ("resources :"^(string_of_int num_res)^"  ");
   draw_string ("victory points: "^(string_of_int num_vic))
 
+(* [draw_player_infos st] draws information for each player under the
+ * current state [st]. *)
 let draw_player_infos st =
   set_color white;
   set_line_width 10;
@@ -141,6 +162,8 @@ let draw_player_infos st =
   moveto 10 270;
   draw_info Red st
 
+(* [get_card st card] returns the card information for current state [st]
+ * and card [card] as string. *)
 let get_card st card =
   let player = List.hd (List.filter (fun x -> x.color = Red) st.players) in
   match card with
@@ -150,6 +173,7 @@ let get_card st card =
   | Monopoly -> string_of_int player.monopoly
   | VictoryPoint -> string_of_int player.victory_point
 
+(* [draw_card_infos st] draws the card section of the canvas. *)
 let draw_card_infos st =
   set_color white;
   set_line_width 10;
@@ -164,12 +188,14 @@ let draw_card_infos st =
   moveto 208 330;
   draw_string ("victory: "^(get_card st VictoryPoint))
 
+(* m[make_invisible img] makes the image invisible (transparent) *)
 let make_invisible img =
   let inv img =
   let replace = Array.map (fun col ->  transp) in
   Array.map (fun arr -> replace arr) img
   in Png.load img [] |> array_of_image |> inv |> make_image
 
+(* [invisible_robbers st] draws the robber under state [st]. *)
 let invisible_robbers st =
      let tile_num = st.robber in
      let tile = List.nth st.canvas.tiles tile_num in
@@ -184,6 +210,18 @@ let invisible_robbers st =
            ((fst center) - 25) ((snd center) - 25)
      in
      List.iter (fun x -> f x) st.canvas.tiles
+
+let update_dice i1 i2 =
+  let fetch_dice = function
+    | 1 -> "assets/Die_1.png"
+    | 2 -> "assets/Die_2.png"
+    | 3 -> "assets/Die_3.png"
+    | 4 -> "assets/Die_4.png"
+    | 5 -> "assets/Die_5.png"
+    | _ -> "assets/Die_6.png"
+  in
+  draw_image (get_img (fetch_dice i1)) 825 360;
+  draw_image (get_img (fetch_dice i2)) 890 360
 
 let draw_canvas s =
   clear_graph ();
@@ -230,7 +268,8 @@ let draw_canvas s =
   draw_image (get_img_transparent "assets/development.png") 0 330;
   set_color 0x4b86b4;
   fill_rect 205 310 70 160;
-  draw_card_infos s
+  draw_card_infos s;
+  update_dice 6 6
 
 let update_canvas s =
   invisible_robbers s;
