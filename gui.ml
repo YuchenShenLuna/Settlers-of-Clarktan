@@ -44,10 +44,6 @@ let array_of_image img =
   | Rgba32 _ -> failwith "RGBA not supported"
   | Cmyk32 _ -> failwith "CMYK not supported"
 
-let print_color_array img =
-  let arr = Png.load img [] |> array_of_image in
-  print_endline (string_of_int (Array.get (Array.get arr 0) 0))
-
 let get_img img =
   Png.load img [] |> array_of_image |> make_image
 
@@ -69,7 +65,13 @@ let get_img_home img =
   let make_home img =
   let replace = Array.map (fun col -> if 16777215 - col < 71000 then transp else col) in
   Array.map (fun arr -> replace arr) img
-in Png.load img [] |> array_of_image |> make_home |> make_image
+  in Png.load img [] |> array_of_image |> make_home |> make_image
+
+let get_img_robber img =
+  let make_rob img =
+  let replace = Array.map (fun col -> if 16777215 - col < 3000000 then transp else col) in
+  Array.map (fun arr -> replace arr) img
+in Png.load img [] |> array_of_image |> make_rob |> make_image
 
 let fetch = function
   | Brick -> "assets/whitebrick.png"
@@ -105,6 +107,13 @@ let update_resource color st res =
     | Wool -> string_of_int player.wool
     | Null -> "0"
   with _ -> "0"
+
+let draw_robber st =
+  let tile_num = st.robber in
+  let tile = List.nth st.canvas.tiles tile_num in
+  let center = round tile.center in
+  moveto (fst center) (snd center);
+  draw_image (get_img_robber "assets/smallrobber.png") ((fst center) - 25) ((snd center) - 25)
 
 let draw_canvas s =
   clear_graph ();
@@ -147,8 +156,8 @@ let draw_canvas s =
   moveto 560 140;
   draw_string ("lumber: "^(update_resource s.turn s Lumber));
   moveto 650 140;
-  draw_string ("wool: "^(update_resource s.turn s Wool))
-
+  draw_string ("wool: "^(update_resource s.turn s Wool));
+  draw_robber s
 
 (* let draw_robber = failwith "TODO"
 

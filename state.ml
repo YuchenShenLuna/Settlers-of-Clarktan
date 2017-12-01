@@ -216,7 +216,7 @@ let init_canvas () =
   }
 
 let init_state () =
-  { robber = 19;
+  { robber = 10;
     deck =
       [ Knight; VictoryPoint; Knight; RoadBuilding;YearOfPlenty; Knight;
         RoadBuilding; Knight; Knight; VictoryPoint; Knight; Knight; Monopoly;
