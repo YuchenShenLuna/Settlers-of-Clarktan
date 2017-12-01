@@ -211,6 +211,7 @@ let invisible_robbers st =
      in
      List.iter (fun x -> f x) st.canvas.tiles
 
+(* [index_to_coordinate st ind] converts a given index [ind] to coordinates. *)
 let index_to_coordinate st ind =
   let tile =
     st.canvas.tiles
