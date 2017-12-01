@@ -217,11 +217,11 @@ let index_to_coordinate st ind =
     |> List.filter (fun x -> List.mem ind x.indices)
     |> List.hd
   in
-  let corners = Tile.corners tile |> round_list in
+  let corners = Tile.corners tile in
   let indices = tile.indices in
   let count =
     List.fold_left (fun acc x -> if x=ind then acc else acc+1) 0 indices in
-  List.nth corners count
+  round (List.nth corners count)
 
 (* [update_houses st] updates the houses (cities and settlements) on canvas
  * for all players under state [st]. *)
@@ -229,13 +229,13 @@ let update_houses st =
   let fetch color num =
     match color, num with
     | Red, 1 -> "assets/housered.png"
-    | Red, 2 -> "assets/scityred.png"
+    | Red, 2 -> "assets/cityred.png"
     | Blue, 1 -> "assets/houseblue.png"
-    | Blue, 2 -> "assets/scityblue.png"
+    | Blue, 2 -> "assets/cityblue.png"
     | Yellow, 1 -> "assets/houseyellow.png"
-    | Yellow, 2 -> "assets/scityyellow.png"
-    | Green, 1 -> "assets/housergreen.png"
-    | _, _ -> "assets/scitygreen.png"
+    | Yellow, 2 -> "assets/cityyellow.png"
+    | Green, 1 -> "assets/housegreen.png"
+    | _, _ -> "assets/citygreen.png"
   in
   let info =
     st.canvas.tiles
@@ -244,7 +244,8 @@ let update_houses st =
   in
   List.iter (fun (ind, (col, num)) ->
       draw_image (get_img_transparent (fetch col num))
-        (fst (index_to_coordinate st ind)) (snd (index_to_coordinate st ind))) info
+        ((fst (index_to_coordinate st ind))-15)
+        ((snd (index_to_coordinate st ind))-10)) info
 
 (* [update_roads st] updates the roads for the canvas for all players
  * under state [st]. *)
@@ -255,20 +256,40 @@ let update_roads st =
     |> List.flatten
   in
   let f edge col =
-    let help =
-      moveto (edge |> fst |> index_to_coordinate st |> fst)
-        (edge |> fst |> index_to_coordinate st |> snd);
-      lineto (edge |> snd |> index_to_coordinate st |> fst)
-        (edge |> snd |> index_to_coordinate st |> snd)
+    let fetch color =
+      match color with
+      | Red -> 0x990000
+      | Green -> 0x5fbb4e
+      | Yellow -> 0xffd700
+      | Blue -> 0x5c96c9
+      | _ -> transp
     in
-    match col with
-    | Red -> set_color red; help
-    | Green -> set_color green; help
-    | Yellow -> set_color yellow; help
-    | Blue -> set_color blue; help
-    | _ -> ()
+    set_color (fetch col);
+    set_line_width 7;
+    moveto (edge |> fst |> index_to_coordinate st |> fst)
+      (edge |> fst |> index_to_coordinate st |> snd);
+    lineto (edge |> snd |> index_to_coordinate st |> fst)
+      (edge |> snd |> index_to_coordinate st |> snd)
   in
   List.iter (fun (edge, col) -> f edge col) info
+  (* let roads =
+    [(3, 4); (4, 15); (15, 14); (14, 13); (13, 2); (2, 3); (5, 6); (6, 17);
+     (17, 16); (16, 15); (15, 4); (4, 5); (7, 8); (8, 19); (19, 18); (18, 17);
+     (17, 6); (6, 7); (13, 14); (14, 25); (25, 24); (24, 23); (23, 12); (12, 13);
+     (15, 16); (16, 27); (27, 26); (26, 25); (25, 14); (14, 15); (17, 18);
+     (18, 29); (29, 28); (28, 27); (27, 16); (16, 17); (19, 20); (20, 31);
+     (31, 30); (30, 29); (29, 18); (18, 19); (23, 24); (24, 35); (35, 34);
+     (34, 33); (33, 22); (22, 23); (25, 26); (26, 37); (37, 36); (36, 35);
+     (35, 24); (24, 25); (27, 28); (28, 39); (39, 38); (38, 37); (37, 26);
+     (26, 27); (29, 30); (30, 41); (41, 40); (40, 39); (39, 28); (28, 29);
+     (31, 32); (32, 43); (43, 42); (42, 41); (41, 30); (30, 31); (35, 36);
+     (36, 47); (47, 46); (46, 45); (45, 34); (34, 35); (37, 38); (38, 49);
+     (49, 48); (48, 47); (47, 36); (36, 37); (39, 40); (40, 51); (51, 50);
+     (50, 49); (49, 38); (38, 39); (41, 42); (42, 53); (53, 52); (52, 51);
+     (51, 40); (47, 48); (48, 51); (51, 58); (58, 57); (57, 46); (46, 47);
+     (49, 50); (50, 61); (61, 60); (60, 59); (59, 48); (48, 49); (51, 52);
+     (52, 63); (63, 62); (62, 61); (61, 50); (50, 51)] in
+  List.iter (fun x -> f x Blue) roads *)
 
 let update_dice i1 i2 =
   let fetch_dice = function
@@ -296,11 +317,6 @@ let draw_canvas s =
   draw_image mike 800 500;
   let zikiu = get_img "assets/smallzikiu.png" in
   draw_image zikiu 800 0;
-  (* let f t = t |> Tile.corners |> round |> Array.of_list |> Graphics.draw_poly;
-    let x = t.center |> fst |> (-.) (0.1 *. t.edge) |> (~-.) |> int_of_float in
-    let y = t.center |> snd |> (-.) (0.1 *. t.edge) |> (~-.) |> int_of_float in
-    Graphics.moveto x y;
-     t.dice |> string_of_int |> Graphics.draw_string *)
   let f t =
     begin
       match t |> Tile.lower_left |> round with
@@ -309,7 +325,6 @@ let draw_canvas s =
     let x = t.center |> fst |> (-.) (0.2 *. t.edge) |> (~-.) |> int_of_float in
     let y = t.center |> snd |> (-.) (0.2 *. t.edge) |> (~-.) |> int_of_float in
     moveto x y;
-    (* t.dice |> string_of_int |> Graphics.draw_string *)
     draw_image (get_img_num (fetch' t.dice)) x y
   in
   List.iter f s.canvas.tiles;
