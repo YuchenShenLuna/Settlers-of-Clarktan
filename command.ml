@@ -2,9 +2,10 @@ open Elements
 
 type command =
   | Start
-  | Setup of int * edge
-  | BuildSettlement of int
-  | BuildCity of int
+  | InitSettlement of intersection
+  | InitRoad of edge
+  | BuildSettlement of intersection
+  | BuildCity of intersection
   | BuildRoad of edge
   | BuyCard
   | PlayKnight of int
@@ -22,8 +23,6 @@ type command =
 let distance (x1, y1) (x2, y2) =
   sqrt ((x1 -. x2) ** 2. +. (y1 -. y2) ** 2.)
 
-(* [nearby_intersection tiles (x, y)] is Some intersection (i.e., hex corner)
- * near the coordinates (x, y), if there is one, and None, otherwise. *)
 let nearby_intersection (tiles : Tile.tile list) (x, y) =
   let open Tile in
   let search acc (t : Tile.tile) =
@@ -38,8 +37,6 @@ let nearby_intersection (tiles : Tile.tile list) (x, y) =
   in
   List.fold_left search None tiles
 
-(* [nearby_edge tiles (x, y)] is Some edge (i.e., hex edge) near the
- * coordinates (x, y), if there is one, and None, otherwise. *)
 let nearby_edge (tiles : Tile.tile list) (x, y) =
   let open Tile in
   let search acc (t : Tile.tile) =
@@ -115,8 +112,9 @@ let parse_text tiles str =
   | [] -> Invalid
   | h :: t ->
     match h with
-    | "end" | "done" | "finished" -> EndTurn
-    | "quit" | "exit" -> Quit
+    | "quit" | "exit" | "stop" -> Quit
+    | "done" | "next" | "proceed" | "finished" -> EndTurn
+    | "end" -> if List.mem "game" t || List.mem "app" t then Quit else EndTurn
     | "buy" | "purchase" -> BuyCard
     | "build" | "construct" | "make" | "create" | "establish" ->
       if List.mem "settlement" t then
@@ -137,6 +135,7 @@ let parse_text tiles str =
           | None -> Invalid
           | Some i -> BuildRoad i
         end
+      else if List.mem "card" t then BuyCard
       else Invalid
     | "play" | "activate" | "use" ->
       if List.mem "knight" t then
@@ -169,17 +168,21 @@ let parse_text tiles str =
             end
         end
       else Invalid
-    | "trade" | "exchange" ->
+    | "trade" | "exchange" | "barter" ->
       begin
         match split_list "for" [] t with
         | l1, l2 ->
-          let give = List.combine (extract_resources l1) (extract_ints l1) in
-          let take = List.combine (extract_resources l2) (extract_ints l2) in
-          if List.mem "maritime" t || List.mem "bank" t
-          then MaritimeTrade (false, List.nth give 0, List.nth take 0)
-          else DomesticTrade (false, give, take)
+          match List.combine (extract_resources l1) (extract_ints l1) with
+          | exception (Invalid_argument _) -> Invalid
+          | give ->
+            match List.combine (extract_resources l2) (extract_ints l2) with
+            | exception (Invalid_argument _) -> Invalid
+            | take ->
+              if List.mem "maritime" t || List.mem "bank" t || List.mem "port" t
+              then MaritimeTrade (false, List.nth give 0, List.nth take 0)
+              else DomesticTrade (false, give, take)
       end
-    | "discard" | "burn" ->
+    | "discard" | "burn" | "throw" ->
       begin
         match List.combine (extract_resources t) (extract_ints t) with
         | exception (Invalid_argument _) -> Invalid

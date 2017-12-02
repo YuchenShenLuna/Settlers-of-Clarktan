@@ -87,27 +87,30 @@ in Png.load img [] |> array_of_image |> make_rob |> make_image
 
 (* [fetch res] fetches the corresponding picture for resource [res] *)
 let fetch = function
-  | Brick -> "assets/whitebrick.png"
-  | Null -> "assets/whitedesert.png"
-  | Wool -> "assets/whitesheep.png"
-  | Grain -> "assets/whitegrain.png"
-  | Ore -> "assets/whiteore.png"
-  | Lumber -> "assets/whitelumber.png"
+  | Some Brick -> "assets/whitebrick.png"
+  | None -> "assets/whitedesert.png"
+  | Some Wool -> "assets/whitesheep.png"
+  | Some Grain -> "assets/whitegrain.png"
+  | Some Ore -> "assets/whiteore.png"
+  | Some Lumber -> "assets/whitelumber.png"
 
 (* [fetch' num] fetches the corresponding picture for number [num] *)
 let fetch' = function
-  | 2 -> "assets/dice2.png"
-  | 3 -> "assets/dice3.png"
-  | 4 -> "assets/dice4.png"
-  | 5 -> "assets/dice5.png"
-  | 6 -> "assets/dice6.png"
-  | 7 -> "assets/dice7.png"
-  | 8 -> "assets/dice8.png"
-  | 9 -> "assets/dice9.png"
-  | 10 -> "assets/dice10.png"
-  | 11 -> "assets/dice11.png"
-  | 12 -> "assets/dice12.png"
-  | _ -> "assets/dice0.png"
+  | None -> failwith "Impossible."
+  | Some i ->
+    match i with
+    | 2 -> "assets/dice2.png"
+    | 3 -> "assets/dice3.png"
+    | 4 -> "assets/dice4.png"
+    | 5 -> "assets/dice5.png"
+    | 6 -> "assets/dice6.png"
+    | 7 -> "assets/dice7.png"
+    | 8 -> "assets/dice8.png"
+    | 9 -> "assets/dice9.png"
+    | 10 -> "assets/dice10.png"
+    | 11 -> "assets/dice11.png"
+    | 12 -> "assets/dice12.png"
+    | _ -> "assets/dice0.png"
 
 (* [update_resource col st res] updates the resource part of the GUI according
  * to current player's color [col] and state [st], for just a single
@@ -116,27 +119,27 @@ let update_resource color st res =
   try
     let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
     match res with
-    | Grain -> string_of_int player.grain
-    | Lumber -> string_of_int player.lumber
-    | Brick -> string_of_int player.brick
-    | Ore -> string_of_int player.ore
-    | Wool -> string_of_int player.wool
-    | Null -> "0"
+    | Some Grain -> string_of_int player.grain
+    | Some Lumber -> string_of_int player.lumber
+    | Some Brick -> string_of_int player.brick
+    | Some Ore -> string_of_int player.ore
+    | Some Wool -> string_of_int player.wool
+    | None -> "0"
   with _ -> "0"
 
 (* [draw_resource s] draws the resource part of the canvas. *)
 let draw_resource s =
   set_color white;
   moveto 300 140;
-  draw_string ("grain: "^(update_resource s.turn s Grain));
+  draw_string ("grain: "^update_resource s.turn s (Some Grain));
   moveto 390 140;
-  draw_string ("ore: "^(update_resource s.turn s Ore));
+  draw_string ("ore: "^update_resource s.turn s (Some Ore));
   moveto 475 140;
-  draw_string ("brick: "^(update_resource s.turn s Brick));
+  draw_string ("brick: "^update_resource s.turn s (Some Brick));
   moveto 560 140;
-  draw_string ("lumber: "^(update_resource s.turn s Lumber));
+  draw_string ("lumber: "^update_resource s.turn s (Some Lumber));
   moveto 650 140;
-  draw_string ("wool: "^(update_resource s.turn s Wool))
+  draw_string ("wool: "^update_resource s.turn s (Some Wool))
 
 (* [draw_info col st] draws information for player of color [col] under
  * current state [st]. *)
@@ -268,7 +271,6 @@ let update_roads st =
       | Green -> 0x5fbb4e
       | Yellow -> 0xffd700
       | Blue -> 0x5c96c9
-      | _ -> transp
     in
     set_color (fetch col);
     set_line_width 7;

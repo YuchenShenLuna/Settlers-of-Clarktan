@@ -4,7 +4,6 @@ type color =
   | Yellow
   | Blue
   | Green
-  | White
 
 (* [resource] represents a resource. *)
 type resource =
@@ -13,7 +12,6 @@ type resource =
   | Grain
   | Brick
   | Ore
-  | Null
 
 (* [card] represents a development card. *)
 type card =

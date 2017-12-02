@@ -62,7 +62,6 @@ let resource_priority_diff_stage color st res =
     | Brick  -> 3
     | Ore    -> 2
     | Grain  -> 1
-    | Null   -> 0
   else if score < 9 then
     match res with
     | Lumber -> 2
@@ -70,7 +69,6 @@ let resource_priority_diff_stage color st res =
     | Brick  -> 2
     | Ore    -> 3
     | Grain  -> 3
-    | Null   -> 0
   else
     match res with
     | Lumber -> 1
@@ -78,7 +76,6 @@ let resource_priority_diff_stage color st res =
     | Brick  -> 1
     | Ore    -> 3
     | Grain  -> 3
-    | Null   -> 0
 
 (* [list_of_resources color st] returns the list of resources under state [st]
  * for player identified by color [color] *)
@@ -141,27 +138,35 @@ let get_possible_city_ind st col f =
  * identified by color [col] at state [st] *)
 let get_accessible_resources col st =
   st.canvas.tiles
-  |> List.map (fun x -> (x.buildings, x.resource))
-  |> List.map (fun (l, r) -> List.map (fun (_,(c, _)) -> (c, r)) l)
+  |> List.fold_left (fun acc x ->
+      match x.resource with
+      | None -> acc
+      | Some r -> (x.buildings, r) :: acc
+    ) []
+  |> List.map (fun (l, r) -> List.map (fun (_,(c, _)) -> c, r) l)
   |> List.flatten
   |> List.sort_uniq compare
-  |> List.map (fun (c, r) -> r)
+  |> List.map (fun (_, r) -> r)
 
 (* [get_accessible_resources_by_inds col lst st] returns a list of resources
  * obtainable for player identified by color [col] at state [st] given by
  * the indices of buildings specified by [lst] *)
-let get_accessible_resources_by_inds col lst st =
+let get_accessible_resources_by_inds col lst st : resource list =
   let tiles = st.canvas.tiles in
   let get_tile ind = List.filter (fun x -> List.mem ind x.indices) tiles in
   lst
   |> List.map (fun x -> get_tile x)
   |> List.flatten
   |> List.sort_uniq compare
-  |> List.map (fun x -> x.resource)
+  |> List.fold_left (fun acc x ->
+      match x.resource with
+      | None -> acc
+      | Some r -> r :: acc
+    ) []
 
 (* [get_unaccessible_resources col st] returns a list of resources not
  * obtainable for player identified by color [col] at state [st] *)
-let get_unaccessible_resources col st =
+let get_unaccessible_resources col st : resource list =
   let res_lst = [Lumber; Ore; Grain; Brick; Wool] in
   let accessibles = get_accessible_resources col st in
   List.filter (fun x -> List.mem x accessibles = false) res_lst
@@ -169,10 +174,14 @@ let get_unaccessible_resources col st =
 (* [obtainable_resources ind st] returns a list of obtainable resources
  * obtained by adding the index [ind] to the players' building lists under
  * current state [st] *)
-let obtainable_resources ind st =
+let obtainable_resources ind st : resource list =
   st.canvas.tiles
   |> List.filter (fun x -> List.mem ind x.indices)
-  |> List.map (fun x -> x.resource)
+  |> List.fold_left (fun acc x ->
+      match x.resource with
+      | None -> acc
+      | Some r -> r :: acc
+    ) []
 
 (* [initial_resource_priority res] is the priority for resource [res] at
  * initial building phase of the game *)
@@ -182,7 +191,6 @@ let initial_resource_priority = function
   | Brick -> 3
   | Ore -> 2
   | Grain -> 1
-  | Null -> 0
 
 (* [obtain_bordering_dices ind st] returns a list of dice numbers bordering the
  * house indexed by [ind] under state [st] *)
@@ -204,7 +212,10 @@ let init_calc_value_settlement ind st f =
   in
   let dice_pts =
     dices
-    |> List.map (fun x -> get_probability_dice x)
+    |> List.map (fun x ->
+        match x with
+        | None -> 0
+        | Some n -> get_probability_dice n)
     |> List.fold_left (fun acc x -> acc + x) 0
   in
   res_pts + dice_pts
@@ -217,9 +228,10 @@ let init_calc_value_settlement ind st f =
 let init_choose_first_settlement_build st col =
   let possible_ind = get_possible_house_ind st col init_can_build_settlement_ai in
   let values =
-    List.map (fun x ->
-        (init_calc_value_settlement x st initial_resource_priority, x))
-      possible_ind
+    List.map (
+      fun x ->
+        init_calc_value_settlement x st initial_resource_priority, x
+    ) possible_ind
   in
   let info =
     List.fold_left (fun (accx, accy) (x, y) ->
@@ -294,7 +306,10 @@ let calc_value_house ind st color =
   in
   let dice_pts =
     dices
-    |> List.map (fun x -> get_probability_dice x)
+    |> List.map (fun x ->
+        match x with
+        | None -> 0
+        | Some n -> get_probability_dice n)
     |> List.fold_left (fun acc x -> acc + x) 0
   in
   res_pts + dice_pts
@@ -623,7 +638,7 @@ let want_to_trade st ai rs_list=
          | Wool -> ai.wool>=2
          | Grain -> ai.grain>=2
          | Brick -> ai.brick >=2
-         | Null ->  0 = 0) rs_list in
+      ) rs_list in
  not (List.mem false  (check_resource_use_to_trade rs_list))
 
 
@@ -641,23 +656,23 @@ let potential_score_not_trade st ai =
 (*helper function calculates the potential score by replacing the resource in rs_list with
   corresponding resource in rs'_list*)
 let potential_score_trade st ai rs_list rs'_list =
-  let player_reduce_resource=
-    List.fold_left (fun acc (r,n) -> match r with
+  let player_reduce_resource =
+    List.fold_left (
+      fun acc (r,n) -> match r with
         | Lumber -> {ai with lumber=ai.lumber - n}
         | Wool -> {ai with wool=ai.wool - n}
         | Grain ->  {ai with grain=ai.grain - n}
         | Brick -> {ai with brick=ai.brick - n}
         | Ore-> {ai with ore=ai.ore - n}
-    | Null -> ai
       ) ai rs_list in
-      let player_gain_resource=
-        List.fold_left (fun acc (r,n) -> match r with
+      let player_gain_resource =
+        List.fold_left (
+          fun acc (r,n) -> match r with
             | Lumber -> {player_reduce_resource with lumber=player_reduce_resource.lumber + n}
             | Wool -> {player_reduce_resource with wool=player_reduce_resource.wool + n}
             | Grain ->  {player_reduce_resource with grain=player_reduce_resource.grain + n}
             | Brick -> {player_reduce_resource with brick=player_reduce_resource.brick + n}
             | Ore-> {player_reduce_resource with ore=player_reduce_resource.ore + n}
-        | Null -> player_reduce_resource
           ) player_reduce_resource rs'_list in
     potential_score_not_trade st player_gain_resource
 
@@ -750,10 +765,18 @@ let has_card card color s = num_card card color s > 0
 let blocked color s =
   let hex = List.nth s.canvas.tiles s.robber in
   List.fold_left (fun acc (_, (c, _)) -> c = color || acc) false hex.buildings
-  && (abs (hex.dice - 7) < 2
-      || score color s <= 2
-      || if max_score s < 5 then hex.resource = Lumber || hex.resource = Brick
-      else hex.resource = Ore || hex.resource = Grain)
+  &&
+  begin
+    begin
+      match hex.dice with
+      | None -> false
+      | Some i -> abs (i - 7) < 2
+    end
+    || score color s <= 2
+    || if max_score s < 5 then hex.resource = Some Lumber
+                               || hex.resource = Some Brick
+    else hex.resource = Some Ore || hex.resource = Some Grain
+  end
 
 let want_play_knight color s =
   has_card Knight color s
@@ -780,14 +803,9 @@ let choose_robber_spot color s =
   let robber_opt color s =
     let ok = List.fold_left (fun acc (_, (c, _)) -> acc && c <> color) true in
     let candidates = List.filter (fun t -> ok t.buildings) s.canvas.tiles in
-    let num_buildings tile =
-      tile.buildings
-      |> List.filter (fun (_, (c, _)) -> c <> White)
-      |> List.length
-    in
     List.fold_left (
       fun acc t ->
-        let len = num_buildings t in
+        let len = List.length t.buildings in
         if snd acc < len then Some t, len else acc
     ) (None, 0) candidates |> fst
   in
@@ -809,7 +827,6 @@ let choose_two_resources color s =
         | Grain -> 1 - player.grain
         | Brick -> 1 - player.brick
         | Ore -> -100
-        | Null -> -100
     end
     | Build_City _ ->
       begin
@@ -819,7 +836,6 @@ let choose_two_resources color s =
       | Grain -> 2 - player.lumber
       | Brick -> -100
       | Ore -> 3 - player.ore
-      | Null -> -100
     end
     | Build_Road _ ->
       begin
@@ -829,7 +845,6 @@ let choose_two_resources color s =
         | Grain -> -100
         | Brick -> 1 - player.brick
         | Ore -> -100
-        | Null -> -100
       end
     | Neither _ ->
       if want_buy_card color s then
@@ -839,8 +854,7 @@ let choose_two_resources color s =
         | Grain -> 1 - player.grain
         | Brick -> -100
         | Ore -> 1 - player.ore
-        | Null -> -100
-      else function Null -> -100 | _ -> 1
+      else function | _ -> 0
   in
   let cmp a b = compare (value a) (value b) in
   match hand |> shuffle |> List.sort cmp |> List.rev with
@@ -866,16 +880,13 @@ let choose_discard_resource color s =
       | Grain -> 1
       | Brick -> 1
       | Ore -> 0
-      | Null -> 0
-    else
-    if want_build_city color s then
+    else if want_build_city color s then
       function
       | Lumber -> 0
       | Wool -> 0
       | Grain -> 2
       | Brick -> 0
       | Ore -> 3
-      | Null -> 0
     else if want_build_road color s then
       function
       | Lumber -> 1
@@ -883,7 +894,6 @@ let choose_discard_resource color s =
       | Grain -> 0
       | Brick -> 1
       | Ore -> 0
-      | Null -> 0
     else if want_buy_card color s then
       function
       | Lumber -> 0
@@ -891,7 +901,6 @@ let choose_discard_resource color s =
       | Grain -> 1
       | Brick -> 0
       | Ore -> 1
-      | Null -> 0
     else function _ -> 0
   in
   let cmp a b = compare (value a) (value b) in

@@ -2,8 +2,8 @@ open Elements
 
 type tile = {
   indices : int list;
-  dice : int;
-  resource : resource;
+  dice : int option;
+  resource : resource option;
   center : float * float;
   edge : float;
   buildings : (int * (color * int)) list;

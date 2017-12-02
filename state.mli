@@ -7,7 +7,7 @@ open Elements
 (* [port] represents a port, which offers a favorable exchange rate. *)
 type port = {
   neighbors : int * int;
-  demand : resource;
+  demand : resource option;
   rate : int
 }
 
@@ -30,11 +30,9 @@ type state = {
  *                               INITIAL PHASE                               *
  *****************************************************************************)
 
-(* [init_canvas] generates a new board. *)
-val init_canvas : unit -> canvas
-
-(* [init_state ()] initializes the game state by setting up the canvas, which
- * includes tiles, ports, and other relevant fields. *)
+(* [init_state ()] initializes the game state; it pseudo-randomly selects
+ * fields, such as what resources and numbered tokens to place upon the tiles
+ * and the order of play. *)
 val init_state : unit -> state
 
 (* [check_initialize_build_settlement ind st] checks whether a settlement
@@ -142,11 +140,13 @@ val buy_card : state -> state
  *                                   TRADE                                   *
  *****************************************************************************)
 
-val ports_of_player_with_specific_resource_with_best_rate: state -> color -> resource -> port option
-(*[ports_of_player_with_specific_resource st cl rs] returns ports with resource rs for
-   player with specific color cl in state st *)
-val ports_of_player_with_specific_resource : state -> color -> resource -> port list
+val ports_of_player_with_specific_resource_with_best_rate:
+  state -> color -> resource -> port option
 
+(* [ports_of_player_with_specific_resource st cl rs] returns ports with
+ * resource rs for player with specific color cl in state st *)
+val ports_of_player_with_specific_resource :
+  state -> color -> resource -> port list
 
 (*[ports_of_player] returns to the port list of the player*)
 val ports_of_player : state -> color -> port list
@@ -238,9 +238,10 @@ val largest_army : state -> state
  *                                    DO                                     *
  *****************************************************************************)
 
-(* [end_turn st] is the game state at the end of a turn.
+(* [end_turn flag st] is the game state at the end of a turn. The boolean [flag]
+ * indicates who the next player is.
  * raises: Not_found if the player whose turn it is does not exist. *)
-val end_turn : state -> state
+val end_turn : bool -> state -> state
 
 (* [do_player cmd color st] is the game state after a command [cmd] is
  * executed. *)
@@ -250,11 +251,14 @@ val do_move : Command.command -> color option -> state -> state
  *                                   TEST                                    *
  *****************************************************************************)
 
+(* [state_to_test] is a game state. *)
+val state_to_test : state
+
 (* [score color st] is the score of the player identified by color [color]. *)
 val score : color -> state -> int
 
 (* [check_win color st] indicates whether the player identified by color [color]
- * has won the game *)
+ * has won the game. *)
 val check_win : color -> state -> bool
 
 (* [settlements color st] is a list of indices that represent settlements

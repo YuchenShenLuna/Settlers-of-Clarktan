@@ -3,7 +3,6 @@ type color =
   | Yellow
   | Blue
   | Green
-  | White
 
 type resource =
   | Lumber
@@ -11,9 +10,7 @@ type resource =
   | Grain
   | Brick
   | Ore
-  | Null
 
-(* [card] represents a development card. *)
 type card =
   | Knight
   | RoadBuilding
@@ -25,8 +22,8 @@ type intersection = int
 
 type edge = int * int
 
-(* Citation: The following code snippet is from Stack Overflow
- * Topic: "How to shuffle list in O(n) in OCaml?"
+(* [shuffle lst] is a permutation of [lst].
+ * Citation: The following code snippet is from Stack Overflow
  * Link: https://stackoverflow.com/questions/15095541/how-to-shuffle-list-in-on-in-ocaml *)
 let shuffle d =
   let nd = List.map (fun c -> (Random.bits (), c)) d in

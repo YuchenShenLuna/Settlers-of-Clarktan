@@ -9,7 +9,7 @@ open Tile
 
 type port = {
   neighbors : int * int;
-  demand : resource;
+  demand : resource option;
   rate : int
 }
 
@@ -33,16 +33,17 @@ type state = {
 (* [roll ()] generates a dice roll at random; it does not include seven. *)
 let rec roll () =
   let i = 2 + Random.int 11 in
-  if i <> 7 then i else roll ()
+  if i <> 7 then Some i else roll ()
 
 (* [random_resource ()] generates a resource at random. *)
 let random_resource () =
-  match Random.int 5 with
-  | 0 -> Lumber
-  | 1 -> Wool
-  | 2 -> Grain
-  | 3 -> Brick
-  | _ -> Ore
+  match Random.int 6 with
+  | 0 -> Some Lumber
+  | 1 -> Some Wool
+  | 2 -> Some Grain
+  | 3 -> Some Brick
+  | 4 -> Some Ore
+  | _ -> None
 
 let init_canvas () =
   let center = 500., 375. in
@@ -216,16 +217,15 @@ let init_canvas () =
   }
 
 let init_state () =
+  let players = shuffle [ Player.init_player Red; Player.init_player Yellow;
+                          Player.init_player Blue; Player.init_player Green ] in
   { robber = 10;
-    deck =
-      [ Knight; VictoryPoint; Knight; RoadBuilding;YearOfPlenty; Knight;
-        RoadBuilding; Knight; Knight; VictoryPoint; Knight; Knight; Monopoly;
-        Knight; YearOfPlenty; Knight; Knight; VictoryPoint; Knight;
-        Knight; Knight; Monopoly; VictoryPoint; Knight; VictoryPoint ];
-    turn = White;
-    players =
-      [ Player.init_player Red; Player.init_player Yellow;
-        Player.init_player Blue; Player.init_player Green ];
+    deck = shuffle [ Knight; VictoryPoint; Knight; RoadBuilding;YearOfPlenty;
+                     Knight; RoadBuilding; Knight; Knight; VictoryPoint; Knight;
+                     Knight; Monopoly; Knight; YearOfPlenty; Knight; Knight; VictoryPoint; Knight;
+                     Knight; Knight; Monopoly; VictoryPoint; Knight; VictoryPoint ];
+    players;
+    turn = (List.hd players).color;
     canvas = init_canvas () }
 
 (* [fetch_neighbors i] fetches the neighboring intersections of the
@@ -248,17 +248,17 @@ let check_initialize_build_settlement ind st =
   let tiles = st.canvas.tiles in
   let rec help lst num =
     match lst with
-    | [] -> White
+    | [] -> None
     | h::t ->
       match List.assoc_opt num h.buildings with
       | None -> help t num
-      | Some (color, _) -> color
+      | Some (color, _) -> Some color
   in
-  if help tiles ind <> White then
+  if help tiles ind <> None then
     false
   else
     let res = List.fold_left
-        (fun acc x -> acc && help tiles x = White) true neighbors in
+        (fun acc x -> acc && help tiles x = None) true neighbors in
     if res = false then false else true
 
 let init_build_settlement ind color st =
@@ -277,37 +277,36 @@ let check_initialize_build_road (i0, i1) st color =
   let tiles = st.canvas.tiles in
   let rec help lst num =
     match lst with
-    | [] -> White
+    | [] -> None
     | h::t ->
       match List.assoc_opt num h.buildings with
       | None -> help t num
-      | Some (color, _) -> color
+      | Some (color, _) -> Some color
   in
-  if help tiles i0 <> color && help tiles i1 <> color then
+  if help tiles i0 <> Some color && help tiles i1 <> Some color then
     false
   else
     let rec help' lst x y =
       match lst with
-      | [] -> White
+      | [] -> None
       | h::t ->
         if List.mem_assoc (x, y) h.roads then
-          List.assoc (x, y) h.roads
+          List.assoc_opt (x, y) h.roads
         else if List.mem_assoc (y, x) h.roads then
-          List.assoc (y, x) h.roads
+          List.assoc_opt (y, x) h.roads
         else
           help' t x y
     in
-    let res = help' tiles i0 i1 = White in
-    if res = false then
-      false
+    let res = help' tiles i0 i1 = None in
+    if res = false then false
     else
       let i0_neighbors = fetch_neighbors i0 in
       let i1_neighbors = fetch_neighbors i1 in
       let has_no_road i =
-        List.fold_left (fun acc x -> acc && (help' tiles i0 x = White)) true i
+        List.fold_left (fun acc x -> acc && (help' tiles i0 x = None)) true i
       in
-      (help tiles i0 = color && has_no_road i0_neighbors) ||
-      (help tiles i1 = color && has_no_road i1_neighbors)
+      (help tiles i0 = Some color && has_no_road i0_neighbors) ||
+      (help tiles i1 = Some color && has_no_road i1_neighbors)
 
 let init_build_road (i0, i1) color st =
   let b = check_initialize_build_road (i0, i1) st color in
@@ -336,46 +335,39 @@ let init_generate_resources color st =
     |> List.map
       (fun x -> if x.color <> color then x
         else {x with
-              wool = x.wool + count Wool;
-              brick = x.brick + count Brick;
-              lumber = x.lumber + count Lumber;
-              ore = x.ore + count Ore;
-              grain = x.grain + count Grain})
+              wool = x.wool + count (Some Wool);
+              brick = x.brick + count (Some Brick);
+              lumber = x.lumber + count (Some Lumber);
+              ore = x.ore + count (Some Ore);
+              grain = x.grain + count (Some Grain)})
   in {st with players = new_players}
 
 (*****************************************************************************
  *                                   BUILD                                   *
  *****************************************************************************)
 
-let check_build_settlement num st color =
-  let ind_lst = fetch_neighbors num in
+let check_build_settlement n st color =
+  let ind_lst = n :: fetch_neighbors n in
   let tile_lst = st.canvas.tiles in
-  let rec help lst num =
+  let rec help lst n =
     match lst with
-    | [] -> White
-    | h::t ->
-      match List.assoc_opt num h.buildings with
-      | None -> help t num
-      | Some (color, _) -> color
+    | [] -> None
+    | h :: t ->
+      match List.assoc_opt n h.buildings with
+      | None -> help t n
+      | Some (color, _) -> Some color
   in
-  if help tile_lst num <> White then false
-  else
-    let res =
-      List.fold_left (fun acc x -> acc && help tile_lst x = White) true ind_lst in
-    if res = false then false
-    else
-      let rec help' lst num2 =
-        match lst with
-        | [] -> White
-        | h::t ->
-          if List.mem_assoc (num, num2) h.roads then
-            List.assoc (num, num2) h.roads
-          else if List.mem_assoc (num2, num) h.roads then
-            List.assoc (num2, num) h.roads
-          else
-            help' t num2
-      in
-      List.fold_left (fun acc x -> acc || help' tile_lst x = color) false ind_lst
+  List.fold_left (fun acc x -> acc && help tile_lst x = None) true ind_lst
+  &&
+  let rec help' lst n2 =
+    match lst with
+    | [] -> None
+    | h :: t ->
+      if List.mem_assoc (n, n2) h.roads then List.assoc_opt (n, n2) h.roads
+      else if List.mem_assoc (n2, n) h.roads then List.assoc_opt (n2, n) h.roads
+      else help' t n2
+  in
+  List.fold_left (fun acc x -> acc || help' tile_lst x = Some color) false ind_lst
 
 let can_build_settlement color ind st =
   let num_settlements =
@@ -424,33 +416,33 @@ let check_build_road (i0, i1) st color =
   let tile_lst = st.canvas.tiles in
   let rec help' lst x y =
     match lst with
-    | [] -> White
+    | [] -> None
     | h::t ->
       if List.mem_assoc (x, y) h.roads
-      then List.assoc (x, y) h.roads
+      then List.assoc_opt (x, y) h.roads
       else if List.mem_assoc (y, x) h.roads
-      then List.assoc (y, x) h.roads
+      then List.assoc_opt (y, x) h.roads
       else help' t x y
   in
-  let res = help' tile_lst i0 i1 = White in
+  let res = help' tile_lst i0 i1 = None in
   if res = false then false
   else
   let rec help lst num =
     match lst with
-    | [] -> White
+    | [] -> None
     | h::t ->
       match List.assoc_opt num h.buildings with
       | None -> help t num
-      | Some (color, _) -> color
+      | Some (color, _) -> Some color
   in
-  let res' = help tile_lst i0 = color || help tile_lst i1 = color in
+  let res' = help tile_lst i0 = Some color || help tile_lst i1 = Some color in
   if res' then
     true
   else
     List.fold_left (fun acc x ->
-        acc || help' tile_lst i0 x = color) false ind_lst_i0
+        acc || help' tile_lst i0 x = Some color) false ind_lst_i0
     || List.fold_left (fun acc x ->
-        acc || help' tile_lst i1 x = color) false ind_lst_i1
+        acc || help' tile_lst i1 x = Some color) false ind_lst_i1
 
 let can_build_road color (i0, i1) st =
   let num_roads =
@@ -493,13 +485,13 @@ let check_build_cities num st color =
   let tile_lst = st.canvas.tiles in
   let rec help lst num =
     match lst with
-    | [] -> White, 1
+    | [] -> None, 1
     | h::t ->
       match List.assoc_opt num h.buildings with
       | None -> help t num
-      | Some (color, ty) -> (color, ty)
+      | Some (color, ty) -> (Some color, ty)
   in
-  help tile_lst num = (color, 1)
+  help tile_lst num = (Some color, 1)
 
 let can_build_city color ind st =
   let num_cities =
@@ -546,7 +538,7 @@ let buy_card st =
   else if List.length st.deck < 1 then
     failwith "Development cards sold out"
   else
-    let card_lst = (shuffle st.deck) in
+    let card_lst = st.deck in
     let card = List.hd card_lst in
     let rest = List.tl card_lst in
     let updated_players col lst =
@@ -587,7 +579,6 @@ let add_resources player n = function
   | Grain  -> {player with grain = player.grain + n}
   | Brick  -> {player with brick = player.brick + n}
   | Ore    -> {player with ore = player.ore + n}
-  | Null   -> player
 
 (* [player_ok p] checks whether a player has enough resources for trade
  * raises: Failure when resouces aren't enough *)
@@ -621,7 +612,7 @@ let ports_of_player st color =
  * player with color [color] and resource [rs] at state [st] *)
 let ports_of_player_with_specific_resource st color rs : port list =
   let ports_belong_to_player = ports_of_player st color in
-  List.fold_left (fun acc x -> if x.demand = rs then x::acc else acc)
+  List.fold_left (fun acc x -> if x.demand = Some rs then x::acc else acc)
     [] ports_belong_to_player
 
 (* [ports_of_player_with_specific_resource_with_best_rate st color rs]
@@ -633,27 +624,25 @@ let ports_of_player_with_specific_resource_with_best_rate st color rs : port opt
   in
   match ports_of_player_with_resource_wanted with
   | [] -> None
-  | h :: t -> Some (List.fold_left (fun acc (x : port) -> if x.rate < acc.rate then x else acc)
+  | h :: t -> Some (List.fold_left (fun acc x -> if x.rate < acc.rate then x else acc)
     h ports_of_player_with_resource_wanted)
 
 (* [trade_ok st p r1 r2] returns whether a trade can be valid *)
 let trade_ok st p1 p2_opt (rs, n) (rs', n') =
   let number_ok =
     match rs with
-    | Lumber -> p1.lumber>=n
-    | Wool  -> p1.wool >=n
-    | Grain -> p1.grain>=n
-    | Brick -> p1.brick >=n
-    | Ore ->p1.brick >=n
-    | Null ->true in
+    | Lumber -> p1.lumber >= n
+    | Wool   -> p1.wool >= n
+    | Grain  -> p1.grain >= n
+    | Brick  -> p1.brick >= n
+    | Ore    -> p1.ore >= n
+  in
   match p2_opt with
   | None ->
   if n / n' >= 4 then true
   else
-    let best_port =
-      (ports_of_player_with_specific_resource_with_best_rate st p1.color rs) in
     begin
-      match best_port with
+      match ports_of_player_with_specific_resource_with_best_rate st p1.color rs with
       | Some port -> if n / n' >= port.rate then number_ok else false
       | None -> false
     end
@@ -664,7 +653,6 @@ let trade_ok st p1 p2_opt (rs, n) (rs', n') =
     | Grain -> p2.grain>=n' && number_ok
     | Brick -> p2.brick >=n' && number_ok
     | Ore ->p2.ore >=n' && number_ok
-    | Null ->true && number_ok
 
 (* [remove_resources player n r] removes [n] resource [r] for player [player]*)
 let remove_resources player n r = add_resources player (-n) r |> player_ok
@@ -727,7 +715,7 @@ let check_whether_trade_is_ok_for_one_player st to_remove to_add cl cl'=
   let length_of_resource_pass_trade_ok =
     List.fold_left (
       fun acc x ->
-        if trade_ok st  current_player (Some player)  x (List.nth to_add (index_of to_remove x))
+        if trade_ok st current_player (Some player) x (List.nth to_add (index_of to_remove x))
         then 1 + acc else acc
     ) 0 to_remove
   in
@@ -758,7 +746,6 @@ let num_resource color resource st =
   | Grain  -> player.grain
   | Brick  -> player.brick
   | Ore    -> player.ore
-  | Null   -> 0
 
 let num_all_resources color st =
   num_resource color Lumber st +
@@ -780,11 +767,11 @@ let play_robber ind st =
   let stealee_color = shuffle pos_stealees in
   let stealee =
     List.hd (List.filter (fun x -> x.color = stealee_color) st.players) in
-  let pos_wool = if stealee.wool > 0 then [Wool] else [] in
-  let pos_lumber = if stealee.lumber > 0 then [Lumber] else [] in
-  let pos_brick = if stealee.wool > 0 then [Brick] else [] in
-  let pos_ore = if stealee.lumber > 0 then [Ore] else [] in
-  let pos_grain = if stealee.wool > 0 then [Grain] else [] in
+  let pos_wool = if stealee.wool > 0 then [Some Wool] else [] in
+  let pos_lumber = if stealee.lumber > 0 then [Some Lumber] else [] in
+  let pos_brick = if stealee.wool > 0 then [Some Brick] else [] in
+  let pos_ore = if stealee.lumber > 0 then [Some Ore] else [] in
+  let pos_grain = if stealee.wool > 0 then [Some Grain] else [] in
   let pos_resource = pos_wool @ pos_brick @ pos_lumber @ pos_grain @ pos_ore in
   let stolen_resource = shuffle pos_resource in
   let new_players =
@@ -792,21 +779,21 @@ let play_robber ind st =
     |> List.map (fun x -> if x.color = st.turn then
                     begin
                       match stolen_resource with
-                      | Wool -> {x with wool = x.wool+1}
-                      | Brick -> {x with brick = x.brick+1}
-                      | Lumber -> {x with lumber = x.lumber+1}
-                      | Ore -> {x with ore = x.ore+1}
-                      | Grain -> {x with grain = x.grain+1}
-                      | Null -> x end
+                      | Some Wool -> {x with wool = x.wool+1}
+                      | Some Brick -> {x with brick = x.brick+1}
+                      | Some Lumber -> {x with lumber = x.lumber+1}
+                      | Some Ore -> {x with ore = x.ore+1}
+                      | Some Grain -> {x with grain = x.grain+1}
+                      | None -> x end
                   else if x.color = stealee_color then
                     begin
                       match stolen_resource with
-                      | Wool -> {x with wool = x.wool-1}
-                      | Brick -> {x with brick = x.brick-1}
-                      | Lumber -> {x with lumber = x.lumber-1}
-                      | Ore -> {x with ore = x.ore-1}
-                      | Grain -> {x with grain = x.grain-1}
-                      | Null -> x end
+                      | Some Wool -> {x with wool = x.wool-1}
+                      | Some Brick -> {x with brick = x.brick-1}
+                      | Some Lumber -> {x with lumber = x.lumber-1}
+                      | Some Ore -> {x with ore = x.ore-1}
+                      | Some Grain -> {x with grain = x.grain-1}
+                      | None -> x end
                   else x)
   in {st with players = new_players;
               robber = ind}
@@ -877,7 +864,7 @@ let play_year_of_plenty r1 r2 st =
  *****************************************************************************)
 
 let tiles_of_roll num st =
-  List.filter (fun x -> x.Tile.dice = num) st.canvas.tiles
+  List.filter (fun x -> x.Tile.dice = Some num) st.canvas.tiles
 
 (* [check_robber tile st] checks whether a robber is at tile [tile] under
  * state [st] *)
@@ -907,12 +894,12 @@ let generate_resource num st =
             let newp =
             begin
               match resource with
-              | Lumber -> {h with lumber = h.lumber + mul}
-              | Wool -> {h with wool = h.wool + mul}
-              | Grain -> {h with grain = h.grain + mul}
-              | Brick -> {h with brick = h.brick + mul}
-              | Ore -> {h with ore = h.ore + mul}
-              | Null -> h
+              | Some Lumber -> {h with lumber = h.lumber + mul}
+              | Some Wool -> {h with wool = h.wool + mul}
+              | Some Grain -> {h with grain = h.grain + mul}
+              | Some Brick -> {h with brick = h.brick + mul}
+              | Some Ore -> {h with ore = h.ore + mul}
+              | None -> h
             end
             in new_players t (newp::acc)
           else
@@ -995,13 +982,7 @@ let find_owner_of_road st rd =
         find_possible_owner_of_road_one_tile st x.roads rd
       else acc) (None) (st.canvas.tiles)
 
-(* [get_player_out_of_some pl] extracts player from the player option [pl] *)
-let get_player_out_of_some pl=
-  match pl with
-  | Some p -> p
-  | None -> failwith "impossible"
-
-  (*longest_road_helper returns the longest_road just for one player*)
+(* longest_road_helper returns the longest_road just for one player*)
 let longest_road_length st cl=
   let roads = fetch_roads_of_one_player cl st in
   let successors n e =
@@ -1010,48 +991,31 @@ let longest_road_length st cl=
   let dfs graph start  =
     let rec rdfs visited node =
       if not (List.mem node visited) then
-        begin
-          let s = successors node graph in
-          List.fold_left rdfs (node::visited) s
-        end
+        let s = successors node graph in
+        List.fold_left rdfs (node::visited) s
       else visited
-    in rdfs [] start in
-  (*longest_road=*)List.length (dfs roads (fst (List.hd roads)))-1 (*in
-  if (List.length longest_road)-1 <5 then st else
-    let possible_player=
-      find_owner_of_road st ((List.hd longest_road),(List.nth longest_road 1 ))
-    in if possible_player <> None then
-      let now_player=get_player_out_of_some possible_player in
-      let updated_player={now_player with longest_road=true} in
-      let updated_player_list=List.map (fun x-> if x.color!=updated_player.color
-                                         then {x with longest_road=false} else
-                                           updated_player) st.players in
-      {st with players=updated_player_list}
-    else
-      let now_player'= get_player_out_of_some (
-          find_owner_of_road st (List.nth longest_road 1, List.hd longest_road)) in
-      let updated_player'={now_player' with longest_road=true} in
-      let players = List.map (fun x->
-          if x.color!=updated_player'.color
-          then {x with longest_road=false}
-          else updated_player') st.players in
-                                                     { st with players }*)
+    in
+    rdfs [] start
+  in
+  List.length (dfs roads (fst (List.hd roads))) - 1
 
 let longest_road st =
-  let color =
+  match
     List.fold_left (
       fun acc c ->
         let l = longest_road_length st c in
         if l > snd acc && l >= 5
-        then (c, l) else acc
-    ) (White, 0) [Red; Yellow; Blue; Green] |> fst in
-  let player = { (get_player color st) with longest_road = true } in
-  let players = List.map (
-      fun x -> if x.color = player.color
-        then player else { x with longest_road = false }
-    ) st.players in
-  { st with players }
-
+        then (Some c, l) else acc
+    ) (None, 0) [Red; Yellow; Blue; Green] |> fst
+  with
+  | None -> st
+  | Some color ->
+    let player = { (get_player color st) with longest_road = true } in
+    let players = List.map (
+        fun x -> if x.color = player.color
+          then player else { x with longest_road = false }
+      ) st.players in
+    { st with players }
 
 let largest_army st =
   let possible_player=
@@ -1063,35 +1027,45 @@ let largest_army st =
            if x.knights_activated > y.knights_activated
            then Some x else acc
       ) None st.players
-  in if possible_player = None then st else
-    let now_player= get_player_out_of_some possible_player  in
+  in
+  match possible_player with
+  | None -> st
+  | Some now_player ->
     let updated_player={now_player with largest_army=true} in
-    let players = List.map (fun x->
-        if x.color!=updated_player.color
-        then {x with largest_army=false}
-        else updated_player) st.players in
+    let players = List.map (
+        fun x ->
+          if x.color = updated_player.color then updated_player
+          else { x with largest_army = false }
+      ) st.players in
     { st with players }
 
 (*****************************************************************************
  *                                    DO                                     *
  *****************************************************************************)
 
-let end_turn st =
+let end_turn forward s =
   let rec index acc = function
     | [] -> raise Not_found
-    | h :: t -> if h.color = st.turn then acc else index (1 + acc) t
+    | h :: t -> if h.color = s.turn then acc else index (1 + acc) t
   in
-  let turn = (List.nth st.players ((index 0 st.players + 1) mod 4)).color in
-  { st with turn }
+  let inc = if forward then 1 else 3 in
+  let turn = (List.nth s.players ((index 0 s.players + inc) mod 4)).color in
+  { s with turn }
 
 let do_move cmd color_opt st =
   match cmd with
   | Start -> st
-  | Setup (i, rd) ->
+  | InitSettlement i ->
     begin
       match color_opt with
       | None -> invalid_arg "Requires a color."
-      | Some color -> init_build_road rd color (init_build_settlement i color st)
+      | Some color -> init_build_settlement i color st
+    end
+  | InitRoad rd ->
+    begin
+      match color_opt with
+      | None -> invalid_arg "Requires a color."
+      | Some color -> init_build_road rd color st
     end
   | BuildSettlement i -> build_settlement i st
   | BuildCity i -> build_city i st
@@ -1125,13 +1099,197 @@ let do_move cmd color_opt st =
       | None -> invalid_arg "Requires a color."
       | Some color -> discard_resource color lst st
     end
-  | EndTurn -> end_turn st
+  | EndTurn -> end_turn true st
   | Quit -> st
   | Invalid -> st
 
 (*****************************************************************************
  *                                   TEST                                    *
  *****************************************************************************)
+
+let canvas_to_test =
+  let center = 500., 375. in
+  let length = 50. in
+  let apothem =  length *. sqrt 3. /. 2. in
+  {
+    tiles = [
+      { indices = [3; 4; 15; 14; 13; 2];
+        dice = Some 3;
+        resource = Some Ore;
+        center = fst center -. 2. *. apothem, snd center +. 3. *. length;
+        edge = length;
+        buildings = [];
+        roads = [] };
+      { indices = [5; 6; 17; 16; 15; 4];
+        dice = Some 8;
+        resource = Some Ore;
+        center = fst center, snd center +. 3. *. length ;
+        edge = length;
+        buildings = [];
+        roads = [] };
+      { indices = [7; 8; 19; 18; 17; 6];
+        dice = Some 10;
+        resource = Some Ore;
+        center = fst center +. 2. *. apothem, snd center +. 3. *. length;
+        edge = length;
+        buildings = [];
+        roads = [] };
+      { indices = [13; 14; 25; 24; 23; 12];
+        dice = Some 6;
+        resource = Some Grain;
+        center = fst center -. 3. *. apothem, snd center +. 1.5 *. length;
+        edge = length;
+        buildings = [];
+        roads = [] };
+      { indices = [15; 16; 27; 26; 25; 14];
+        dice = Some 4;
+        resource = Some Grain;
+        center = fst center -. apothem, snd center +. 1.5 *. length;
+        edge = length;
+        buildings = [];
+        roads = [] };
+      { indices = [17; 18; 29; 28; 27; 16];
+        dice = Some 5;
+        resource = Some Wool;
+        center = fst center +. apothem, snd center +. 1.5 *. length;
+        edge = length;
+        buildings = [];
+        roads = [] };
+      { indices = [19; 20; 31; 30; 29; 18];
+        dice = Some 9;
+        resource = Some Brick;
+        center = fst center +. 3. *. apothem, snd center +. 1.5 *. length;
+        edge = length;
+        buildings = [];
+        roads = [] };
+      { indices = [23; 24; 35; 34; 33; 22];
+        dice = None;
+        resource = None;
+        center = fst center -. 4. *. apothem, snd center;
+        edge = length;
+        buildings = [];
+        roads = [] };
+      { indices = [25; 26; 37; 36; 35; 24];
+        dice = Some 9;
+        resource = Some Lumber;
+        center = fst center -. 2. *. apothem, snd center;
+        edge = length;
+        buildings = [];
+        roads = [] };
+      { indices = [27; 28; 39; 38; 37; 26];
+        dice = Some 11;
+        resource = Some Brick;
+        center = fst center, snd center;
+        edge = length;
+        buildings = [];
+        roads = [] };
+      { indices = [29; 30; 41; 40; 39; 28];
+        dice = Some 6;
+        resource = Some Lumber;
+        center = fst center +. 2. *. apothem, snd center;
+        edge = length;
+        buildings = [];
+        roads = []};
+      { indices = [31; 32; 43; 42; 41; 30];
+        dice = Some 12;
+        resource = Some Wool;
+        center = fst center +. 4. *. apothem, snd center;
+        edge = length;
+        buildings = [];
+        roads = [] };
+      { indices = [35; 36; 47; 46; 45; 34];
+        dice = Some 2;
+        resource = Some Lumber;
+        center = fst center -. 3. *. apothem, snd center -. 1.5 *. length;
+        edge = length;
+        buildings = [];
+        roads = [] };
+      { indices = [37; 38; 49; 48; 47; 36];
+        dice = Some 10;
+        resource = Some Brick;
+        center = fst center -. apothem, snd center -. 1.5 *. length;
+        edge = length;
+        buildings = [];
+        roads = [] };
+      { indices = [39; 40; 51; 50; 49; 38];
+        dice = Some 3;
+        resource = Some Grain;
+        center = fst center +. apothem, snd center -. 1.5 *. length;
+        edge = length;
+        buildings = [];
+        roads = [] };
+      { indices = [41; 42; 53; 52; 51; 40];
+        dice = Some 11;
+        resource = Some Wool;
+        center = fst center +. 3. *. apothem, snd center -. 1.5 *. length;
+        edge = length;
+        buildings = [];
+        roads = [] };
+      { indices = [47; 48; 59; 58; 57; 46];
+        dice = Some 5;
+        resource = Some Lumber;
+        center = fst center -. 2. *. apothem, snd center -. 3. *. length;
+        edge = length;
+        buildings = [];
+        roads = [] };
+      { indices = [49; 50; 61; 60; 59; 48];
+        dice = Some 8;
+        resource = Some Grain;
+        center = fst center, snd center -. 3. *. length ;
+        edge = length;
+        buildings = [];
+        roads = [] };
+      { indices = [51; 52; 63; 62; 61; 50];
+        dice = Some 4;
+        resource = Some Wool;
+        center = fst center +. 2. *. apothem, snd center -. 3. *. length;
+        edge = length;
+        buildings = [];
+        roads = [] };
+    ];
+    ports = [
+      { neighbors = 2, 3;
+        demand = None;
+        rate = 3 };
+      { neighbors = 5, 6;
+        demand = Some Brick;
+        rate = 2 };
+      { neighbors = 12, 23;
+        demand = None;
+        rate = 3 };
+      { neighbors = 19, 20;
+        demand = Some Lumber;
+        rate = 2 };
+      { neighbors = 32, 43;
+        demand = Some Grain;
+        rate = 2 };
+      { neighbors = 34, 45;
+        demand = Some Ore;
+        rate = 2 };
+      { neighbors = 52, 53;
+        demand = None;
+        rate = 3 };
+      { neighbors = 57, 58;
+        demand = Some Wool;
+        rate = 2 };
+      { neighbors = 60, 61;
+        demand = None;
+        rate = 3 }
+    ]
+  }
+
+let state_to_test =
+  let players = [ Player.init_player Red; Player.init_player Yellow;
+                  Player.init_player Blue; Player.init_player Green ] in
+  { robber = 10;
+    deck = [ Knight; VictoryPoint; Knight; RoadBuilding;YearOfPlenty;
+             Knight; RoadBuilding; Knight; Knight; VictoryPoint; Knight;
+             Knight; Monopoly; Knight; YearOfPlenty; Knight; Knight;
+             VictoryPoint; Knight; Knight; Knight; Monopoly; VictoryPoint;
+             Knight; VictoryPoint ];
+    players;
+    turn = (List.hd players).color;
+    canvas = canvas_to_test }
 
 let score color st =
     let build_score =

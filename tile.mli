@@ -3,8 +3,8 @@ open Elements
 (* [tile] represents a terrain hex. *)
 type tile = {
   indices : intersection list;
-  dice : int;
-  resource : resource;
+  dice : int option;
+  resource : resource option;
   center : float * float;
   edge : float;
   buildings : (intersection * (color * int)) list;
