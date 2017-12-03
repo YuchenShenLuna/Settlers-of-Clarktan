@@ -26,7 +26,7 @@ let card_tests =[
   "init_resource_number_ore" >:: (fun _ -> assert_equal 5 (state_to_test |> num_resource Red Ore));
   (*"init_resource_number_all" >:: (fun _ -> assert_equal 15 (state_to_test |> num_all_resources Red));*)
   "buy_card" >:: (fun _ -> assert_equal
-                 ~cmp [Knight, 1]
+                 ~cmp [YearOfPlenty, 1]
                  (state_to_test |> do_move BuyCard (Some Red)|> cards Red));
   "resource_quantity_buy_card_ore" >:: (fun _ -> assert_equal
                                   4
@@ -47,7 +47,7 @@ let card_tests =[
                                               12
           (state_to_test |> do_move BuyCard (Some Red)|> num_all_resources Red));*)
   "buy_card_again" >:: (fun _ -> assert_equal
-                         ~cmp [(Knight, 1);(VictoryPoint,1)]
+                         ~cmp [(YearOfPlenty, 1);(VictoryPoint,1)]
             (state_to_test |>
          do_move BuyCard (Some Red)|>do_move BuyCard (Some Red)|> cards Red));
 (*"resource_quantity_buy_card" >:: (fun _ -> assert_equal
@@ -143,8 +143,15 @@ do_move BuyCard (Some Red)|>do_move BuyCard (Some Red)|> end_turn true|>turn));
 "turn_update_green_then_marime_trade_then_check_grain" >:: (fun _ -> assert_equal
                                  5
         (state_to_test |> do_move BuyCard (Some Red)|>do_move BuyCard (Some Red)|> end_turn true|>generate_resource 8|>do_move BuyCard (Some Yellow)|>end_turn true|>do_move (MaritimeTrade (true,(Wool,4),(Ore,1))) (Some Blue)
-        |>end_turn true|>do_move (BuildSettlement 5) (Some Green)|>generate_resource 3|>do_move (MaritimeTrade (true,(Brick,4),(Wool,2))) (Some Green)|>num_resource Green Grain));
-
+         |>end_turn true|>do_move (BuildSettlement 5) (Some Green)|>generate_resource 3|>do_move (MaritimeTrade (true,(Brick,4),(Wool,2))) (Some Green)|>num_resource Green Grain));
+"red_play_victory_point_ore" >:: (fun _ -> assert_equal
+                      4
+               (state_to_test |> do_move BuyCard (Some Red)|>do_move BuyCard (Some Red)|> end_turn true|>generate_resource 3|>do_move BuyCard (Some Yellow)|>end_turn true|>do_move (MaritimeTrade (true,(Wool,4),(Ore,1))) (Some Blue)
+                |>end_turn true|>do_move (BuildSettlement 5) (Some Green)|>do_move (MaritimeTrade (true,(Brick,4),(Wool,2))) (Some Green)|>end_turn true|>do_move (PlayYearOfPlenty (Ore,Wool)) (Some Red)|>num_resource Red Ore));
+"red_play_victory_point_wool" >:: (fun _ -> assert_equal
+                                      4
+                               (state_to_test |> do_move BuyCard (Some Red)|>do_move BuyCard (Some Red)|> end_turn true|>generate_resource 3|>do_move BuyCard (Some Yellow)|>end_turn true|>do_move (MaritimeTrade (true,(Wool,4),(Ore,1))) (Some Blue)
+                                |>end_turn true|>do_move (BuildSettlement 5) (Some Green)|>do_move (MaritimeTrade (true,(Brick,4),(Wool,2))) (Some Green)|>end_turn true|>do_move (PlayYearOfPlenty (Ore,Wool)) (Some Red)|>num_resource Red Wool));
 ]
 
 

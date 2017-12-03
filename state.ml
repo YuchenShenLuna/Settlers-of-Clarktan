@@ -1291,7 +1291,7 @@ let state_to_test =
                   {(Player.init_player Green) with wool = 5; lumber = 5;
                                        grain = 5; brick = 5; ore =5;}; ] in
   { robber = 10;
-    deck = [ Knight; VictoryPoint; Knight; RoadBuilding;YearOfPlenty;
+    deck = [ YearOfPlenty; VictoryPoint; Knight; RoadBuilding;YearOfPlenty;Knight;
              Knight; RoadBuilding; Knight; Knight; VictoryPoint; Knight;
              Knight; Monopoly; Knight; YearOfPlenty; Knight; Knight;
              VictoryPoint; Knight; Knight; Knight; Monopoly; VictoryPoint;
