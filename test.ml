@@ -110,9 +110,9 @@ do_move BuyCard (Some Red)|>do_move BuyCard (Some Red)|> end_turn true|>turn));
    |>end_turn true|>do_move (BuildSettlement 5) (Some Green)|>score Green));
 
 "green_turn_trade_with_port" >:: (fun _ -> assert_equal
-                              6
+                              3
   (state_to_test |> do_move BuyCard (Some Red)|>do_move BuyCard (Some Red)|> end_turn true|>generate_resource 3|>do_move BuyCard (Some Yellow)|>end_turn true|>do_move (MaritimeTrade (true,(Wool,4),(Ore,1))) (Some Blue)
-   |>end_turn true|>do_move (BuildSettlement 5) (Some Green)|>do_move (MaritimeTrade (true,(Wool,2),(Brick,1))) (Some Green)|>num_resource Green Wool));
+   |>end_turn true|>do_move (BuildSettlement 5) (Some Green)|>do_move (MaritimeTrade (true,(Brick,2),(Wool,1))) (Some Green)|>num_resource Green Brick));
 
 ]
 
