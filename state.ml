@@ -1126,7 +1126,7 @@ let canvas_to_test =
         center = fst center, snd center +. 3. *. length ;
         edge = length;
         buildings = [];
-        roads = [] };
+        roads = [((5,6),Green)] };
       { indices = [7; 8; 19; 18; 17; 6];
         dice = Some 10;
         resource = Some Ore;
@@ -1279,8 +1279,17 @@ let canvas_to_test =
   }
 
 let state_to_test =
-  let players = [ Player.init_player Red; Player.init_player Yellow;
-                  Player.init_player Blue; Player.init_player Green ] in
+  let players = [ {(Player.init_player Red) with wool = (Player.init_player Red).wool+5;
+                                    lumber = (Player.init_player Red).lumber+5;
+                                    grain = (Player.init_player Red).grain+5;
+                                    brick = (Player.init_player Red).brick+5;
+                                    ore =(Player.init_player Red).ore+5;};
+                  {(Player.init_player Yellow) with wool = 5; lumber = 5;
+                                      grain = 5; brick = 5; ore =5;};
+                  {(Player.init_player Blue) with wool = 5; lumber = 5;
+                                       grain = 5; brick = 5; ore =5;};
+                  {(Player.init_player Green) with wool = 5; lumber = 5;
+                                       grain = 5; brick = 5; ore =5;}; ] in
   { robber = 10;
     deck = [ Knight; VictoryPoint; Knight; RoadBuilding;YearOfPlenty;
              Knight; RoadBuilding; Knight; Knight; VictoryPoint; Knight;
