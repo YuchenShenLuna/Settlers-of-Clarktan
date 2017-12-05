@@ -30,191 +30,204 @@ type state = {
  *                               INITIAL PHASE                               *
  *****************************************************************************)
 
-(* [roll ()] generates a dice roll at random; it does not include seven. *)
-let rec roll () =
-  let i = 2 + Random.int 11 in
-  if i <> 7 then Some i else roll ()
-
-(* [random_resource ()] generates a resource at random. *)
-let random_resource () =
-  match Random.int 6 with
-  | 0 -> Some Lumber
-  | 1 -> Some Wool
-  | 2 -> Some Grain
-  | 3 -> Some Brick
-  | 4 -> Some Ore
-  | _ -> None
-
 let init_canvas () =
+  let rec roll () =
+    let i = 2 + Random.int 11 in
+    if i <> 7 then Some i else roll ()
+  in
+  let random_resource () =
+    match Random.int 5 with
+    | 0 -> Some Lumber
+    | 1 -> Some Wool
+    | 2 -> Some Grain
+    | 3 -> Some Brick
+    | _ -> Some Ore
+  in
+  let tinfo =
+    let rec helper f n acc =
+      if n = 0 then acc else f () :: acc |>  helper f (n - 1)
+    in
+    let l0 = [ Some 2; Some 3; Some 4; Some 5; Some 6; Some 7;
+               Some 8; Some 9; Some 10; Some 11; Some 12 ]
+             |> shuffle |> helper roll 7 in
+    let l1 = [ Some Lumber; Some Wool; Some Grain; Some Brick; Some Ore;
+               Some Lumber; Some Wool; Some Grain; Some Brick; Some Ore ]
+             |> shuffle |> helper random_resource 8 in
+    (None, None) :: (List.combine l0 l1) |> shuffle
+  in
+  let pinfo =
+    [ Some Lumber, 2; Some Wool, 2; Some Grain, 2; Some Brick, 2; Some Ore, 2;
+      None, 3; None, 3; None, 3; None, 3 ] |> shuffle
+  in
   let center = 500., 375. in
   let length = 50. in
   let apothem =  length *. sqrt 3. /. 2. in
-    {
-    tiles = [
-      { indices = [3; 4; 15; 14; 13; 2];
-        dice = roll ();
-        resource = random_resource ();
-        center = fst center -. 2. *. apothem, snd center +. 3. *. length;
-        edge = length;
-        buildings = [];
-        roads = [] };
-      { indices = [5; 6; 17; 16; 15; 4];
-        dice = roll ();
-        resource = random_resource ();
-        center = fst center, snd center +. 3. *. length ;
-        edge = length;
-        buildings = [];
-        roads = [] };
-      { indices = [7; 8; 19; 18; 17; 6];
-        dice = roll ();
-        resource = random_resource ();
-        center = fst center +. 2. *. apothem, snd center +. 3. *. length;
-        edge = length;
-        buildings = [];
-        roads = [] };
-      { indices = [13; 14; 25; 24; 23; 12];
-        dice = roll ();
-        resource = random_resource ();
-        center = fst center -. 3. *. apothem, snd center +. 1.5 *. length;
-        edge = length;
-        buildings = [];
-        roads = [] };
-      { indices = [15; 16; 27; 26; 25; 14];
-        dice = roll ();
-        resource = random_resource ();
-        center = fst center -. apothem, snd center +. 1.5 *. length;
-        edge = length;
-        buildings = [];
-        roads = [] };
-      { indices = [17; 18; 29; 28; 27; 16];
-        dice = roll ();
-        resource = random_resource ();
-        center = fst center +. apothem, snd center +. 1.5 *. length;
-        edge = length;
-        buildings = [];
-        roads = [] };
-      { indices = [19; 20; 31; 30; 29; 18];
-        dice = roll ();
-        resource = random_resource ();
-        center = fst center +. 3. *. apothem, snd center +. 1.5 *. length;
-        edge = length;
-        buildings = [];
-        roads = [] };
-      { indices = [23; 24; 35; 34; 33; 22];
-        dice = roll ();
-        resource = random_resource ();
-        center = fst center -. 4. *. apothem, snd center;
-        edge = length;
-        buildings = [];
-        roads = [] };
-      { indices = [25; 26; 37; 36; 35; 24];
-        dice = roll ();
-        resource = random_resource ();
-        center = fst center -. 2. *. apothem, snd center;
-        edge = length;
-        buildings = [];
-        roads = [] };
-      { indices = [27; 28; 39; 38; 37; 26];
-        dice = roll ();
-        resource = random_resource ();
-        center = fst center, snd center;
-        edge = length;
-        buildings = [];
-        roads = [] };
-      { indices = [29; 30; 41; 40; 39; 28];
-        dice = roll ();
-        resource = random_resource ();
-        center = fst center +. 2. *. apothem, snd center;
-        edge = length;
-        buildings = [];
-        roads = []};
-      { indices = [31; 32; 43; 42; 41; 30];
-        dice = roll ();
-        resource = random_resource ();
-        center = fst center +. 4. *. apothem, snd center;
-        edge = length;
-        buildings = [];
-        roads = [] };
-      { indices = [35; 36; 47; 46; 45; 34];
-        dice = roll ();
-        resource = random_resource ();
-        center = fst center -. 3. *. apothem, snd center -. 1.5 *. length;
-        edge = length;
-        buildings = [];
-        roads = [] };
-      { indices = [37; 38; 49; 48; 47; 36];
-        dice = roll ();
-        resource = random_resource ();
-        center = fst center -. apothem, snd center -. 1.5 *. length;
-        edge = length;
-        buildings = [];
-        roads = [] };
-      { indices = [39; 40; 51; 50; 49; 38];
-        dice = roll ();
-        resource = random_resource ();
-        center = fst center +. apothem, snd center -. 1.5 *. length;
-        edge = length;
-        buildings = [];
-        roads = [] };
-      { indices = [41; 42; 53; 52; 51; 40];
-        dice = roll ();
-        resource = random_resource ();
-        center = fst center +. 3. *. apothem, snd center -. 1.5 *. length;
-        edge = length;
-        buildings = [];
-        roads = [] };
-      { indices = [47; 48; 59; 58; 57; 46];
-        dice = roll ();
-        resource = random_resource ();
-        center = fst center -. 2. *. apothem, snd center -. 3. *. length;
-        edge = length;
-        buildings = [];
-        roads = [] };
-      { indices = [49; 50; 61; 60; 59; 48];
-        dice = roll ();
-        resource = random_resource ();
-        center = fst center, snd center -. 3. *. length ;
-        edge = length;
-        buildings = [];
-        roads = [] };
-      { indices = [51; 52; 63; 62; 61; 50];
-        dice = roll ();
-        resource = random_resource ();
-        center = fst center +. 2. *. apothem, snd center -. 3. *. length;
-        edge = length;
-        buildings = [];
-        roads = [] };
-    ];
-    ports = [
-      { neighbors = 2, 3;
-        demand = random_resource ();
-        rate = 2 };
-      { neighbors = 5, 6;
-        demand = random_resource ();
-        rate = 3 };
-      { neighbors = 12, 23;
-        demand = random_resource ();
-        rate = 2 };
-      { neighbors = 19, 20;
-        demand = random_resource ();
-        rate = 3 };
-      { neighbors = 32, 43;
-        demand = random_resource ();
-        rate = 2 };
-      { neighbors = 34, 45;
-        demand = random_resource ();
-        rate = 2 };
-      { neighbors = 52, 53;
-        demand = random_resource ();
-        rate = 2 };
-      { neighbors = 57, 58;
-        demand = random_resource ();
-        rate = 3 };
-      { neighbors = 60, 61;
-        demand = random_resource ();
-        rate = 3 }
-    ]
-  }
+  {
+  tiles = [
+    { indices = [3; 4; 15; 14; 13; 2];
+      dice = List.nth tinfo 0 |> fst;
+      resource = List.nth tinfo 0 |> snd;
+      center = fst center -. 2. *. apothem, snd center +. 3. *. length;
+      edge = length;
+      buildings = [];
+      roads = [] };
+    { indices = [5; 6; 17; 16; 15; 4];
+      dice = List.nth tinfo 1 |> fst;
+      resource = List.nth tinfo 1 |> snd;
+      center = fst center, snd center +. 3. *. length ;
+      edge = length;
+      buildings = [];
+      roads = [] };
+    { indices = [7; 8; 19; 18; 17; 6];
+      dice = List.nth tinfo 2 |> fst;
+      resource = List.nth tinfo 2 |> snd;
+      center = fst center +. 2. *. apothem, snd center +. 3. *. length;
+      edge = length;
+      buildings = [];
+      roads = [] };
+    { indices = [13; 14; 25; 24; 23; 12];
+      dice = List.nth tinfo 3 |> fst;
+      resource = List.nth tinfo 3 |> snd;
+      center = fst center -. 3. *. apothem, snd center +. 1.5 *. length;
+      edge = length;
+      buildings = [];
+      roads = [] };
+    { indices = [15; 16; 27; 26; 25; 14];
+      dice = List.nth tinfo 4 |> fst;
+      resource = List.nth tinfo 4 |> snd;
+      center = fst center -. apothem, snd center +. 1.5 *. length;
+      edge = length;
+      buildings = [];
+      roads = [] };
+    { indices = [17; 18; 29; 28; 27; 16];
+      dice = List.nth tinfo 5 |> fst;
+      resource = List.nth tinfo 5 |> snd;
+      center = fst center +. apothem, snd center +. 1.5 *. length;
+      edge = length;
+      buildings = [];
+      roads = [] };
+    { indices = [19; 20; 31; 30; 29; 18];
+      dice = List.nth tinfo 6 |> fst;
+      resource = List.nth tinfo 6 |> snd;
+      center = fst center +. 3. *. apothem, snd center +. 1.5 *. length;
+      edge = length;
+      buildings = [];
+      roads = [] };
+    { indices = [23; 24; 35; 34; 33; 22];
+      dice = List.nth tinfo 7 |> fst;
+      resource = List.nth tinfo 7 |> snd;
+      center = fst center -. 4. *. apothem, snd center;
+      edge = length;
+      buildings = [];
+      roads = [] };
+    { indices = [25; 26; 37; 36; 35; 24];
+      dice = List.nth tinfo 8 |> fst;
+      resource = List.nth tinfo 8 |> snd;
+      center = fst center -. 2. *. apothem, snd center;
+      edge = length;
+      buildings = [];
+      roads = [] };
+    { indices = [27; 28; 39; 38; 37; 26];
+      dice = List.nth tinfo 9 |> fst;
+      resource = List.nth tinfo 9 |> snd;
+      center = fst center, snd center;
+      edge = length;
+      buildings = [];
+      roads = [] };
+    { indices = [29; 30; 41; 40; 39; 28];
+      dice = List.nth tinfo 10 |> fst;
+      resource = List.nth tinfo 10 |> snd;
+      center = fst center +. 2. *. apothem, snd center;
+      edge = length;
+      buildings = [];
+      roads = []};
+    { indices = [31; 32; 43; 42; 41; 30];
+      dice = List.nth tinfo 11 |> fst;
+      resource = List.nth tinfo 11 |> snd;
+      center = fst center +. 4. *. apothem, snd center;
+      edge = length;
+      buildings = [];
+      roads = [] };
+    { indices = [35; 36; 47; 46; 45; 34];
+      dice = List.nth tinfo 12 |> fst;
+      resource = List.nth tinfo 12 |> snd;
+      center = fst center -. 3. *. apothem, snd center -. 1.5 *. length;
+      edge = length;
+      buildings = [];
+      roads = [] };
+    { indices = [37; 38; 49; 48; 47; 36];
+      dice = List.nth tinfo 13 |> fst;
+      resource = List.nth tinfo 13 |> snd;
+      center = fst center -. apothem, snd center -. 1.5 *. length;
+      edge = length;
+      buildings = [];
+      roads = [] };
+    { indices = [39; 40; 51; 50; 49; 38];
+      dice = List.nth tinfo 14 |> fst;
+      resource = List.nth tinfo 14 |> snd;
+      center = fst center +. apothem, snd center -. 1.5 *. length;
+      edge = length;
+      buildings = [];
+      roads = [] };
+    { indices = [41; 42; 53; 52; 51; 40];
+      dice = List.nth tinfo 15 |> fst;
+      resource = List.nth tinfo 15 |> snd;
+      center = fst center +. 3. *. apothem, snd center -. 1.5 *. length;
+      edge = length;
+      buildings = [];
+      roads = [] };
+    { indices = [47; 48; 59; 58; 57; 46];
+      dice = List.nth tinfo 16 |> fst;
+      resource = List.nth tinfo 16 |> snd;
+      center = fst center -. 2. *. apothem, snd center -. 3. *. length;
+      edge = length;
+      buildings = [];
+      roads = [] };
+    { indices = [49; 50; 61; 60; 59; 48];
+      dice = List.nth tinfo 17 |> fst;
+      resource = List.nth tinfo 17 |> snd;
+      center = fst center, snd center -. 3. *. length ;
+      edge = length;
+      buildings = [];
+      roads = [] };
+    { indices = [51; 52; 63; 62; 61; 50];
+      dice = List.nth tinfo 18 |> fst;
+      resource = List.nth tinfo 18 |> snd;
+      center = fst center +. 2. *. apothem, snd center -. 3. *. length;
+      edge = length;
+      buildings = [];
+      roads = [] }
+  ];
+  ports = [
+    { neighbors = 2, 3;
+      demand = List.nth pinfo 0 |> fst;
+      rate = List.nth pinfo 0 |> snd };
+    { neighbors = 5, 6;
+      demand = List.nth pinfo 1 |> fst;
+      rate = List.nth pinfo 1 |> snd };
+    { neighbors = 12, 23;
+      demand = List.nth pinfo 2 |> fst;
+      rate = List.nth pinfo 2 |> snd };
+    { neighbors = 19, 20;
+      demand = List.nth pinfo 3 |> fst;
+      rate = List.nth pinfo 3 |> snd };
+    { neighbors = 32, 43;
+      demand = List.nth pinfo 4 |> fst;
+      rate = List.nth pinfo 4 |> snd };
+    { neighbors = 34, 45;
+      demand = List.nth pinfo 5 |> fst;
+      rate = List.nth pinfo 5 |> snd };
+    { neighbors = 52, 53;
+      demand = List.nth pinfo 6 |> fst;
+      rate = List.nth pinfo 6 |> snd };
+    { neighbors = 57, 58;
+      demand = List.nth pinfo 7 |> fst;
+      rate = List.nth pinfo 7 |> snd };
+    { neighbors = 60, 61;
+      demand = List.nth pinfo 8 |> fst;
+      rate = List.nth pinfo 8 |> snd };
+  ]
+}
 
 let init_state () =
   let players = shuffle [ Player.init_player Red; Player.init_player Yellow;

@@ -69,6 +69,8 @@ let setup s =
   in
   s |> helper 0
 
+let trade s = failwith ""
+
 let rec repl (cmd : command) (clr_opt : color option) (s : state) =
   let temp = eval cmd clr_opt s in
   let sx =
@@ -78,7 +80,6 @@ let rec repl (cmd : command) (clr_opt : color option) (s : state) =
   begin
     match cmd with
     | Start -> ()
-    | InitSettlement _ | InitRoad _ -> failwith "Impossible."
     | BuyCard ->
       let string_of_card = function
         | Knight -> "knight"

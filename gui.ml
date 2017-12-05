@@ -96,21 +96,18 @@ let fetch = function
 
 (* [fetch' num] fetches the corresponding picture for number [num] *)
 let fetch' = function
-  | None -> failwith "Impossible."
-  | Some i ->
-    match i with
-    | 2 -> "assets/dice2.png"
-    | 3 -> "assets/dice3.png"
-    | 4 -> "assets/dice4.png"
-    | 5 -> "assets/dice5.png"
-    | 6 -> "assets/dice6.png"
-    | 7 -> "assets/dice7.png"
-    | 8 -> "assets/dice8.png"
-    | 9 -> "assets/dice9.png"
-    | 10 -> "assets/dice10.png"
-    | 11 -> "assets/dice11.png"
-    | 12 -> "assets/dice12.png"
-    | _ -> "assets/dice0.png"
+  | 2 -> "assets/dice2.png"
+  | 3 -> "assets/dice3.png"
+  | 4 -> "assets/dice4.png"
+  | 5 -> "assets/dice5.png"
+  | 6 -> "assets/dice6.png"
+  | 7 -> "assets/dice7.png"
+  | 8 -> "assets/dice8.png"
+  | 9 -> "assets/dice9.png"
+  | 10 -> "assets/dice10.png"
+  | 11 -> "assets/dice11.png"
+  | 12 -> "assets/dice12.png"
+  | _ -> "assets/dice0.png"
 
 (* [update_resource col st res] updates the resource part of the GUI according
  * to current player's color [col] and state [st], for just a single
@@ -315,7 +312,9 @@ let draw_canvas s =
     let x = t.center |> fst |> (-.) (0.2 *. t.edge) |> (~-.) |> int_of_float in
     let y = t.center |> snd |> (-.) (0.2 *. t.edge) |> (~-.) |> int_of_float in
     moveto x y;
-    draw_image (get_img_num (fetch' t.dice)) x y
+    match t.dice with
+    | None -> ()
+    | Some i -> draw_image (get_img_num (fetch' i)) x y
   in
   List.iter f s.canvas.tiles;
   draw_image (get_img_transparent "assets/resourcecards.png") 270 0;
