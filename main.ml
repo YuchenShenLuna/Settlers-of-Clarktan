@@ -12,30 +12,32 @@ let roll_dice () =
 
 let setup s =
   let rec settlement s =
-    ANSITerminal.(print_string [cyan] "\nPlease pick a settlement.\n");
+    ANSITerminal.(print_string [cyan] "Please pick a settlement.");
+    print_newline ();
     match () |> parse_mouse_click |> nearby_intersection s.canvas.tiles with
-    | None -> print_endline "I do not understand."; settlement s
+    | None -> print_endline "I do not understand.\n"; settlement s
     | Some i ->
       let sx = eval (InitSettlement i) None s in
       if s = sx then
         begin
-          print_endline "I am afraid I cannot do that.";
+          print_endline "I am afraid I cannot do that.\n";
           settlement s
         end
-      else sx
+      else let _ = print_newline () in sx
   in
   let rec road s =
-    ANSITerminal.(print_string [cyan] "\nPlease pick a road.\n");
+    ANSITerminal.(print_string [cyan] "Please pick a road.");
+    print_newline ();
     match () |> parse_mouse_click |> nearby_edge s.canvas.tiles with
-    | None -> print_endline "I do not understand."; settlement s
+    | None -> print_endline "I do not understand.\n"; road s
     | Some i ->
       let sx = eval (InitRoad i) None s in
       if s = sx then
         begin
-          print_endline "I am afraid I cannot do that.";
-          settlement s
+          print_endline "I am afraid I cannot do that.\n";
+          road s
         end
-      else sx
+      else let _ = print_newline () in sx
   in
   let rec helper n s =
     if n = 8 then s
@@ -113,7 +115,8 @@ let main () =
                              Esther Jun";
   draw_canvas s;
   let _ = Sys.command("clear") in
-  ANSITerminal.(print_string [red] "Welcome to the Settlers of Clarktan.\n");
+  ANSITerminal.(print_string [red] "Welcome to the Settlers of Clarktan.");
+  print_endline "";
   match s |> setup |> repl Start None with
   | exception Exit -> Graphics.close_graph ()
   | _ -> print_endline "Oh no! Something went wrong."
