@@ -65,7 +65,8 @@ let nearby_tile (tiles : Tile.tile list) (x, y) =
 
 let parse_mouse_click () =
   let open Graphics in
-  let info = wait_next_event [ Button_down; Button_up ] in
+  let info = wait_next_event [ Button_down ] in
+  let _ = loop_at_exit [ Button_down; Button_up ] in
   float_of_int info.mouse_x, float_of_int info.mouse_y
 
 (* [resource_of_string str] is Some resource that represents str, if there is

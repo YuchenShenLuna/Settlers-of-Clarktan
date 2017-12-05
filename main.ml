@@ -23,7 +23,7 @@ let setup s =
           print_endline "I am afraid I cannot do that.\n";
           settlement s
         end
-      else let _ = print_newline () in sx
+      else let _ = print_endline "Ok.\n" in sx
   in
   let rec road s =
     ANSITerminal.(print_string [cyan] "Please pick a road.");
@@ -37,7 +37,7 @@ let setup s =
           print_endline "I am afraid I cannot do that.\n";
           road s
         end
-      else let _ = print_newline () in sx
+      else let _ = print_endline "Ok.\n" in sx
   in
   let rec helper n s =
     if n = 8 then s
