@@ -54,7 +54,7 @@ let get_img img =
 (* [make_transp img] returns a changed version of [img] by turning the white
  * parts to transparent. *)
 let make_transp img =
-  let replace = Array.map (fun col -> if 16777215 - col < 500000 then transp else col) in
+  let replace = Array.map (fun col -> if 16777215 - col < 350000 then transp else col) in
   Array.map (fun arr -> replace arr) img
 
 (* [get_img_transparent img] returns a transparent image according to the
