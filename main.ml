@@ -46,8 +46,9 @@ let setup s =
         if s.turn = Red then s |> settlement |> road
         else
           let i = first_settlement s s.turn in
-          let r = init_road s s.turn i in
-          s |> eval (InitSettlement i) None |> eval (InitRoad r) None
+          let temp = s |> eval (InitSettlement i) None in
+          let r = init_road temp s.turn i in
+          temp |> eval (InitRoad r) None
       in
       if n <> 3 then sx |> end_turn false |> helper (n + 1)
       else sx |> helper (n + 1)
@@ -57,8 +58,9 @@ let setup s =
           if s.turn = Red then s |> settlement |> road
           else
             let i = second_settlement s s.turn in
-            let r = init_road s s.turn i in
-            s |> eval (InitSettlement i) None |> eval (InitRoad r) None
+            let temp = s |> eval (InitSettlement i) None in
+            let r = init_road temp s.turn i in
+            temp |> eval (InitRoad r) None
         end
         |> init_generate_resources s.turn
       in
@@ -68,10 +70,10 @@ let setup s =
   s |> helper 0
 
 let rec repl (cmd : command) (clr_opt : color option) (s : state) =
-  let sw = eval cmd clr_opt s in
+  let temp = eval cmd clr_opt s in
   let sx =
-    if s.turn <> sw.turn then (roll_dice () |> snd |> generate_resource) sw
-    else sw
+    if s.turn <> temp.turn then (roll_dice () |> snd |> generate_resource) temp
+    else temp
   in
   begin
     match cmd with
@@ -116,7 +118,7 @@ let main () =
   draw_canvas s;
   let _ = Sys.command("clear") in
   ANSITerminal.(print_string [red] "Welcome to the Settlers of Clarktan.");
-  print_endline "";
+  print_newline ();
   match s |> setup |> repl Start None with
   | exception Exit -> Graphics.close_graph ()
   | _ -> print_endline "Oh no! Something went wrong."
