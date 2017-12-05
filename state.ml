@@ -1052,56 +1052,48 @@ let end_turn forward s =
   let turn = (List.nth s.players ((index 0 s.players + inc) mod 4)).color in
   { s with turn }
 
-let do_move cmd color_opt st =
-  match cmd with
-  | Start -> st
-  | InitSettlement i ->
-    begin
-      match color_opt with
-      | None -> invalid_arg "Requires a color."
-      | Some color -> init_build_settlement i color st
-    end
-  | InitRoad rd ->
-    begin
-      match color_opt with
-      | None -> invalid_arg "Requires a color."
-      | Some color -> init_build_road rd color st
-    end
-  | BuildSettlement i -> build_settlement i st
-  | BuildCity i -> build_city i st
-  | BuildRoad rd -> build_road rd st
-  | BuyCard -> buy_card st
-  | PlayKnight i -> play_knight i st
-  | PlayRoadBuilding (rd0, rd1) -> play_road_build rd0 rd1 st
-  | PlayYearOfPlenty (rs0, rs1) -> play_year_of_plenty rs0 rs1 st
-  | PlayMonopoly rs -> play_monopoly rs st
-  | Robber i -> play_robber i st
-  | DomesticTrade (approved, lst0, lst1) ->
-    if approved then
-      match color_opt with
-      | None -> invalid_arg "Requires a color."
-      | Some color -> trade_with_player color lst0 lst1 st
-    else st
-  | MaritimeTrade (approved, p0, p1) ->
-    if approved then
-      match color_opt with
-      | None -> invalid_arg "Requires a color."
-      | Some color ->
-        begin
-          match trade_with_port st.turn [p0] [p1] st with
-          | exception (Failure _) -> trade_with_bank st.turn [p0] [p1] st
-          | stx -> stx
-        end
-    else st
-  | Discard lst ->
-    begin
-      match color_opt with
-      | None -> invalid_arg "Requires a color."
-      | Some color -> discard_resource color lst st
-    end
-  | EndTurn -> end_turn true st
-  | Quit -> st
-  | Invalid -> st
+let eval cmd color_opt st =
+  try
+    match cmd with
+    | Start -> st
+    | InitSettlement i -> init_build_settlement i st.turn st
+    | InitRoad rd -> init_build_road rd st.turn st
+    | BuildSettlement i -> build_settlement i st
+    | BuildCity i -> build_city i st
+    | BuildRoad rd -> build_road rd st
+    | BuyCard -> buy_card st
+    | PlayKnight i -> play_knight i st
+    | PlayRoadBuilding (rd0, rd1) -> play_road_build rd0 rd1 st
+    | PlayYearOfPlenty (rs0, rs1) -> play_year_of_plenty rs0 rs1 st
+    | PlayMonopoly rs -> play_monopoly rs st
+    | Robber i -> play_robber i st
+    | DomesticTrade (approved, lst0, lst1) ->
+      if approved then
+        match color_opt with
+        | None -> invalid_arg "Requires a color."
+        | Some color -> trade_with_player color lst0 lst1 st
+      else st
+    | MaritimeTrade (approved, p0, p1) ->
+      if approved then
+        match color_opt with
+        | None -> invalid_arg "Requires a color."
+        | Some color ->
+          begin
+            match trade_with_port st.turn [p0] [p1] st with
+            | exception (Failure _) -> trade_with_bank st.turn [p0] [p1] st
+            | stx -> stx
+          end
+      else st
+    | Discard lst ->
+      begin
+        match color_opt with
+        | None -> invalid_arg "Requires a color."
+        | Some color -> discard_resource color lst st
+      end
+    | EndTurn -> end_turn true st
+    | Quit -> st
+    | Invalid -> st
+  with _ -> st
 
 (*****************************************************************************
  *                                   TEST                                    *

@@ -2,6 +2,7 @@ open Elements
 open State
 open Player
 open Tile
+open Command
 
 (*****************************************************************************
  *                                  HELPERS                                  *
@@ -225,7 +226,7 @@ let init_calc_value_settlement ind st f =
  * 2. given current resources, figure out what to build or to wait
  * 3. by building it, what other building options for the future becomes avaiable *)
 
-let init_choose_first_settlement_build st col =
+let first_settlement st col =
   let possible_ind = get_possible_house_ind st col init_can_build_settlement_ai in
   let values =
     List.map (
@@ -245,7 +246,7 @@ let init_possible_roads st col ind =
   let border_roads = fetch_neighbors ind in
   List.filter (fun x -> check_initialize_build_road (ind, x) st col) border_roads
 
-let init_choose_road_build st col ind =
+let init_road st col ind =
   let possible_roads = init_possible_roads st col ind in
   let i1 = Random.int (List.length possible_roads) in
   (ind, List.nth possible_roads i1)
@@ -255,7 +256,7 @@ let init_choose_road_build st col ind =
 let is_sublist lst1 lst2 =
   List.fold_left (fun acc x -> acc && (List.mem x lst2)) true lst1
 
-let init_choose_second_settlement_build st col =
+let second_settlement st col =
   let possible_ind = get_possible_house_ind st col init_can_build_settlement_ai in
   let needed_res = get_unaccessible_resources col st in
   let info =
@@ -287,7 +288,7 @@ let init_choose_second_settlement_build st col =
             if x > accx then (x, y) else (accx, accy)) (-1, -1) values' in
       (snd lst')
     else
-      init_choose_first_settlement_build st col
+      first_settlement st col
 
 (*****************************************************************************
  *                                   BUILD                                   *
@@ -728,12 +729,6 @@ let want_trade_ports st ai rs_lst rs'_lst=
   && not (List.mem false (List.map (fun (r,n) -> if find_best_rate st ai.color r < 4 then true else false) rs_lst))
 
 (*****************************************************************************
- *                               ACHIEVEMENTS                                *
- *****************************************************************************)
-
-let want_largest_army color st = failwith "TODO"
-
-(*****************************************************************************
  *                             DEVELOPMENT CARDS                             *
  *****************************************************************************)
 
@@ -786,7 +781,6 @@ let want_play_knight color s =
         fun acc p ->
           if p.color != color then not (blocked p.color s) || acc else acc
       ) false s.players
-      || want_largest_army color s
       || num_all_cards color s > 10)
 
 let want_play_road_building color s =
@@ -810,8 +804,13 @@ let choose_robber_spot color s =
     ) (None, 0) candidates |> fst
   in
   match robber_opt color s with
-  | None -> List.hd s.canvas.tiles
-  | Some tile -> tile
+  | None -> 0
+  | Some tile ->
+    let rec index elt acc = function
+      | [] -> raise Not_found (* impossible *)
+      | h :: t -> if h = elt then acc else index elt (acc + 1) t
+    in
+    index tile 0 s.canvas.tiles
 
 let choose_two_resources color s =
   let player = get_player color s in
@@ -906,10 +905,21 @@ let choose_discard_resource color s =
   let cmp a b = compare (value a) (value b) in
   hand |> List.sort cmp |> take (List.length hand / 2) []
 
-let time_out = failwith "TODO"
-
 (*****************************************************************************
- *                                    DO                                     *
+ *                                CHOOSE MOVE                                *
  *****************************************************************************)
 
-let do_ai = failwith "TODO"
+let choose color s =
+  match make_build_plan s color with
+  | Build_Settlement i -> BuildSettlement i
+  | Build_City i -> BuildCity i
+  | Build_Road (e, _) -> BuildRoad e
+  | Neither _ ->
+    if want_buy_card color s then BuyCard
+    else if want_play_monopoly color s then PlayMonopoly (choose_monopoly color s)
+    else if want_play_knight color s then PlayKnight (choose_robber_spot color s)
+    else if want_play_year_of_plenty color s then
+      match choose_two_resources color s with
+      | r0, r1 -> PlayYearOfPlenty (r0, r1)
+    else if want_play_road_building color s then failwith "Unimplemented"
+    else EndTurn
