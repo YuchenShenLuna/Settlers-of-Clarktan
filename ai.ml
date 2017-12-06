@@ -273,7 +273,7 @@ let second_settlement st col =
           if x > accx then (x, y) else (accx, accy)) (-1, -1) values in
     (snd lst)
   else
-    let needed_res' = [List.hd needed_res] in
+    let needed_res' = if needed_res = [] then [] else [List.hd needed_res] in
     let info' =
       possible_ind
       |> List.filter (fun x -> is_sublist needed_res' (obtainable_resources x st))
@@ -655,7 +655,8 @@ let want_to_trade st ai rs_list=
   and current ai player (and its resources)*)
 let potential_score_not_trade st ai =
   let res = get_next_resources (make_build_plan st ai.color) in
-  let score r = if List.mem r res then 7 else resource_priority_diff_stage ai.color st r in
+  let score r = if List.mem r res then 7
+    else resource_priority_diff_stage ai.color st r in
   (score Lumber) * ai.lumber +
   (score Wool) * ai.wool +
   (score Brick) * ai.brick +
@@ -677,11 +678,16 @@ let potential_score_trade st ai rs_list rs'_list =
       let player_gain_resource =
         List.fold_left (
           fun acc (r,n) -> match r with
-            | Lumber -> {player_reduce_resource with lumber=player_reduce_resource.lumber + n}
-            | Wool -> {player_reduce_resource with wool=player_reduce_resource.wool + n}
-            | Grain ->  {player_reduce_resource with grain=player_reduce_resource.grain + n}
-            | Brick -> {player_reduce_resource with brick=player_reduce_resource.brick + n}
-            | Ore-> {player_reduce_resource with ore=player_reduce_resource.ore + n}
+            | Lumber -> {player_reduce_resource with
+                         lumber=player_reduce_resource.lumber + n}
+            | Wool -> {player_reduce_resource with
+                       wool=player_reduce_resource.wool + n}
+            | Grain ->  {player_reduce_resource with
+                         grain=player_reduce_resource.grain + n}
+            | Brick -> {player_reduce_resource with
+                        brick=player_reduce_resource.brick + n}
+            | Ore-> {player_reduce_resource with
+                     ore=player_reduce_resource.ore + n}
           ) player_reduce_resource rs'_list in
     potential_score_not_trade st player_gain_resource
 
@@ -689,9 +695,15 @@ let potential_score_trade st ai rs_list rs'_list =
   color cl in state st*)
 let best_resource st cl=
   let resource_list = list_of_resources cl st in
-  List.fold_left (fun acc x ->if (resource_priority_diff_stage  cl st x)
-                                 > (resource_priority_diff_stage  cl st acc)then  x else acc )
-    (List.hd resource_list) resource_list
+  if resource_list = [] then
+    List.fold_left (fun acc x -> if resource_priority_diff_stage cl st acc
+                                    < resource_priority_diff_stage cl st x
+                     then x else acc) Lumber [Grain; Ore; Wool; Brick]
+  else
+    List.fold_left (fun acc x ->if (resource_priority_diff_stage  cl st x)
+                                   > (resource_priority_diff_stage  cl st acc)
+                     then x else acc )
+      (List.hd resource_list) resource_list
 
 (* [want_to_accept_trade_player] returns a boolean stating whether the ai
    player should accept the trade with another player other_pl given the resource list rs_list ai
@@ -699,8 +711,9 @@ let best_resource st cl=
 current state st*)
 let want_accept_trade_player st ai rs_list other_pl rs'_list=
   (potential_score_not_trade st ai < potential_score_trade st ai rs_list rs'_list) &&
-  not (List.mem (best_resource st ai.color) (List.map (fun (r,n) -> r) rs_list)) && other_pl.score <=8
-  && (other_pl.score - ai.score)<=5
+  not (List.mem (best_resource st ai.color) (List.map (fun (r,n) -> r) rs_list))
+  && other_pl.score <= 8
+  && (other_pl.score - ai.score) <= 5
 
 (* [want_init_trade] returns a boolean stating whether the ai
    player should trade with another player other_pl given the resource list rs_list ai
@@ -708,8 +721,9 @@ let want_accept_trade_player st ai rs_list other_pl rs'_list=
    current state st*)
 let want_init_trade st ai rs_list other_pl rs'_list=
 (potential_score_not_trade st ai < potential_score_trade st ai rs_list rs'_list) &&
-not (List.mem (best_resource st ai.color) (List.map (fun (r,n) -> r) rs_list)) && other_pl.score <=8
-&& (other_pl.score - ai.score)<=5
+not (List.mem (best_resource st ai.color) (List.map (fun (r,n) -> r) rs_list))
+&& other_pl.score <= 8
+&& (other_pl.score - ai.score) <= 5
 
 (*[find_best_rate] returns the best trading rate for resource rs the ai player
   with color cl can have under current state st*)
@@ -725,7 +739,8 @@ let find_best_rate st cl rs =
 let want_trade_bank st ai rs_lst rs'_lst =
   want_to_trade st ai rs_lst
   && (potential_score_not_trade st ai < potential_score_trade st ai rs_lst rs'_lst)
-  && not (List.mem false (List.map (fun (r,n) -> if find_best_rate st ai.color r = 4 then true else false) rs_lst))
+  && not (List.mem false (List.map (fun (r,n) ->
+      if find_best_rate st ai.color r = 4 then true else false) rs_lst))
 
 (* [want_trade_ports] returns a boolean stating whether the ai
    player should trade with ports given the resource list rs_list ai
@@ -734,7 +749,8 @@ let want_trade_bank st ai rs_lst rs'_lst =
 let want_trade_ports st ai rs_lst rs'_lst=
   want_to_trade st ai rs_lst
   && (potential_score_not_trade st ai < potential_score_trade st ai rs_lst rs'_lst)
-  && not (List.mem false (List.map (fun (r,n) -> if find_best_rate st ai.color r < 4 then true else false) rs_lst))
+  && not (List.mem false (List.map (fun (r,n) ->
+      if find_best_rate st ai.color r < 4 then true else false) rs_lst))
 
 (*****************************************************************************
  *                             DEVELOPMENT CARDS                             *
