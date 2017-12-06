@@ -95,14 +95,12 @@ let roll_dice s =
   ANSITerminal.(print_string [cyan] msg);
   print_string "";
   update_dice d1 d2;
-  update_canvas sx;
   sx
 
 let rec repl (cmd : command) (clr_opt : color option) (s : state) =
   let tmp = do_move cmd clr_opt s in
   let sx = if s.turn = tmp.turn && cmd <> Start then tmp else roll_dice tmp in
-  let _ = List.iter (fun p -> p.color |> string_of_color |> print_string) sx.players in
- let _ = print_newline () in
+  if sx <> s then update_canvas sx else ();
   if sx.turn <> Red then repl (choose sx.turn sx) None sx
   else begin
     begin
