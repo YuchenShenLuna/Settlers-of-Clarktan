@@ -5,10 +5,11 @@ open Elements
 open Player
 open Ai
 
-let roll_dice () =
-  let i1 = 1 + Random.int 6 in
-  let i2 = 1 + Random.int 6 in
-  (i1, i2), (i1 + i2)
+let string_of_color = function
+  | Red -> "Red"
+  | Blue -> "Blue"
+  | Green -> "Green"
+  | Yellow -> "Yellow"
 
 let setup s =
   let rec settlement s =
@@ -23,7 +24,7 @@ let setup s =
           print_endline "I am afraid I cannot do that.\n";
           settlement s
         end
-      else let _ = print_endline "Ok.\n" in sx
+      else let () = print_endline "Ok.\n" in sx
   in
   let rec road s =
     ANSITerminal.(print_string [cyan] "Please pick a road.");
@@ -37,22 +38,22 @@ let setup s =
           print_endline "I am afraid I cannot do that.\n";
           road s
         end
-      else let _ = print_endline "Ok.\n" in sx
+      else let () = print_endline "Ok.\n" in sx
   in
   let rec helper n s =
-    let _ = update_canvas s in
+    let () = update_canvas s in
     if n = 8 then s
     else if n < 4 then
       let sx =
         if s.turn = Red then
-          let temp = settlement s in
-          let _ = update_canvas temp in
-          temp |> road
+          let tmp = settlement s in
+          let () = update_canvas tmp in
+          tmp |> road
         else
           let i = first_settlement s s.turn in
-          let temp = s |> do_move (InitSettlement i) None in
-          let r = init_road temp s.turn i in
-          temp |> do_move (InitRoad r) None
+          let tmp = s |> do_move (InitSettlement i) None in
+          let r = init_road tmp s.turn i in
+          tmp |> do_move (InitRoad r) None
       in
       if n <> 3 then sx |> end_turn true |> helper (n + 1)
       else sx |> helper (n + 1)
@@ -60,14 +61,14 @@ let setup s =
       let sx =
         begin
           if s.turn = Red then
-            let temp = settlement s in
-            let _ = update_canvas temp in
-            temp |> road
+            let tmp = settlement s in
+            let () = update_canvas tmp in
+            tmp |> road
           else
             let i = second_settlement s s.turn in
-            let temp = s |> do_move (InitSettlement i) None in
-            let r = init_road temp s.turn i in
-            temp |> do_move (InitRoad r) None
+            let tmp = s |> do_move (InitSettlement i) None in
+            let r = init_road tmp s.turn i in
+            tmp |> do_move (InitRoad r) None
         end
         |> init_generate_resources s.turn
       in
@@ -75,20 +76,43 @@ let setup s =
   in
   s |> helper 0
 
-let trade s = failwith ""
+let robber s = s (* TODO *)
+
+let roll_dice s =
+  let d1 = 1 + Random.int 6 in
+  let d2 = 1 + Random.int 6 in
+  let sx = if d1 + d2 <> 7 then generate_resource (d1 + d2) s else robber s in
+  let msg =
+    begin
+      if s.turn = Red then "It's your turn. You have rolled a "
+      else
+        let name = string_of_color s.turn in
+        "It's " ^ name ^ "'s" ^ " turn. " ^ name ^ " has rolled a "
+    end
+    ^ string_of_int (d1 + d2) ^ ".\n"
+  in
+  ANSITerminal.(print_string [cyan] msg);
+  print_newline ();
+  update_dice d1 d2;
+  update_canvas sx;
+  sx
 
 let rec repl (cmd : command) (clr_opt : color option) (s : state) =
-  let temp = do_move cmd clr_opt s in
-  let sx =
-    if s.turn <> temp.turn then (roll_dice () |> snd |> generate_resource) temp
-    else temp
-  in
-  let _ = update_canvas sx in
-  if sx.turn <> Red then repl (choose sx.turn sx) None sx
+  let tmp = do_move cmd clr_opt s in
+  let sx = if s.turn = tmp.turn && cmd <> Start then tmp else roll_dice tmp in
+  if sx.turn = Red then
+    let () =
+      match cmd with
+      | EndTurn -> if cmd = EndTurn then print_endline "Ok.\n" else ()
+      | DomesticTrade (false, lst1, lst2) ->
+        failwith "TODO"
+      | _ -> ()
+    in
+    repl (choose sx.turn sx) None sx
   else begin
     begin
       match cmd with
-      | Start -> ()
+      | Start | EndTurn -> ()
       | BuyCard ->
         let string_of_card = function
           | Knight -> "knight"
@@ -99,18 +123,17 @@ let rec repl (cmd : command) (clr_opt : color option) (s : state) =
         in
         if s <> sx then print_endline ("Ok. You have received a "
                                        ^ (s.deck |> List.hd |> string_of_card)
-                                       ^ " card.")
-        else print_endline "I am afraid I cannot do that."
+                                       ^ " card.\n")
+        else print_endline "I am afraid I cannot do that.\n"
       | DomesticTrade (approved, lst0, lst1) ->
-        if s <> sx then print_endline "Ok."
-        else failwith "Unimplemented"
-      | Quit -> print_endline "Goodbye."; raise Exit
-      | Invalid -> print_endline "I do not understand."
+        if s <> sx then print_endline "Ok.\n"
+        else ()
+      | Quit -> print_endline "Goodbye.\n"; raise Exit
+      | Invalid -> print_endline "I do not understand.\n"
       | _ ->
-        if s <> sx then print_endline "Ok."
-        else print_endline "I am afraid I cannot do that."
+        if s <> sx then print_endline "Ok.\n"
+        else print_endline "I am afraid I cannot do that.\n"
     end;
-    print_newline ();
     let prompt = "Please enter a command.\n" in
     ANSITerminal.(print_string [cyan] prompt);
     print_string  "> ";
@@ -122,7 +145,7 @@ let rec repl (cmd : command) (clr_opt : color option) (s : state) =
     repl cmdx None sx end
 
 let main () =
-  let _ = Random.self_init () in
+  let () = Random.self_init () in
   let s = init_state () in
   Graphics.open_graph " 1000x750";
   Graphics.set_window_title "Settlers of Clarktan by Yuchen Shen, Yishu Zhang, \

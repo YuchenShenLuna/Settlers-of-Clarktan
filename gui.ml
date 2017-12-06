@@ -145,7 +145,7 @@ let draw_info color st =
   let num_res =
     player.lumber + player.wool + player.grain + player.ore + player.brick in
   let num_vic = player.score in
-  draw_string ("resources :"^(string_of_int num_res)^"  ");
+  draw_string ("resources: "^(string_of_int num_res)^"  ");
   draw_string ("victory points: "^(string_of_int num_vic))
 
 (* [draw_player_infos st] draws information for each player under the

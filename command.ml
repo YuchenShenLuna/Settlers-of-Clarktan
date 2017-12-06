@@ -29,7 +29,7 @@ let nearby_intersection (tiles : Tile.tile list) (x, y) =
     if acc = None
     then List.fold_left (
         fun acc p ->
-          if fst acc = None && distance (x, y) p < 0.1 *. t.edge
+          if fst acc = None && distance (x, y) p < 0.5 *. t.edge
           then Some (List.nth t.indices (snd acc)), 0
           else fst acc, snd acc + 1
       ) (None, 0) (Tile.corners t) |> fst
@@ -108,7 +108,7 @@ let rec split_list elt acc = function
 
 let parse_text tiles str =
   let str' = str |> String.trim |> String.lowercase_ascii in
-  match Str.split (Str.regexp "[ \n\r\x0c\t?.!]+") str' with
+  match Str.split (Str.regexp "[ \n\r\x0c\t()/:;,?.!]+") str' with
   | [] -> Invalid
   | h :: t ->
     match h with
