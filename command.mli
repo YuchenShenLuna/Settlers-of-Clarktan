@@ -35,3 +35,5 @@ val parse_mouse_click : unit -> float * float
 
 (* [parse str] is the command that represents the input [str]. *)
 val parse_text : Tile.tile list -> string -> command
+
+val string_of_command : command -> string

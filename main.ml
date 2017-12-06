@@ -98,6 +98,7 @@ let roll_dice s =
   sx
 
 let rec repl (cmd : command) (clr_opt : color option) (s : state) =
+  let _ = print_string (string_of_command cmd); print_newline (); print_newline () in
   let tmp = do_move cmd clr_opt s in
   let sx = if s.turn = tmp.turn && cmd <> Start then tmp else roll_dice tmp in
   if sx <> s then update_canvas sx else ();

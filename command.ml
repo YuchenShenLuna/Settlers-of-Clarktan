@@ -20,6 +20,33 @@ type command =
   | Quit
   | Invalid
 
+let string_of_resource = function
+  | Lumber -> "Lumber"
+  | Brick -> "Brick"
+  | Grain -> "Grain"
+  | Ore -> "Ore"
+  | Wool -> "Wool"
+
+let string_of_command = function
+  | Start -> "Start"
+  | InitSettlement i -> "InitSettlement @" ^ string_of_int i
+  | InitRoad (i0, i1) -> "InitRoad @" ^ string_of_int i0 ^ " - " ^ string_of_int i1
+  | BuildSettlement i -> "BuildSettlement @" ^ string_of_int i
+  | BuildCity i -> "BuildCity @" ^ string_of_int i
+  | BuildRoad (i0, i1) -> "BuildRoad @" ^ string_of_int i0 ^ " - " ^ string_of_int i1
+  | BuyCard -> "BuyCard"
+  | PlayKnight i -> "PlayKnight @" ^ string_of_int i
+  | PlayRoadBuilding ((i0, i1), (i2, i3)) -> "PlayRoadBuilding @" ^ string_of_int i0 ^ " - " ^ string_of_int i1 ^ " and " ^ string_of_int i2 ^ " - " ^ string_of_int i3
+  | PlayYearOfPlenty (r0, r1) -> "PlayYearOfPlenty: " ^ string_of_resource r0 ^ " & " ^ string_of_resource r1
+  | PlayMonopoly r -> "PlayMonopoly: " ^ string_of_resource r
+  | Robber i -> "Robber @" ^ string_of_int i
+  | DomesticTrade (b, lst0, lst1) -> "DomesticTrade"
+  | MaritimeTrade (b, lst0, lst1) -> "MaritimeTrade"
+  | Discard lst -> "Discard"
+  | EndTurn -> "EndTurn"
+  | Quit -> "Quit"
+  | Invalid -> "Invalid"
+
 let distance (x1, y1) (x2, y2) =
   sqrt ((x1 -. x2) ** 2. +. (y1 -. y2) ** 2.)
 
@@ -189,11 +216,4 @@ let parse_text tiles str =
         | [] -> Invalid
         | lst -> Discard lst
       end
-    | _ ->
-      if List.mem "robber" (h :: t) then
-        begin
-          match () |> parse_mouse_click |> nearby_tile tiles with
-          | None -> Invalid
-          | Some i -> Robber i
-        end
-      else Invalid
+    | _ -> Invalid
