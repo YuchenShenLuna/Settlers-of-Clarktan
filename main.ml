@@ -15,7 +15,7 @@ let setup s =
     ANSITerminal.(print_string [cyan] "Please pick a settlement.");
     print_newline ();
     match () |> parse_mouse_click |> nearby_intersection s.canvas.tiles with
-    | None -> print_endline "I do not understand.\n"; settlement s
+    | None -> print_endline "I am afraid I cannot do that.\n"; settlement s
     | Some i ->
       let sx = eval (InitSettlement i) None s in
       if s = sx then
@@ -29,7 +29,7 @@ let setup s =
     ANSITerminal.(print_string [cyan] "Please pick a road.");
     print_newline ();
     match () |> parse_mouse_click |> nearby_edge s.canvas.tiles with
-    | None -> print_endline "I do not understand.\n"; road s
+    | None -> print_endline "I am afraid I cannot do that.\n"; road s
     | Some i ->
       let sx = eval (InitRoad i) None s in
       if s = sx then
@@ -40,10 +40,14 @@ let setup s =
       else let _ = print_endline "Ok.\n" in sx
   in
   let rec helper n s =
+    let _ = update_canvas s in
     if n = 8 then s
     else if n < 4 then
       let sx =
-        if s.turn = Red then s |> settlement |> road
+        if s.turn = Red then
+          let temp = settlement s in
+          let _ = update_canvas temp in
+          temp |> road
         else
           let i = first_settlement s s.turn in
           let temp = s |> eval (InitSettlement i) None in
@@ -55,7 +59,10 @@ let setup s =
     else
       let sx =
         begin
-          if s.turn = Red then s |> settlement |> road
+          if s.turn = Red then
+            let temp = settlement s in
+            let _ = update_canvas temp in
+            temp |> road
           else
             let i = second_settlement s s.turn in
             let temp = s |> eval (InitSettlement i) None in
@@ -64,7 +71,6 @@ let setup s =
         end
         |> init_generate_resources s.turn
       in
-      let _ = update_canvas sx in
       sx |> end_turn false |> helper (n + 1)
   in
   s |> helper 0
@@ -77,39 +83,43 @@ let rec repl (cmd : command) (clr_opt : color option) (s : state) =
     if s.turn <> temp.turn then (roll_dice () |> snd |> generate_resource) temp
     else temp
   in
-  begin
-    match cmd with
-    | Start -> ()
-    | BuyCard ->
-      let string_of_card = function
-        | Knight -> "knight"
-        | RoadBuilding -> "road building"
-        | YearOfPlenty -> "year of plenty"
-        | Monopoly -> "monopoly"
-        | VictoryPoint -> "victory point"
-      in
-      if s <> sx then print_endline ("Ok. You have received a "
-                                     ^ (s.deck |> List.hd |> string_of_card)
-                                     ^ " card.")
-      else print_endline "I am afraid I cannot do that."
-    | DomesticTrade (approved, lst0, lst1) -> failwith ""
-    | MaritimeTrade (approved, lst0, lst1) -> failwith ""
-    | Quit -> print_endline "Goodbye."; raise Exit
-    | Invalid -> print_endline "I do not understand."
-    | _ ->
-      if s <> sx then print_endline "Ok."
-      else print_endline "I am afraid I cannot do that."
-  end;
-  print_newline ();
-  let prompt = "Please enter a command.\n" in
-  ANSITerminal.(print_string [cyan] prompt);
-  print_string  "> ";
-  let cmdx =
-    match read_line () with
-    | exception End_of_file -> Invalid
-    | str -> Command.parse_text s.canvas.tiles str
-  in
-  repl cmdx None sx
+  let _ = update_canvas sx in
+  if sx.turn <> Red then repl (choose sx.turn sx) None sx
+  else begin
+    begin
+      match cmd with
+      | Start -> ()
+      | BuyCard ->
+        let string_of_card = function
+          | Knight -> "knight"
+          | RoadBuilding -> "road building"
+          | YearOfPlenty -> "year of plenty"
+          | Monopoly -> "monopoly"
+          | VictoryPoint -> "victory point"
+        in
+        if s <> sx then print_endline ("Ok. You have received a "
+                                       ^ (s.deck |> List.hd |> string_of_card)
+                                       ^ " card.")
+        else print_endline "I am afraid I cannot do that."
+      | DomesticTrade (approved, lst0, lst1) ->
+        if s <> sx then print_endline "Ok."
+        else failwith "Unimplemented"
+      | Quit -> print_endline "Goodbye."; raise Exit
+      | Invalid -> print_endline "I do not understand."
+      | _ ->
+        if s <> sx then print_endline "Ok."
+        else print_endline "I am afraid I cannot do that."
+    end;
+    print_newline ();
+    let prompt = "Please enter a command.\n" in
+    ANSITerminal.(print_string [cyan] prompt);
+    print_string  "> ";
+    let cmdx =
+      match read_line () with
+      | exception End_of_file -> Invalid
+      | str -> Command.parse_text s.canvas.tiles str
+    in
+    repl cmdx None sx end
 
 let main () =
   let s = init_state () in

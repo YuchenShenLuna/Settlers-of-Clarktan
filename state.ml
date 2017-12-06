@@ -230,16 +230,21 @@ let init_canvas () =
 }
 
 let init_state () =
+  let rec desert = function
+    | [] -> raise Not_found
+    | h :: t  -> if h.resource = None then 0 else 1 + desert t
+  in
+  let canvas = init_canvas () in
   let players = shuffle [ Player.init_player Red; Player.init_player Yellow;
                           Player.init_player Blue; Player.init_player Green ] in
-  { robber = 10;
+  { robber = desert canvas.tiles;
     deck = shuffle [ Knight; VictoryPoint; Knight; RoadBuilding;YearOfPlenty;
                      Knight; RoadBuilding; Knight; Knight; VictoryPoint; Knight;
                      Knight; Monopoly; Knight; YearOfPlenty; Knight; Knight; VictoryPoint; Knight;
                      Knight; Knight; Monopoly; VictoryPoint; Knight; VictoryPoint ];
     players;
     turn = (List.hd players).color;
-    canvas = init_canvas () }
+    canvas }
 
 (* [fetch_neighbors i] fetches the neighboring intersections of the
  * settlement with index [i]*)

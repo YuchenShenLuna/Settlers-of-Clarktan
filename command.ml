@@ -180,7 +180,7 @@ let parse_text tiles str =
             | exception (Invalid_argument _) -> Invalid
             | take ->
               if List.mem "maritime" t || List.mem "bank" t || List.mem "port" t
-              then MaritimeTrade (false, List.nth give 0, List.nth take 0)
+              then MaritimeTrade (true, List.nth give 0, List.nth take 0)
               else DomesticTrade (false, give, take)
       end
     | "discard" | "burn" | "throw" ->
