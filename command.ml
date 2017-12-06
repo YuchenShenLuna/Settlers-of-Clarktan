@@ -29,7 +29,7 @@ let nearby_intersection (tiles : Tile.tile list) (x, y) =
     if acc = None
     then List.fold_left (
         fun acc p ->
-          if fst acc = None && distance (x, y) p < 0.1 *. t.edge
+          if fst acc = None && distance (x, y) p < 0.5 *. t.edge
           then Some (List.nth t.indices (snd acc)), 0
           else fst acc, snd acc + 1
       ) (None, 0) (Tile.corners t) |> fst

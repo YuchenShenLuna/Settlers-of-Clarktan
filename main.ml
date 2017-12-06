@@ -5,6 +5,12 @@ open Elements
 open Player
 open Ai
 
+let string_of_color = function
+  | Red -> "Red"
+  | Blue -> "Blue"
+  | Green -> "Green"
+  | Yellow -> "Yellow"
+
 let roll_die () =
   1 + Random.int 6
 
@@ -81,7 +87,7 @@ let rec repl (cmd : command) (clr_opt : color option) (s : state) =
     if s.turn <> temp.turn then
       let d1 = roll_die () in
       let d2 = roll_die () in
-      let _ = update_dice d1 d2 in
+      update_dice d1 d2;
       generate_resource (d1 + d2) temp
     else temp
   in
@@ -91,6 +97,7 @@ let rec repl (cmd : command) (clr_opt : color option) (s : state) =
     begin
       match cmd with
       | Start -> ()
+      | InitSettlement _ | InitRoad _ -> failwith "Impossible."
       | BuyCard ->
         let string_of_card = function
           | Knight -> "knight"
@@ -101,18 +108,20 @@ let rec repl (cmd : command) (clr_opt : color option) (s : state) =
         in
         if s <> sx then print_endline ("Ok. You have received a "
                                        ^ (s.deck |> List.hd |> string_of_card)
-                                       ^ " card.")
-        else print_endline "I am afraid I cannot do that."
+                                       ^ " card.\n")
+        else print_endline "I am afraid I cannot do that.\n"
       | DomesticTrade (approved, lst0, lst1) ->
-        if s <> sx then print_endline "Ok."
-        else failwith "Unimplemented"
-      | Quit -> print_endline "Goodbye."; raise Exit
-      | Invalid -> print_endline "I do not understand."
+        if s <> sx then print_endline "Ok.\n"
+        else ()
+      | Quit -> print_endline "Goodbye.\n\n"; raise Exit
+      | Invalid -> print_endline "I do not understand.\n"
+      | EndTurn ->
+        let msg = "It's your turn. " in
+        ANSITerminal.(print_string [cyan] msg);
       | _ ->
-        if s <> sx then print_endline "Ok."
-        else print_endline "I am afraid I cannot do that."
+        if s <> sx then print_endline "Ok.\n"
+        else print_endline "I am afraid I cannot do that.\n"
     end;
-    print_newline ();
     let prompt = "Please enter a command.\n" in
     ANSITerminal.(print_string [cyan] prompt);
     print_string  "> ";
@@ -121,6 +130,11 @@ let rec repl (cmd : command) (clr_opt : color option) (s : state) =
       | exception End_of_file -> Invalid
       | str -> Command.parse_text s.canvas.tiles str
     in
+    begin
+      match cmdx with
+      | EndTurn -> if cmdx = EndTurn then print_endline "Ok.\n" else ()
+      | _ -> ()
+    end;
     repl cmdx None sx end
 
 let main () =
