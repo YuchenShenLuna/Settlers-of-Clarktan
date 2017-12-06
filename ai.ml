@@ -425,9 +425,11 @@ let fetch_roads_in_two ind st color =
  * identified by color [color] wants to build next at state [st] *)
 let choose_settlement st color =
   let possibles = get_possible_settlement_ind st color can_build_settlement_ai in
-  List.fold_left
-    (fun acc x -> if calc_value_house x > calc_value_house acc
-      then x else acc) (List.hd possibles) possibles
+  if possibles = [] then failwith "Cannot build settlement"
+  else
+    List.fold_left
+      (fun acc x -> if calc_value_house x > calc_value_house acc
+        then x else acc) (List.hd possibles) possibles
 
 (* [roads] represent all potential edges upon which roads can be build
  * throughout the entire game *)

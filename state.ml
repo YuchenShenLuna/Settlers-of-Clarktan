@@ -1003,19 +1003,22 @@ let find_owner_of_road st rd =
 (* longest_road_helper returns the longest_road just for one player*)
 let longest_road_length st cl=
   let roads = fetch_roads_of_one_player cl st in
-  let successors n e =
-    List.map (fun (_, v) -> v) (List.filter (fun (u, _) -> n = u) e)
-  in
-  let dfs graph start  =
-    let rec rdfs visited node =
-      if not (List.mem node visited) then
-        let s = successors node graph in
-        List.fold_left rdfs (node::visited) s
-      else visited
+  if roads = [] then
+    0
+  else
+    let successors n e =
+      List.map (fun (_, v) -> v) (List.filter (fun (u, _) -> n = u) e)
     in
-    rdfs [] start
-  in
-  List.length (dfs roads (fst (List.hd roads))) - 1
+    let dfs graph start  =
+      let rec rdfs visited node =
+        if not (List.mem node visited) then
+          let s = successors node graph in
+          List.fold_left rdfs (node::visited) s
+        else visited
+      in
+      rdfs [] start
+    in
+    List.length (dfs roads (fst (List.hd roads))) - 1
 
 let longest_road st =
   match
