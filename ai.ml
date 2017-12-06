@@ -425,7 +425,7 @@ let fetch_roads_in_two ind st color =
  * identified by color [color] wants to build next at state [st] *)
 let choose_settlement st color =
   let possibles = get_possible_settlement_ind st color can_build_settlement_ai in
-  if possibles = [] then failwith "Cannot build settlement"
+  if possibles = [] then -1
   else
     List.fold_left
       (fun acc x -> if calc_value_house x > calc_value_house acc
@@ -528,7 +528,8 @@ let possible_city st color =
 (* [make_build_plan st color] returns a building plan of type [plan]
  * for ai identified by color [color] under state [st] *)
 let make_build_plan st color =
-  let can_settlement = enough_res_for_settlement st color in
+  let can_settlement = enough_res_for_settlement st color
+                       && choose_settlement st color <> -1 in
   let can_city = enough_res_for_city st color in
   let can_road = enough_res_for_road st color in
   if can_settlement && can_city then
