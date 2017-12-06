@@ -128,15 +128,15 @@ let update_resource color st res =
 let draw_resource s =
   set_color white;
   moveto 300 140;
-  draw_string ("grain: "^update_resource s.turn s (Some Grain));
+  draw_string ("grain: "^update_resource Red s (Some Grain));
   moveto 390 140;
-  draw_string ("ore: "^update_resource s.turn s (Some Ore));
+  draw_string ("ore: "^update_resource Red s (Some Ore));
   moveto 475 140;
-  draw_string ("brick: "^update_resource s.turn s (Some Brick));
+  draw_string ("brick: "^update_resource Red s (Some Brick));
   moveto 560 140;
-  draw_string ("lumber: "^update_resource s.turn s (Some Lumber));
+  draw_string ("lumber: "^update_resource Red s (Some Lumber));
   moveto 650 140;
-  draw_string ("wool: "^update_resource s.turn s (Some Wool))
+  draw_string ("wool: "^update_resource Red s (Some Wool))
 
 (* [draw_info col st] draws information for player of color [col] under
  * current state [st]. *)

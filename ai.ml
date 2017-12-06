@@ -485,7 +485,7 @@ let choose_road ind color st =
     (fetch_roads_in_two ind st color |> List.hd |> fst)
   else
     match get_the_road st color with
-    | None -> failwith "no road building possible"
+    | None -> (failwith "no road building possible")
     | Some r -> r
 
 (* [choose_city st color] returns the index of the city the ai identified
@@ -573,14 +573,16 @@ let make_build_plan st color =
     let val_set1 = calc_value_house settlement_one st color in
     let val_set2 = calc_value_house settlement_two st color in
     let val_c = calc_value_house city st color in
-    if val_set1 >= val_set2 && val_set1 >= val_c then
-      Build_Road ((choose_road settlement_one color st),
-                  Build_Settlement settlement_one)
-    else if val_set2 >= val_set1 && val_set2 >=val_c then
-      Build_Road ((choose_road settlement_two color st),
-                  Build_Settlement settlement_two)
-    else
-      Neither (Build_City city)
+    try
+      if val_set1 >= val_set2 && val_set1 >= val_c then
+        Build_Road ((choose_road settlement_one color st),
+                    Build_Settlement settlement_one)
+      else if val_set2 >= val_set1 && val_set2 >=val_c then
+        Build_Road ((choose_road settlement_two color st),
+                    Build_Settlement settlement_two)
+      else
+        Neither (Build_City city)
+    with _ -> Neither (Build_Road ((0, 0), Build_Settlement 0))
   else
     Neither (Build_Road ((0, 0), Build_Settlement 0))
 
