@@ -100,15 +100,7 @@ let roll_dice s =
 let rec repl (cmd : command) (clr_opt : color option) (s : state) =
   let tmp = do_move cmd clr_opt s in
   let sx = if s.turn = tmp.turn && cmd <> Start then tmp else roll_dice tmp in
-  if sx.turn = Red then
-    let () =
-      match cmd with
-      | EndTurn -> if cmd = EndTurn then print_endline "Ok.\n" else ()
-      | DomesticTrade (false, lst1, lst2) ->
-        failwith "TODO"
-      | _ -> ()
-    in
-    repl (choose sx.turn sx) None sx
+  if sx.turn <> Red then repl (choose sx.turn sx) None sx
   else begin
     begin
       match cmd with
@@ -142,6 +134,7 @@ let rec repl (cmd : command) (clr_opt : color option) (s : state) =
       | exception End_of_file -> Invalid
       | str -> Command.parse_text s.canvas.tiles str
     in
+    if cmdx = EndTurn then print_endline "Ok.\n" else ();
     repl cmdx None sx end
 
 let main () =
