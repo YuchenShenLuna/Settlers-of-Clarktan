@@ -905,9 +905,9 @@ let generate_resource num st =
     | [] -> st
     | (col, (resource, mul))::t ->
       begin
-        let rec new_players playerlst acc =
+        let rec new_players playerlst =
         match playerlst with
-        | [] -> acc
+          | [] -> []
         | h::t ->
           if h.color = col then
             let newp =
@@ -920,10 +920,10 @@ let generate_resource num st =
               | Some Ore -> {h with ore = h.ore + mul}
               | None -> h
             end
-            in new_players t (newp::acc)
+            in newp::(new_players t)
           else
-            new_players t (h::acc)
-        in help {st with players = new_players st.players []} t
+            h::(new_players t)
+        in help {st with players = new_players st.players} t
       end
   in help st info
 
