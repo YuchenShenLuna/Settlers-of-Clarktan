@@ -336,8 +336,17 @@ let draw_canvas s =
 
 let update_canvas s =
   invisible_robbers s;
+  set_color 0x4b86b4;
+  fill_rect 295 135 400 20;
   draw_resource s;
+  set_color 0x4b86b4;
+  fill_rect 5 475 193 20;
+  fill_rect 5 265 193 20;
+  fill_rect 800 475 193 20;
+  fill_rect 800 265 193 20;
   draw_player_infos s;
+  set_color 0x4b86b4;
+  fill_rect 205 310 70 160;
   draw_card_infos s;
   update_roads s;
   update_houses s
