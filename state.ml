@@ -47,9 +47,9 @@ let init_canvas () =
     let rec helper f n acc =
       if n = 0 then acc else f () :: acc |>  helper f (n - 1)
     in
-    let l0 = [ Some 2; Some 3; Some 4; Some 5; Some 6; Some 7;
+    let l0 = [ Some 2; Some 3; Some 4; Some 5; Some 6;
                Some 8; Some 9; Some 10; Some 11; Some 12 ]
-             |> shuffle |> helper roll 7 in
+             |> shuffle |> helper roll 8 in
     let l1 = [ Some Lumber; Some Wool; Some Grain; Some Brick; Some Ore;
                Some Lumber; Some Wool; Some Grain; Some Brick; Some Ore;
                Some Lumber; Some Wool; Some Grain; Some Brick; Some Ore ]
@@ -241,8 +241,9 @@ let init_state () =
   { robber = desert canvas.tiles;
     deck = shuffle [ Knight; VictoryPoint; Knight; RoadBuilding;YearOfPlenty;
                      Knight; RoadBuilding; Knight; Knight; VictoryPoint; Knight;
-                     Knight; Monopoly; Knight; YearOfPlenty; Knight; Knight; VictoryPoint; Knight;
-                     Knight; Knight; Monopoly; VictoryPoint; Knight; VictoryPoint ];
+                     Knight; Monopoly; Knight; YearOfPlenty; Knight; Knight;
+                     VictoryPoint; Knight; Knight; Knight; Monopoly;
+                     VictoryPoint; Knight; VictoryPoint ];
     players;
     turn = (List.hd players).color;
     canvas }
