@@ -109,7 +109,7 @@ let rec split_list elt acc = function
 
 let parse_text tiles str =
   let str' = str |> String.trim |> String.lowercase_ascii in
-  match Str.split (Str.regexp "[ \n\r\x0c\t?.!]+") str' with
+  match Str.split (Str.regexp "[ \n\r\x0c\t()/:;,?.!]+") str' with
   | [] -> Invalid
   | h :: t ->
     match h with

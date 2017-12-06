@@ -1,5 +1,5 @@
-(* [roll_dice ()] is the sum of two dice rolls. *)
-val roll_dice : unit -> (int*int)*int
+(* [roll_die ()] represents a die roll. *)
+val roll_die : unit -> int
 
 (* [repl ()] runs the REPL. *)
 val repl : Command.command -> Elements.color option -> State.state -> unit

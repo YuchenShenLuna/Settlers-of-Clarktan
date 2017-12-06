@@ -5,10 +5,8 @@ open Elements
 open Player
 open Ai
 
-let roll_dice () =
-  let i1 = 1 + Random.int 6 in
-  let i2 = 1 + Random.int 6 in
-  (i1, i2), (i1 + i2)
+let roll_die () =
+  1 + Random.int 6
 
 let setup s =
   let rec settlement s =
@@ -80,7 +78,11 @@ let trade s = failwith ""
 let rec repl (cmd : command) (clr_opt : color option) (s : state) =
   let temp = do_move cmd clr_opt s in
   let sx =
-    if s.turn <> temp.turn then (roll_dice () |> snd |> generate_resource) temp
+    if s.turn <> temp.turn then
+      let d1 = roll_die () in
+      let d2 = roll_die () in
+      let _ = update_dice d1 d2 in
+      generate_resource (d1 + d2) temp
     else temp
   in
   let _ = update_canvas sx in
