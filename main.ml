@@ -17,7 +17,7 @@ let setup s =
     match () |> parse_mouse_click |> nearby_intersection s.canvas.tiles with
     | None -> print_endline "I am afraid I cannot do that.\n"; settlement s
     | Some i ->
-      let sx = eval (InitSettlement i) None s in
+      let sx = do_move (InitSettlement i) None s in
       if s = sx then
         begin
           print_endline "I am afraid I cannot do that.\n";
@@ -31,7 +31,7 @@ let setup s =
     match () |> parse_mouse_click |> nearby_edge s.canvas.tiles with
     | None -> print_endline "I am afraid I cannot do that.\n"; road s
     | Some i ->
-      let sx = eval (InitRoad i) None s in
+      let sx = do_move (InitRoad i) None s in
       if s = sx then
         begin
           print_endline "I am afraid I cannot do that.\n";
@@ -50,9 +50,9 @@ let setup s =
           temp |> road
         else
           let i = first_settlement s s.turn in
-          let temp = s |> eval (InitSettlement i) None in
+          let temp = s |> do_move (InitSettlement i) None in
           let r = init_road temp s.turn i in
-          temp |> eval (InitRoad r) None
+          temp |> do_move (InitRoad r) None
       in
       if n <> 3 then sx |> end_turn false |> helper (n + 1)
       else sx |> helper (n + 1)
@@ -65,9 +65,9 @@ let setup s =
             temp |> road
           else
             let i = second_settlement s s.turn in
-            let temp = s |> eval (InitSettlement i) None in
+            let temp = s |> do_move (InitSettlement i) None in
             let r = init_road temp s.turn i in
-            temp |> eval (InitRoad r) None
+            temp |> do_move (InitRoad r) None
         end
         |> init_generate_resources s.turn
       in
@@ -78,7 +78,7 @@ let setup s =
 let trade s = failwith ""
 
 let rec repl (cmd : command) (clr_opt : color option) (s : state) =
-  let temp = eval cmd clr_opt s in
+  let temp = do_move cmd clr_opt s in
   let sx =
     if s.turn <> temp.turn then (roll_dice () |> snd |> generate_resource) temp
     else temp
