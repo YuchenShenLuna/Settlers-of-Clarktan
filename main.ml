@@ -72,7 +72,8 @@ let setup s =
         end
         |> init_generate_resources s.turn
       in
-      sx |> end_turn false |> helper (n + 1)
+      if n <> 7 then sx |> end_turn false |> helper (n + 1)
+      else sx |> helper (n + 1)
   in
   s |> helper 0
 
@@ -83,16 +84,16 @@ let roll_dice s =
   let d2 = 1 + Random.int 6 in
   let sx = if d1 + d2 <> 7 then generate_resource (d1 + d2) s else robber s in
   let msg =
-    begin
-      if s.turn = Red then "It's your turn. You have rolled a "
-      else
-        let name = string_of_color s.turn in
-        "It's " ^ name ^ "'s" ^ " turn. " ^ name ^ " has rolled a "
-    end
-    ^ string_of_int (d1 + d2) ^ ".\n"
+    if s.turn = Red then
+      "It's your turn. You have rolled a "
+      ^ string_of_int (d1 + d2) ^ ". "
+    else
+      let name = string_of_color s.turn in
+      "It's " ^ name ^ "'s" ^ " turn. " ^ name ^ " has rolled a "
+      ^ string_of_int (d1 + d2) ^ ".\n\n"
   in
   ANSITerminal.(print_string [cyan] msg);
-  print_newline ();
+  print_string "";
   update_dice d1 d2;
   update_canvas sx;
   sx
@@ -100,6 +101,8 @@ let roll_dice s =
 let rec repl (cmd : command) (clr_opt : color option) (s : state) =
   let tmp = do_move cmd clr_opt s in
   let sx = if s.turn = tmp.turn && cmd <> Start then tmp else roll_dice tmp in
+  let _ = List.iter (fun p -> p.color |> string_of_color |> print_string) sx.players in
+ let _ = print_newline () in
   if sx.turn <> Red then repl (choose sx.turn sx) None sx
   else begin
     begin
@@ -134,8 +137,12 @@ let rec repl (cmd : command) (clr_opt : color option) (s : state) =
       | exception End_of_file -> Invalid
       | str -> Command.parse_text s.canvas.tiles str
     in
-    if cmdx = EndTurn then print_endline "Ok.\n" else ();
-    repl cmdx None sx end
+    match cmdx with
+    | DomesticTrade (false, lst0, lst1) ->
+      failwith "TODO"
+    | EndTurn -> print_endline "Ok.\n"; repl EndTurn None sx
+    | cmdx -> repl cmdx None sx
+  end
 
 let main () =
   let () = Random.self_init () in
