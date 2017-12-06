@@ -141,7 +141,7 @@ let parse_text tiles str =
     match h with
     | "quit" | "exit" | "stop" -> Quit
     | "done" | "next" | "proceed" | "finished" -> EndTurn
-    | "end" -> if List.mem "game" t || List.mem "app" t then Quit else EndTurn
+    | "e" | "end" -> if List.mem "game" t || List.mem "app" t then Quit else EndTurn
     | "buy" | "purchase" -> BuyCard
     | "build" | "construct" | "make" | "create" | "establish" ->
       if List.mem "settlement" t then

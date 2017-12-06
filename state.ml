@@ -537,7 +537,7 @@ let build_city ind st =
   let new_players =
     st.players |>
     List.map (fun x -> if x.color <> st.turn then x
-               else {x with grain = x.grain-3; ore = x.ore-2})
+               else {x with grain = x.grain-2; ore = x.ore-3})
   in
   let new_tiles =
     st.canvas.tiles
