@@ -3,23 +3,21 @@ open State
 open Command
 open Elements
 
-let score_tests =
-[
-  "init_score" >:: (fun _ -> assert_equal 0 (state_to_test |> score Red));
-]
-
-let resource_tests =
-[
-  "init_resources" >:: (fun _ -> assert_equal 0
-                          (state_to_test |> num_all_resources Red));
-]
-
 (* card int list no dups no zeros *)
 let cmp l0 l1 =
   List.length l0 = List.length l1
   && List.fold_left (fun acc x -> List.assoc (fst x) l1 = snd x && acc) true l0
 
 let card_tests =[
+  "init_score" >:: (fun _ -> assert_equal 0 (state_to_test |> score Red));
+  "init_resources_red" >:: (fun _ -> assert_equal 25
+                           (state_to_test |> num_all_resources Red));
+  "init_resources_green" >:: (fun _ -> assert_equal 25
+                                 (state_to_test |> num_all_resources Green));
+  "init_resources_blue" >:: (fun _ -> assert_equal 25
+                                 (state_to_test |> num_all_resources Blue));
+  "init_resources_yellow" >:: (fun _ -> assert_equal 25
+                                 (state_to_test |> num_all_resources Yellow));
   "init_cards" >:: (fun _ -> assert_equal [] (state_to_test |> cards Red));
   "init_resource_number_wool" >::
     (fun _ -> assert_equal 5 (state_to_test |> num_resource Red Wool));
@@ -31,7 +29,6 @@ let card_tests =[
     (fun _ -> assert_equal 5 (state_to_test |> num_resource Red Brick));
   "init_resource_number_ore" >::
     (fun _ -> assert_equal 5 (state_to_test |> num_resource Red Ore));
-  (*"init_resource_number_all" >:: (fun _ -> assert_equal 15 (state_to_test |> num_all_resources Red));*)
   "buy_card" >::
   (fun _ -> assert_equal ~cmp [YearOfPlenty, 1]
       (state_to_test
@@ -167,6 +164,39 @@ let card_tests =[
       |> end_turn true
       |> do_move (MaritimeTrade (true,(Wool,4),(Ore,1))) (Some Blue)
       |>num_resource Blue Ore));
+  "blue_turn_trade_with_bank_checking_brick" >::
+      (fun _ -> assert_equal 5
+          (state_to_test
+          |> do_move BuyCard (Some Red)
+          |> do_move BuyCard (Some Red)
+          |> end_turn true
+          |> generate_resource 3
+          |> do_move BuyCard (Some Yellow)
+          |> end_turn true
+          |> do_move (MaritimeTrade (true,(Wool,4),(Ore,1))) (Some Blue)
+          |>num_resource Blue Brick));
+  "blue_turn_trade_with_bank_checking_grain" >::
+      (fun _ -> assert_equal 5
+        (state_to_test
+          |> do_move BuyCard (Some Red)
+          |> do_move BuyCard (Some Red)
+          |> end_turn true
+          |> generate_resource 3
+          |> do_move BuyCard (Some Yellow)
+          |> end_turn true
+          |> do_move (MaritimeTrade (true,(Wool,4),(Ore,1))) (Some Blue)
+          |>num_resource Blue Grain));
+  "blue_turn_trade_with_bank_checking_grain" >::
+      (fun _ -> assert_equal 5
+         (state_to_test
+          |> do_move BuyCard (Some Red)
+          |> do_move BuyCard (Some Red)
+          |> end_turn true
+          |> generate_resource 3
+          |> do_move BuyCard (Some Yellow)
+          |> end_turn true
+          |> do_move (MaritimeTrade (true,(Wool,4),(Ore,1))) (Some Blue)
+          |>num_resource Blue Lumber));
   "green_turn_trade_build_settlement_near_port" >::
   (fun _ -> assert_equal 1
       (state_to_test
@@ -180,6 +210,19 @@ let card_tests =[
       |>end_turn true
       |>do_move (BuildSettlement 5) (Some Green)
       |>score Green));
+  "green_turn_trade_build_settlement_near_port_turn_check" >::
+  (fun _ -> assert_equal Green
+      (state_to_test
+      |> do_move BuyCard (Some Red)
+      |>do_move BuyCard (Some Red)
+      |> end_turn true
+      |> generate_resource 3
+      |> do_move BuyCard (Some Yellow)
+      |> end_turn true
+      |> do_move (MaritimeTrade (true,(Wool,4),(Ore,1))) (Some Blue)
+      |>end_turn true
+      |>do_move (BuildSettlement 5) (Some Green)
+      |>turn));
   "green_turn_trade_with_port" >::
   (fun _ -> assert_equal 0
       (state_to_test
@@ -222,6 +265,20 @@ let card_tests =[
       |> do_move (BuildSettlement 5) (Some Green)
       |> do_move (MaritimeTrade (true,(Brick,4),(Wool,2))) (Some Green)
       |> num_resource Green Wool));
+  "green_turn_trade_with_port_grain" >::
+  (fun _ -> assert_equal 5
+      (state_to_test
+      |> do_move BuyCard (Some Red)
+      |> do_move BuyCard (Some Red)
+      |> end_turn true
+      |> generate_resource 3
+      |> do_move BuyCard (Some Yellow)
+      |> end_turn true
+      |> do_move (MaritimeTrade (true,(Wool,4),(Ore,1))) (Some Blue)
+      |> end_turn true
+      |> do_move (BuildSettlement 5) (Some Green)
+      |> do_move (MaritimeTrade (true,(Brick,4),(Wool,2))) (Some Green)
+      |> num_resource Green Grain));
   "turn_update_green" >::
   (fun _ -> assert_equal Green
       (state_to_test
@@ -337,8 +394,40 @@ let card_tests =[
            |> do_move BuyCard (Some Red)
            |>do_move BuyCard (Some Red)
            |> num_all_resources Red));
+  "yellow_score" >::
+           (fun _ -> assert_equal 0
+               (state_to_test
+               |> do_move BuyCard (Some Red)
+               |> do_move BuyCard (Some Red)
+               |> end_turn true
+               |> generate_resource 3
+               |> do_move BuyCard (Some Yellow)
+               |> end_turn true
+               |> do_move (MaritimeTrade (true,(Wool,4),(Ore,1))) (Some Blue)
+               |> end_turn true
+               |> do_move (BuildSettlement 5) (Some Green)
+               |> do_move (MaritimeTrade (true,(Brick,4),(Wool,2))) (Some Green)
+               |> end_turn true
+               |> do_move (PlayYearOfPlenty (Ore,Wool)) (Some Red)
+               |> score Yellow));
+  "green_score" >::
+              (fun _ -> assert_equal 0
+                (state_to_test
+                |> do_move BuyCard (Some Red)
+                |> do_move BuyCard (Some Red)
+                |> end_turn true
+                |> generate_resource 3
+                |> do_move BuyCard (Some Yellow)
+                |> end_turn true
+                |> do_move (MaritimeTrade (true,(Wool,4),(Ore,1))) (Some Blue)
+                |> end_turn true
+                |> do_move (BuildSettlement 5) (Some Green)
+                |> do_move (MaritimeTrade (true,(Brick,4),(Wool,2))) (Some Green)
+                |> end_turn true
+                |> do_move (PlayYearOfPlenty (Ore,Wool)) (Some Red)
+                |> score Blue));
 ]
 
-let suite = "" >::: score_tests @ card_tests
+let suite = "" >:::  card_tests
 
 let _ = run_test_tt_main suite
