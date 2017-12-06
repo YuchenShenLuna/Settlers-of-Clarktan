@@ -122,6 +122,7 @@ let rec repl (cmd : command) (clr_opt : color option) (s : state) =
     repl cmdx None sx end
 
 let main () =
+  let _ = Random.self_init () in
   let s = init_state () in
   Graphics.open_graph " 1000x750";
   Graphics.set_window_title "Settlers of Clarktan by Yuchen Shen, Yishu Zhang, \

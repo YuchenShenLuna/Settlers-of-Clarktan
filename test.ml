@@ -326,6 +326,17 @@ let card_tests =[
       |> end_turn true
       |> do_move (PlayYearOfPlenty (Ore,Wool)) (Some Red)
       |> num_resource Red Wool));
+  "resource_quantity_buy_card_brick" >::
+      (fun _ -> assert_equal  22
+          (state_to_test
+           |> do_move BuyCard (Some Red)
+           |> num_all_resources Red));
+  "resource_quantity_buy_card" >::
+      (fun _ -> assert_equal 19
+          (state_to_test
+           |> do_move BuyCard (Some Red)
+           |>do_move BuyCard (Some Red)
+           |> num_all_resources Red));
 ]
 
 let suite = "" >::: score_tests @ card_tests
