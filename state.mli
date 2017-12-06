@@ -243,9 +243,9 @@ val largest_army : state -> state
  * raises: Not_found if the player whose turn it is does not exist. *)
 val end_turn : bool -> state -> state
 
-(* [eval cmd color st] is the game state after a command [cmd] is
+(* [do_move cmd color st] is the game state after a command [cmd] is
  * executed. *)
-val eval : Command.command -> color option -> state -> state
+val do_move : Command.command -> color option -> state -> state
 
 (*****************************************************************************
  *                                   TEST                                    *

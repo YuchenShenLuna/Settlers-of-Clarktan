@@ -1073,7 +1073,7 @@ let end_turn forward s =
   let turn = (List.nth s.players ((index 0 s.players + inc) mod 4)).color in
   { s with turn }
 
-let eval cmd color_opt st =
+let do_move cmd color_opt st =
   try
     match cmd with
     | Start -> st
