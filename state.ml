@@ -51,8 +51,9 @@ let init_canvas () =
                Some 8; Some 9; Some 10; Some 11; Some 12 ]
              |> shuffle |> helper roll 7 in
     let l1 = [ Some Lumber; Some Wool; Some Grain; Some Brick; Some Ore;
+               Some Lumber; Some Wool; Some Grain; Some Brick; Some Ore;
                Some Lumber; Some Wool; Some Grain; Some Brick; Some Ore ]
-             |> shuffle |> helper random_resource 8 in
+             |> shuffle |> helper random_resource 3 in
     (None, None) :: (List.combine l0 l1) |> shuffle
   in
   let pinfo =
