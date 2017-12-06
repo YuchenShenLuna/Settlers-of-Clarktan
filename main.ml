@@ -54,7 +54,7 @@ let setup s =
           let r = init_road temp s.turn i in
           temp |> do_move (InitRoad r) None
       in
-      if n <> 3 then sx |> end_turn false |> helper (n + 1)
+      if n <> 3 then sx |> end_turn true |> helper (n + 1)
       else sx |> helper (n + 1)
     else
       let sx =

@@ -428,7 +428,7 @@ let choose_settlement st color =
   if possibles = [] then -1
   else
     List.fold_left
-      (fun acc x -> if calc_value_house x > calc_value_house acc
+      (fun acc x -> if calc_value_house x st color > calc_value_house acc st color
         then x else acc) (List.hd possibles) possibles
 
 (* [roads] represent all potential edges upon which roads can be build
@@ -492,9 +492,12 @@ let choose_road ind color st =
  * by color [color] should seek to upgrade to at current state [st] *)
 let choose_city st color =
   let possibles = get_possible_city_ind st color can_build_city_ai in
-  List.fold_left
-    (fun acc x -> if calc_value_house x > calc_value_house acc
-      then x else acc) (List.hd possibles) possibles
+  if possibles = [] then
+    -1
+  else
+    List.fold_left
+      (fun acc x -> if calc_value_house x st color > calc_value_house acc st color
+        then x else acc) (List.hd possibles) possibles
 
 (* [enough_res_for_settlement st color] returns whether the player has
  * obtained enough resources for building a settlement *)
@@ -530,12 +533,12 @@ let possible_city st color =
 let make_build_plan st color =
   let can_settlement = enough_res_for_settlement st color
                        && choose_settlement st color <> -1 in
-  let can_city = enough_res_for_city st color in
+  let can_city = enough_res_for_city st color && choose_city st color <> -1 in
   let can_road = enough_res_for_road st color in
   if can_settlement && can_city then
     let settlement = choose_settlement st color in
     let city = choose_city st color in
-    if calc_value_house settlement > calc_value_house city then
+    if calc_value_house settlement st color > calc_value_house city st color then
       Build_Settlement settlement
     else
       Build_City city
@@ -567,9 +570,9 @@ let make_build_plan st color =
                           else (acc1, acc2)) (0, 0)
       |> snd
     in
-    let val_set1 = calc_value_house settlement_one in
-    let val_set2 = calc_value_house settlement_two in
-    let val_c = calc_value_house city in
+    let val_set1 = calc_value_house settlement_one st color in
+    let val_set2 = calc_value_house settlement_two st color in
+    let val_c = calc_value_house city st color in
     if val_set1 >= val_set2 && val_set1 >= val_c then
       Build_Road ((choose_road settlement_one color st),
                   Build_Settlement settlement_one)
@@ -782,7 +785,7 @@ let want_play_knight color s =
   && (blocked color s
       || List.fold_left (
         fun acc p ->
-          if p.color != color then not (blocked p.color s) || acc else acc
+          if p.color <> color then not (blocked p.color s) || acc else acc
       ) false s.players
       || num_all_cards color s > 10)
 
