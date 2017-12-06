@@ -527,7 +527,7 @@ let can_build_city color ind st =
     failwith "You cannot build city at this place"
   else
     let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
-    if player.grain < 3 || player.ore < 2 then
+    if player.grain < 2 || player.ore < 3 then
       failwith "You do not have enough resource to build a city"
     else true
 
