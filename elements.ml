@@ -35,3 +35,10 @@ let string_of_color = function
   | Blue -> "Blue"
   | Green -> "Green"
   | Yellow -> "Yellow"
+
+let string_of_resource = function
+  | Lumber -> "Lumber"
+  | Grain -> "Grain"
+  | Wool -> "Wool"
+  | Brick -> "Brick"
+  | Ore -> "Ore"

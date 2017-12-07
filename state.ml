@@ -653,19 +653,36 @@ let trade_ok to_remove to_add partner_opt s =
     && s |> add_resources to_add s.turn |> player_ok s.turn
     && s |> add_resources to_remove partner |> player_ok partner
 
+let print_resources =
+  List.iter (
+    fun (r, n) ->
+      let msg = string_of_resource r ^ " * " ^ string_of_int n in
+      print_endline msg
+  )
+
 let domestic to_remove to_add partner s =
   if trade_ok to_remove to_add (Some partner) s then
     s |> remove_resources to_remove s.turn
     |> remove_resources to_add partner
     |> add_resources to_add s.turn
     |> add_resources to_remove partner
-  else failwith "Bad trade!"
+  else
+    let () = print_endline "REMOVE:" in
+    let () = print_resources to_remove in
+    let () = print_endline "ADD:" in
+    let () = print_resources to_add in
+    failwith "Bad trade!"
 
 let maritime to_remove to_add s =
   if trade_ok to_remove to_add None s then
     s |> remove_resources to_remove s.turn
     |> add_resources to_add s.turn
-  else failwith "Bad trade!"
+  else
+    let () = print_endline "REMOVE:" in
+    let () = print_resources to_remove in
+    let () = print_endline "ADD:" in
+    let () = print_resources to_add in
+    failwith "Bad trade!"
 
 (*****************************************************************************
  *                          PLAY A DEVELOPMENT CARD                          *
