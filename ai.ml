@@ -78,6 +78,59 @@ let resource_priority_diff_stage color st res =
     | Ore    -> 3
     | Grain  -> 3
 
+(* [priority_easeir_AI col st res] is an easier implementation of a bot of a
+ * lower level of difficulty for game play. *)
+let priority_easeir_AI color st res =
+  let score = obtain_score color st in
+  if score < 5 then
+    match res with
+    | Lumber -> 3
+    | Wool   -> 2
+    | Brick  -> 3
+    | Ore    -> 1
+    | Grain  -> 2
+  else if score < 9 then
+    match res with
+    | Lumber -> 3
+    | Wool   -> 1
+    | Brick  -> 3
+    | Ore    -> 3
+    | Grain  -> 3
+  else
+    match res with
+    | Lumber -> 3
+    | Wool   -> 1
+    | Brick  -> 3
+    | Ore    -> 3
+    | Grain  -> 3
+
+(* [priority_easiest_AI col st res] is the easiest implementation of a bot of a
+ * lowest level of difficulty for game play. *)
+let priority_easiest_AI color st res =
+  let score = obtain_score color st in
+  if score < 5 then
+    match res with
+    | Lumber -> 1
+    | Wool   -> 1
+    | Brick  -> 1
+    | Ore    -> 1
+    | Grain  -> 1
+  else if score < 9 then
+    match res with
+    | Lumber -> 1
+    | Wool   -> 1
+    | Brick  -> 1
+    | Ore    -> 1
+    | Grain  -> 1
+  else
+    match res with
+    | Lumber -> 1
+    | Wool   -> 1
+    | Brick  -> 1
+    | Ore    -> 1
+    | Grain  -> 1
+
+
 (* [list_of_resources color st] returns the list of resources under state [st]
  * for player identified by color [color] *)
 let list_of_resources color st =
@@ -680,6 +733,8 @@ let rec get_next_resources p =
  *                                   TRADE                                   *
  *****************************************************************************)
 
+(* [current_value color s] returns the current value for player identified
+ * by color [color] under state [s]. *)
 let current_value color s =
   let next = get_next_resources (make_build_plan s color) in
   let value r =
@@ -693,11 +748,15 @@ let current_value color s =
   (value Grain) * player.grain +
   (value Ore) * player.ore
 
+(* [potential_value r1 r2 c s] returns the potential value for player identified
+ * by color [c] can gain if he / she trades [r1] for [r2] under state [s]. *)
 let potential_value to_remove to_add color s =
   s |> remove_resources to_remove color
   |> add_resources to_add color
   |> current_value color
 
+(* [desired_resource color s] returns the most desired resource for player
+ * identified by color [color] under state [s]. *)
 let desired_resource color s =
   let next = get_next_resources (make_build_plan s color) in
   let value r =
@@ -707,6 +766,8 @@ let desired_resource color s =
   let cmp a b = compare (value a) (value b) in
   [ Lumber; Wool; Grain; Ore; Brick ] |> List.sort cmp |> List.hd
 
+(* [dleast_esired_resource color s] returns the least desired resource for player
+ * identified by color [color] under state [s]. *)
 let least_desired_resource color s =
   let next = get_next_resources (make_build_plan s color) in
   let value r =
@@ -716,23 +777,31 @@ let least_desired_resource color s =
   let cmp a b = compare (value a) (value b) in
   s |> list_of_resources color |> List.sort cmp |> List.rev |> List.hd
 
+(* [want_accept_trade r1 r2 c s] determines whether the ai identified by
+ * color [color] wants to trade under state [s]. *)
 let want_accept_trade to_remove to_add color s =
   current_value color s < potential_value to_remove to_add color s
   && trade_ok to_add to_remove (Some color) s
   && score s.turn s <= 8
   && score s.turn s - score color s <= 5
 
+(* [choose_domestic_trade s] determines whether the ai identified by
+ * color [color] wants to choose to trade domestically under state [s]. *)
 let choose_domestic_trade s =
   let to_remove = [least_desired_resource s.turn s, 1] in
   let to_add = [desired_resource s.turn s, 1] in
   to_remove, to_add
 
+(* [choose_maritime_trade s] determines whether the ai identified by
+ * color [color] wants to choose to trade with ports under state [s]. *)
 let choose_maritime_trade s =
   let r = least_desired_resource s.turn s in
   let to_remove = [r, best_rate r s.turn s] in
   let to_add = [desired_resource s.turn s, 1] in
   to_remove, to_add
 
+(* [want_maritime_trade s] determines whether the ai identified by
+ * color [color] wants to choose to trade with ports under state [s]. *)
 let want_maritime_trade s =
   match choose_maritime_trade s with
   | to_remove, to_add ->
@@ -743,11 +812,14 @@ let want_maritime_trade s =
  *                             DEVELOPMENT CARDS                             *
  *****************************************************************************)
 
+(* [max_score s] calculates the maximum score for players under state [s] *)
 let max_score s =
   List.fold_left (
     fun acc x -> if acc < x.score then x.score else acc
   ) 0 s.players
 
+(* [num_cards card color s] is the number of [card] cards the player identified
+ * by color [color] has under state [s]. *)
 let num_card card color s =
   let player = get_player color s in
   match card with
@@ -757,6 +829,8 @@ let num_card card color s =
   | Monopoly -> player.monopoly
   | VictoryPoint -> player.victory_point
 
+(* [num_all_cards color s] calculates the total number of cards the player
+ * identified by color [color] has under state [s]. *)
 let num_all_cards color s =
   num_card Knight color s
   + num_card RoadBuilding color s
@@ -784,6 +858,8 @@ let blocked color s =
     else hex.resource = Some Ore || hex.resource = Some Grain
   end
 
+(* [want_play_knight color s] determines whether the ai identified by color
+ * [color] wants to play a knight card under state [s]. *)
 let want_play_knight color s =
   has_card Knight color s
   && num_all_resources color s <= 7
@@ -794,12 +870,18 @@ let want_play_knight color s =
       ) false s.players
       || num_all_cards color s > 10)
 
+(* [want_play_road_building color s] determines whether the ai identified by color
+ * [color] wants to play a road_building card under state [s]. *)
 let want_play_road_building color s =
   has_card RoadBuilding color s && want_build_road color s
 
+(* [want_play_year_of_plenty color s] determines whether the ai identified by color
+ * [color] wants to play a year_of_plenty card under state [s]. *)
 let want_play_year_of_plenty color s =
   has_card YearOfPlenty color s
 
+(* [want_play_monopoly color s] determines whether the ai identified by color
+ * [color] wants to play the monopoly card under state [s]. *)
 let want_play_monopoly color s =
   has_card Monopoly color s
   && max_score s >= 7
@@ -842,6 +924,9 @@ let choose_build_roads color s =
   | None -> failwith "Sorry no road building possible at this stage"
   | Some (r1, r2) -> (r1, r2)
 
+(* [choose_robber_spot color s] chooses the spot on the board that the
+ * AI identified by color [color] wants to move the robber to under
+ * state [s]. *)
 let choose_robber_spot color s =
   let robber_opt color s =
     let ok = List.fold_left (fun acc (_, (c, _)) -> acc && c <> color) true in
@@ -861,6 +946,9 @@ let choose_robber_spot color s =
     in
     index tile 0 s.canvas.tiles
 
+(* [choose_two_resources color s] picks the two resources the AI identified
+ * by color [color] wants to obtain by playing the year of plenty card under
+ * state [s]. *)
 let choose_two_resources color s =
   let player = get_player color s in
   let hand = [ Lumber; Lumber; Wool; Wool; Grain;
@@ -909,6 +997,9 @@ let choose_two_resources color s =
   | h :: x :: _ -> h, x
   | _ -> failwith "Impossible"
 
+(* [choose_monopoly color s] chooses the monopoly resource the AI identified
+ * by color [color] wants to have under state [s] by playing the monopoly
+ * card. *)
 let choose_monopoly color s =
   match get_next_resources (make_build_plan s color) with
   | [] -> failwith "Impossible"
@@ -918,6 +1009,8 @@ let choose_monopoly color s =
  *                              MISCELLANEOUS                                *
  *****************************************************************************)
 
+(* [choose_discard_resource color s] chooses the resources the AI identified
+ * by color [color] wants to discard under state [s] when robbed. *)
 let choose_discard_resource color s =
   let hand = list_of_resources color s |> shuffle in
   let value =
@@ -958,6 +1051,8 @@ let choose_discard_resource color s =
  *                                CHOOSE MOVE                                *
  *****************************************************************************)
 
+(* [choose color s] chooses the next action the AI wants to do and finishes
+ * that action. *)
 let choose color s =
   if want_build_settlement color s then
     BuildSettlement (choose_settlement s color)

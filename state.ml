@@ -592,12 +592,18 @@ let buy_card st =
  *                                   TRADE                                   *
  *****************************************************************************)
 
+(* [get_player color s] returns the player identified by color [color] under
+ * state [s]. *)
 let get_player color s = List.find (fun p -> p.color = color) s.players
 
+(* [player_ok color s] checks whether a player has enough resources for
+ * each resource under state [s]. *)
 let player_ok color s =
   let p = get_player color s in
   p.lumber >= 0 && p.wool >= 0 && p.grain >= 0 && p.brick >= 0 && p.ore >= 0
 
+(* [add_resources r c s] adds resource [r] to player identified by color
+ * [c] under state [s]. *)
 let add_resources to_add color s =
   let rec add player = function
     | [] -> player
@@ -615,10 +621,14 @@ let add_resources to_add color s =
     ) s.players in
   { s with players }
 
+(* [remove_resources r col s] removes the resource [r] from the player identified
+ * by color [col] under state [s]. *)
 let remove_resources to_remove color s =
   let to_add = List.map (fun (r, n) -> r, (-n)) to_remove in
   add_resources to_add color s
 
+(* [best_rate res col s] determines the best trading rate for resource [res]
+ * and player identified by color [color] under state [s]. *)
 let best_rate resource color s =
   let is_settled intersection =
     List.fold_left (
@@ -640,6 +650,8 @@ let best_rate resource color s =
   in
   List.fold_left (fun acc x -> if x.rate < acc then x.rate else acc) 4 ports
 
+(* [trade_ok r1 r2 p s] checks whether a trade is possible for player [p]
+ * by trading r1 for r2 under state [s]. *)
 let trade_ok to_remove to_add partner_opt s =
   match partner_opt with
   | None ->
@@ -653,6 +665,8 @@ let trade_ok to_remove to_add partner_opt s =
     && s |> add_resources to_add s.turn |> player_ok s.turn
     && s |> add_resources to_remove partner |> player_ok partner
 
+(* [print_resources col s] prints the resources for player identified by
+ * color [col] under state [s]. *)
 let print_resources color s =
   let player = get_player color s in
   let start = if color = Red then "Your" else string_of_color color ^ "'s" in
@@ -666,6 +680,8 @@ let print_resources color s =
   in
   print_endline msg; ()
 
+(* [domestic r1 r2 p s] does domestic trading for player [p] by trading
+ * [r1] for [r2] under state [s]. *)
 let domestic to_remove to_add partner s =
   if trade_ok to_remove to_add (Some partner) s then
     s |> remove_resources to_remove s.turn
@@ -677,6 +693,8 @@ let domestic to_remove to_add partner s =
     let () = print_resources partner s in
     failwith "Bad trade!"
 
+(* [maritime r1 r2 p s] does maritime trading for player [p] by trading
+ * [r1] for [r2] under state [s]. *)
 let maritime to_remove to_add s =
   if trade_ok to_remove to_add None s then
     s |> remove_resources to_remove s.turn
@@ -700,6 +718,8 @@ let num_resource color resource st =
   | Brick  -> player.brick
   | Ore    -> player.ore
 
+(* [num_all_resources color st] is the numbver of resources for player identified
+ * by color [color] has under state [st]. *)
 let num_all_resources color st =
   num_resource color Lumber st +
   num_resource color Wool st +
@@ -1059,6 +1079,9 @@ let do_move cmd color_opt st =
  *                                   TEST                                    *
  *****************************************************************************)
 
+(* this part of state contains utility functions of testing purposes. *)
+
+(* [canvas_to_test] makes up test cases for certain canvases. *)
 let canvas_to_test =
   let center = 500., 375. in
   let length = 50. in
@@ -1230,6 +1253,7 @@ let canvas_to_test =
     ]
   }
 
+(* [state_to_test] drafts up states for testing. *)
 let state_to_test =
   let players =
     [ {(Player.init_player Red)
@@ -1330,6 +1354,7 @@ let ports color st =
   ) [] st.canvas.ports
   |> List.sort_uniq cmp
 
+(* [cards col st] returns a list of cards for the player [color] under state [s]*)
 let cards color st =
   let player = get_player color st in
   List.filter (
@@ -1338,6 +1363,8 @@ let cards color st =
       YearOfPlenty, player.year_of_plenty; Monopoly, player.monopoly;
       VictoryPoint, player.victory_point ]
 
+(* [resources col st] returns a list of resources for player [color] under
+ * state [st]. *)
 let resources color st =
   let player = get_player color st in
   List.filter (

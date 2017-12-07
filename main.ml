@@ -5,6 +5,7 @@ open Elements
 open Player
 open Ai
 
+(* [setup s] completes the setting up stage for the game play. *)
 let setup s =
   let rec settlement s =
     ANSITerminal.(print_string [cyan] "Please pick a settlement.");
