@@ -49,8 +49,8 @@ let get_probability_card st res =
 (* [obtain_score color st] returns the number of victory points the player
  * identified by color [color] has in state [st] *)
 let obtain_score color st =
-  let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
-  player.score
+  (* let player = List.hd (List.filter (fun x -> x.color = color) st.players) in *)
+  score color st
 
 (* [resource_priority_diff_stage color st res] returns the priority of resource
  * [res] for player with color [color] under state [st] *)
@@ -460,11 +460,17 @@ let roads =
    (49, 50); (50, 61); (61, 60); (60, 59); (59, 48); (48, 49); (51, 52);
    (52, 63); (63, 62); (62, 61); (61, 50); (50, 51)]
 
+(* [check_build_road_ai road st col] checks whether a player identified by
+ * color [col] can build a road at index [road] at state [st]. *)
+let check_build_road_ai road st col =
+  try let _ = can_build_road col road st in true with
+  _ -> false
+
 (* [get_the_road st col] returns the road for player identified by color
  * [col] under state [st] in goal of reaching the longest road token,
  * only used after all other building road plans have failed. *)
 let get_the_road st col =
-  let info = List.filter (fun x -> check_build_road x st col) roads in
+  let info = List.filter (fun x -> check_build_road_ai x st col) roads in
   if info = [] then
     None
   else
@@ -489,11 +495,11 @@ let choose_road ind color st =
   let ind_one = index_obtainable_in_one_road st color in
   let ind_two = index_obtainable_in_two_roads st color in
   if List.mem ind ind_one then
-    if check_build_road (fetch_road_in_one ind st color) st color then
+    if check_build_road_ai (fetch_road_in_one ind st color) st color then
       fetch_road_in_one ind st color
     else if List.mem ind ind_two then
       let rd = (fetch_roads_in_two ind st color |> List.hd |> fst) in
-      if check_build_road rd st color then rd
+      if check_build_road_ai rd st color then rd
       else
         match get_the_road st color with
         | None -> (-1, -1)
@@ -504,7 +510,7 @@ let choose_road ind color st =
     | Some r -> r
   else if List.mem ind ind_two then
     let rd = (fetch_roads_in_two ind st color |> List.hd |> fst) in
-    if check_build_road rd st color then rd
+    if check_build_road_ai rd st color then rd
     else
       match get_the_road st color with
       | None -> (-1, -1)
@@ -615,7 +621,7 @@ let make_build_plan st color =
                     Build_Settlement settlement_two)
       else
         let extract opt = match opt with Some x -> x | None -> (-1, -1) in
-        if check_build_road (extract (get_the_road st color)) st color then
+        if check_build_road_ai (extract (get_the_road st color)) st color then
           let i = Random.int 3 in
           if i=1 then
             Build_Road ((extract (get_the_road st color), Build_City city))
@@ -865,6 +871,44 @@ let want_play_monopoly color s =
   has_card Monopoly color s
   && max_score s >= 7
 
+(* [choose_roads color s] chooses the two roads to build for the road_building
+ * development card owned by player with color [color]. *)
+let choose_build_roads color s =
+  let check_ai_road x =
+    try let _ = check_build_road x s color in true with _ -> false
+  in
+  let get_the_road st col =
+    let info = List.filter (fun x -> check_ai_road x) roads in
+    if info = [] then
+      None
+    else
+      let update_tiles rd =
+        let tiles = st.canvas.tiles in
+        tiles
+        |> List.map (fun x ->
+            if List.mem (fst rd) x.indices && List.mem (snd rd) x.indices then
+              {x with roads = (rd, col)::x.roads}
+            else x)
+      in
+      let get_state rd = {st with canvas = {tiles = update_tiles rd;
+                                            ports = st.canvas.ports}} in
+      let r1 =
+        (List.fold_left
+            (fun acc x -> if longest_road_length (get_state x) col >
+                             longest_road_length (get_state acc) col then x
+              else acc) (0, 0) info)
+      in
+      let r2 =
+        (List.fold_left
+           (fun acc x -> if x <> r1 && longest_road_length (get_state x) col >
+                            longest_road_length (get_state acc) col then x
+             else acc) (0, 0) info)
+      in Some (r1, r2)
+  in
+  match get_the_road s color with
+  | None -> failwith "Sorry no road building possible at this stage"
+  | Some (r1, r2) -> (r1, r2)
+
 let choose_robber_spot color s =
   let robber_opt color s =
     let ok = List.fold_left (fun acc (_, (c, _)) -> acc && c <> color) true in
@@ -992,10 +1036,12 @@ let choose color s =
   else if want_build_city color s then
     BuildCity (choose_city s color)
   else if want_build_road color s then
+    try
       match make_build_plan s color with
         | Build_Road (_, Build_Settlement i) -> BuildRoad (choose_road i color s)
         | Build_Road (e, _) -> BuildRoad e
         | _ -> EndTurn
+    with _ -> EndTurn
   else
     if want_buy_card color s then BuyCard
     else if want_play_monopoly color s then PlayMonopoly (choose_monopoly color s)
@@ -1003,5 +1049,9 @@ let choose color s =
     else if want_play_year_of_plenty color s then
       match choose_two_resources color s with
       | r0, r1 -> PlayYearOfPlenty (r0, r1)
-    else if want_play_road_building color s then failwith "Unimplemented"
+    else if want_play_road_building color s then
+      try
+        let (r1, r2) = choose_build_roads color s in
+        PlayRoadBuilding (r1, r2)
+      with _ -> EndTurn
     else EndTurn

@@ -144,7 +144,7 @@ let draw_info color st =
   let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
   let num_res =
     player.lumber + player.wool + player.grain + player.ore + player.brick in
-  let num_vic = player.score in
+  let num_vic = score color st in
   draw_string ("resources: "^(string_of_int num_res)^"  ");
   draw_string ("victory points: "^(string_of_int num_vic))
 
