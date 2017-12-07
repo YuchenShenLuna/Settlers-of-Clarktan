@@ -33,3 +33,5 @@ val shuffle : 'a list -> 'a list
 val string_of_color : color -> string
 
 val string_of_resource : resource -> string
+
+val string_of_card : card -> string

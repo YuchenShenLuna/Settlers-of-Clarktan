@@ -118,19 +118,21 @@ let rec repl (cmd : command) (clr_opt : color option) (s : state) =
   let _ = print_endline (string_of_command cmd); print_newline () in
   let sx = if s.turn = tmp.turn && cmd <> Start then tmp else roll_dice tmp in
   if sx <> s then update_canvas sx else ();
-  if sx.turn <> Red then repl (choose sx.turn sx) None sx
+  if sx.turn <> Red then
+    begin
+      begin
+        match cmd with
+        | PlayKnight i | Robber i ->
+          if s <> sx then draw_robber s.robber sx else ()
+        | _ -> ()
+      end;
+      repl (choose sx.turn sx) None sx
+    end
   else begin
     begin
       match cmd with
       | Start | EndTurn -> ()
       | BuyCard ->
-        let string_of_card = function
-          | Knight -> "knight"
-          | RoadBuilding -> "road building"
-          | YearOfPlenty -> "year of plenty"
-          | Monopoly -> "monopoly"
-          | VictoryPoint -> "victory point"
-        in
         if s <> sx then print_endline ("Ok. You have received a "
                                        ^ (s.deck |> List.hd |> string_of_card)
                                        ^ " card.\n")
@@ -140,6 +142,11 @@ let rec repl (cmd : command) (clr_opt : color option) (s : state) =
         else print_endline "I am afraid I cannot do that.\n"
       | Quit -> print_endline "Goodbye.\n"; raise Exit
       | Invalid -> print_endline "I do not understand.\n"
+      | PlayKnight i | Robber i ->
+        if s <> sx then
+          let () = draw_robber s.robber sx in
+          print_endline "Ok.\n"
+        else print_endline "I am afraid I cannot do that.\n";
       | _ ->
         if s <> sx then print_endline "Ok.\n"
         else print_endline "I am afraid I cannot do that.\n"

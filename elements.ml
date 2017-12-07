@@ -42,3 +42,10 @@ let string_of_resource = function
   | Wool -> "Wool"
   | Brick -> "Brick"
   | Ore -> "Ore"
+
+let string_of_card = function
+  | Knight -> "knight"
+  | RoadBuilding -> "road building"
+  | YearOfPlenty -> "year of plenty"
+  | Monopoly -> "monopoly"
+  | VictoryPoint -> "victory point"
