@@ -29,3 +29,9 @@ let shuffle d =
   let nd = List.map (fun c -> (Random.bits (), c)) d in
   let sond = List.sort compare nd in
   List.map snd sond
+
+let string_of_color = function
+  | Red -> "Red"
+  | Blue -> "Blue"
+  | Green -> "Green"
+  | Yellow -> "Yellow"

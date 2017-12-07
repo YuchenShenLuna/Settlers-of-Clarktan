@@ -140,35 +140,6 @@ val buy_card : state -> state
  *                                   TRADE                                   *
  *****************************************************************************)
 
-val ports_of_player_with_specific_resource_with_best_rate:
-  state -> color -> resource -> port option
-
-(* [ports_of_player_with_specific_resource st cl rs] returns ports with
- * resource rs for player with specific color cl in state st *)
-val ports_of_player_with_specific_resource :
-  state -> color -> resource -> port list
-
-(*[ports_of_player] returns to the port list of the player*)
-val ports_of_player : state -> color -> port list
-
-(* [trade_with_player st l1 l2 color st] updates the state when player at
- * state [st] trades with the bank.
- * raises: Failure when player cannot have a valid trade *)
-val trade_with_bank :
-  color -> (resource * int) list -> (resource * int) list -> state -> state
-
-(* [trade_with_port st l1 l2 color st] updates the state when player at
- * state [st] trades with a port.
- * raises: Failure when player cannot have a valid trade *)
-val trade_with_port :
-  color -> (resource * int) list -> (resource * int) list -> state -> state
-
-(* [trade_with_player st l1 l2 color st] updates the state when player at
- * state [st] trades with another player.
- * raises: Failure when player cannot have a valid trade *)
-val trade_with_player :
-  color -> (resource * int) list -> (resource * int) list -> state -> state
-
 (*****************************************************************************
  *                          PLAY A DEVELOPMENT CARD                          *
  *****************************************************************************)

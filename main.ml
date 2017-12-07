@@ -5,12 +5,6 @@ open Elements
 open Player
 open Ai
 
-let string_of_color = function
-  | Red -> "Red"
-  | Blue -> "Blue"
-  | Green -> "Green"
-  | Yellow -> "Yellow"
-
 let setup s =
   let rec settlement s =
     ANSITerminal.(print_string [cyan] "Please pick a settlement.");
@@ -107,8 +101,8 @@ let trade to_remove to_add s =
              && want_accept_trade s x.color to_add to_remove then
           let msg = "Would you like to trade with "
                     ^ string_of_color x.color
-                    ^ "?" in
-          print_endline msg;
+                    ^ "?\n> " in
+          print_string msg;
           let color_opt = if feedback () |> not then None else Some x.color in
           print_endline "Ok.\n";
           color_opt
@@ -159,8 +153,7 @@ let rec repl (cmd : command) (clr_opt : color option) (s : state) =
       | str -> Command.parse_text s.canvas.tiles str
     in
     match cmdx with
-    | DomesticTrade (l0, l1) ->
-      repl cmdx (trade l0 l1 sx) sx
+    | DomesticTrade (l0, l1) -> repl cmdx (trade l0 l1 sx) sx
     | _ -> repl cmdx None sx
   end
 

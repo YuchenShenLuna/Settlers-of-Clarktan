@@ -29,3 +29,5 @@ type edge = int * int
 
 (* [shuffle lst] is a permutation of [lst]. *)
 val shuffle : 'a list -> 'a list
+
+val string_of_color : color -> string
