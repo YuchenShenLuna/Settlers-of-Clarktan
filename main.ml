@@ -71,7 +71,17 @@ let setup s =
   in
   s |> helper 0
 
-let discard n s = failwith "TODO"
+let rec discard n s =
+  if n = 4 then s
+  else
+    let color = (List.nth s.players n).color in
+    if num_all_resources color s <= 7 then discard (n + 1) s
+    else if color = Red then
+      let n = num_all_resources color s / 2 in
+      let msg = "Please discard " ^ string_of_int n ^ " resources." in
+      failwith "TODO"
+    else failwith "TODO"
+        (*remember to call discard in robber*)
 
 let rec robber s =
   if s.turn = Red then
@@ -91,7 +101,6 @@ let rec robber s =
         print_endline (string_of_color s.turn ^ " has moved the robber.\n")
       end;
     sx
-
 
 let roll_dice s =
   let d1 = 1 + Random.int 6 in
