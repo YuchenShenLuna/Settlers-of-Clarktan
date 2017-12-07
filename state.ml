@@ -1078,7 +1078,6 @@ let end_turn forward s =
 let do_move cmd color_opt st =
   try
     match cmd with
-    | Start -> st
     | InitSettlement i -> init_build_settlement i st.turn st
     | InitRoad rd -> init_build_road rd st.turn st
     | BuildSettlement i -> build_settlement i st
@@ -1090,14 +1089,14 @@ let do_move cmd color_opt st =
     | PlayYearOfPlenty (rs0, rs1) -> play_year_of_plenty rs0 rs1 st
     | PlayMonopoly rs -> play_monopoly rs st
     | Robber i -> play_robber i st
-    | DomesticTrade (approved, lst0, lst1) ->
-      if approved then
+    | DomesticTrade (lst0, lst1) ->
+      begin
         match color_opt with
         | None -> invalid_arg "Requires a color."
         | Some color -> trade_with_player color lst0 lst1 st
-      else st
-    | MaritimeTrade (approved, p0, p1) ->
-      if approved then
+      end
+    | MaritimeTrade (p0, p1) ->
+      begin
         match color_opt with
         | None -> invalid_arg "Requires a color."
         | Some color ->
@@ -1106,7 +1105,7 @@ let do_move cmd color_opt st =
             | exception (Failure _) -> trade_with_bank st.turn [p0] [p1] st
             | stx -> stx
           end
-      else st
+      end
     | Discard lst ->
       begin
         match color_opt with
@@ -1114,8 +1113,7 @@ let do_move cmd color_opt st =
         | Some color -> discard_resource color lst st
       end
     | EndTurn -> end_turn true st
-    | Quit -> st
-    | Invalid -> st
+    | _ -> st
   with _ -> st
 
 (*****************************************************************************

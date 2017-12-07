@@ -97,9 +97,31 @@ let roll_dice s =
   update_dice d1 d2;
   sx
 
+let trade to_remove to_add s =
+  print_newline ();
+  match
+    List.fold_left (
+      fun acc x ->
+        if acc <> None then acc
+        else if x.color <> s.turn
+             && want_accept_trade s x.color to_add to_remove then
+          let msg = "Would you like to trade with "
+                    ^ string_of_color x.color
+                    ^ "?" in
+          print_endline msg;
+          let color_opt = if feedback () |> not then None else Some x.color in
+          print_endline "Ok.\n";
+          color_opt
+        else None
+    ) None s.players
+  with
+  | None -> let () = print_endline "No one wants to trade with you :(\n" in None
+  | Some color -> Some color
+
 let rec repl (cmd : command) (clr_opt : color option) (s : state) =
-  let _ = print_string (string_of_command cmd); print_newline (); print_newline () in
   let tmp = do_move cmd clr_opt s in
+  if tmp <> s && s.turn = Red then print_endline "Ok.\n" else ();
+  let _ = print_endline (string_of_command cmd); print_newline () in
   let sx = if s.turn = tmp.turn && cmd <> Start then tmp else roll_dice tmp in
   if sx <> s then update_canvas sx else ();
   if sx.turn <> Red then repl (choose sx.turn sx) None sx
@@ -119,9 +141,9 @@ let rec repl (cmd : command) (clr_opt : color option) (s : state) =
                                        ^ (s.deck |> List.hd |> string_of_card)
                                        ^ " card.\n")
         else print_endline "I am afraid I cannot do that.\n"
-      | DomesticTrade (approved, lst0, lst1) ->
-        if s <> sx then print_endline "Ok.\n"
-        else ()
+      | DomesticTrade (lst0, lst1) ->
+        if s <> sx || clr_opt = None then ()
+        else print_endline "I am afraid I cannot do that.\n"
       | Quit -> print_endline "Goodbye.\n"; raise Exit
       | Invalid -> print_endline "I do not understand.\n"
       | _ ->
@@ -137,10 +159,9 @@ let rec repl (cmd : command) (clr_opt : color option) (s : state) =
       | str -> Command.parse_text s.canvas.tiles str
     in
     match cmdx with
-    | DomesticTrade (false, lst0, lst1) ->
-      failwith "TODO"
-    | EndTurn -> print_endline "Ok.\n"; repl EndTurn None sx
-    | cmdx -> repl cmdx None sx
+    | DomesticTrade (l0, l1) ->
+      repl cmdx (trade l0 l1 sx) sx
+    | _ -> repl cmdx None sx
   end
 
 let main () =

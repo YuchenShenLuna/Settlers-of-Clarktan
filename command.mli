@@ -14,8 +14,8 @@ type command =
   | PlayYearOfPlenty of resource * resource
   | PlayMonopoly of resource
   | Robber of int
-  | DomesticTrade of bool * (resource * int) list * (resource * int) list
-  | MaritimeTrade of bool * (resource * int) * (resource * int)
+  | DomesticTrade of (resource * int) list * (resource * int) list
+  | MaritimeTrade of (resource * int) * (resource * int)
   | Discard of (resource * int) list
   | EndTurn
   | Quit
@@ -37,3 +37,5 @@ val parse_mouse_click : unit -> float * float
 val parse_text : Tile.tile list -> string -> command
 
 val string_of_command : command -> string
+
+val feedback : unit -> bool

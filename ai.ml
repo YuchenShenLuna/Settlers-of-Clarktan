@@ -614,9 +614,7 @@ let want_buy_card color st =
   && num_resource color Grain st > 0
   && num_resource color Ore st > 0
   && st.deck <> []
-  && not (want_build_settlement color st)
-  && not (want_build_road color st)
-  && not (want_build_city color st)
+  && Random.int 5 = 0
   && (num_all_resources color st > 7
       || List.length st.deck > 10)
 
@@ -709,9 +707,17 @@ let best_resource st cl=
    player should accept the trade with another player other_pl given the resource list rs_list ai
    uses to trade with and the rs'_list ai can get if he trade with other_pl under
 current state st*)
-let want_accept_trade_player st ai rs_list other_pl rs'_list=
-  (potential_score_not_trade st ai < potential_score_trade st ai rs_list rs'_list) &&
-  not (List.mem (best_resource st ai.color) (List.map (fun (r,n) -> r) rs_list))
+let want_accept_trade st ai_color to_remove to_add =
+  let remove_ok =
+    List.fold_left (
+      fun acc (r, n) -> num_resource ai_color r st > 0 && acc
+    ) true to_remove
+  in
+  let ai = get_player ai_color st in
+  let other_pl = get_player st.turn st in
+  (potential_score_not_trade st ai < potential_score_trade st ai to_remove to_add)
+  && not (List.mem (best_resource st ai.color) (List.map (fun (r,_) -> r) to_remove))
+  && remove_ok
   && other_pl.score <= 8
   && (other_pl.score - ai.score) <= 5
 

@@ -19,4 +19,6 @@ val second_settlement : state -> color -> intersection
  * by the ai at initial phase *)
 val init_road : state -> color -> intersection -> edge
 
+val want_accept_trade : state -> color -> (resource * int) list -> (resource * int) list -> bool
+
 val choose : color -> state -> Command.command

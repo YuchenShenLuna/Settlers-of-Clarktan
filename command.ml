@@ -13,8 +13,8 @@ type command =
   | PlayYearOfPlenty of resource * resource
   | PlayMonopoly of resource
   | Robber of int
-  | DomesticTrade of bool * (resource * int) list * (resource * int) list
-  | MaritimeTrade of bool * (resource * int) * (resource * int)
+  | DomesticTrade of (resource * int) list * (resource * int) list
+  | MaritimeTrade of (resource * int) * (resource * int)
   | Discard of (resource * int) list
   | EndTurn
   | Quit
@@ -40,8 +40,8 @@ let string_of_command = function
   | PlayYearOfPlenty (r0, r1) -> "PlayYearOfPlenty: " ^ string_of_resource r0 ^ " & " ^ string_of_resource r1
   | PlayMonopoly r -> "PlayMonopoly: " ^ string_of_resource r
   | Robber i -> "Robber @" ^ string_of_int i
-  | DomesticTrade (b, lst0, lst1) -> "DomesticTrade"
-  | MaritimeTrade (b, lst0, lst1) -> "MaritimeTrade"
+  | DomesticTrade (lst0, lst1) -> "DomesticTrade"
+  | MaritimeTrade (lst0, lst1) -> "MaritimeTrade"
   | Discard lst -> "Discard"
   | EndTurn -> "EndTurn"
   | Quit -> "Quit"
@@ -133,6 +133,16 @@ let rec split_list elt acc = function
     if h = elt then List.rev acc, t
     else split_list elt (h :: acc) t
 
+let feedback () =
+  match read_line () with
+  | exception End_of_file -> false
+  | str ->
+    let str' = str |> String.trim |> String.lowercase_ascii in
+    let tokens = Str.split (Str.regexp "[ \n\r\x0c\t()/:;,?.!]+") str' in
+    List.fold_left (
+      fun acc t -> acc || List.mem t tokens
+    ) false [ "yes"; "y"; "accept"; "ok"; "aye"; "fine"; "good" ]
+
 let parse_text tiles str =
   let str' = str |> String.trim |> String.lowercase_ascii in
   match Str.split (Str.regexp "[ \n\r\x0c\t()/:;,?.!]+") str' with
@@ -206,8 +216,8 @@ let parse_text tiles str =
             | exception (Invalid_argument _) -> Invalid
             | take ->
               if List.mem "maritime" t || List.mem "bank" t || List.mem "port" t
-              then MaritimeTrade (true, List.nth give 0, List.nth take 0)
-              else DomesticTrade (false, give, take)
+              then MaritimeTrade (List.nth give 0, List.nth take 0)
+              else DomesticTrade (give, take)
       end
     | "discard" | "burn" | "throw" ->
       begin
