@@ -21,4 +21,6 @@ val init_road : state -> color -> intersection -> edge
 
 val want_accept_trade : (resource * int) list -> (resource * int) list -> color -> state -> bool
 
+val choose_robber_spot : color -> state -> int
+
 val choose : color -> state -> Command.command

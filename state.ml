@@ -653,38 +653,19 @@ let trade_ok to_remove to_add partner_opt s =
     && s |> add_resources to_add s.turn |> player_ok s.turn
     && s |> add_resources to_remove partner |> player_ok partner
 
-let print_resources color s =
-  let player = get_player color s in
-  let start = if color = Red then "Your" else string_of_color color ^ "'s" in
-  let msg =
-    start ^ "  resources: "
-    ^ (string_of_int player.ore) ^ " ore, "
-    ^ (string_of_int player.grain) ^ " grain, "
-    ^ (string_of_int player.brick) ^ " brick, "
-    ^ (string_of_int player.lumber) ^ " lumber, and "
-    ^ (string_of_int player.wool) ^ " wool. "
-  in
-  print_endline msg; ()
-
 let domestic to_remove to_add partner s =
   if trade_ok to_remove to_add (Some partner) s then
     s |> remove_resources to_remove s.turn
     |> remove_resources to_add partner
     |> add_resources to_add s.turn
     |> add_resources to_remove partner
-  else
-    let () = print_resources s.turn s in
-    let () = print_resources partner s in
-    failwith "Bad trade!"
+  else failwith "Bad trade!"
 
 let maritime to_remove to_add s =
   if trade_ok to_remove to_add None s then
     s |> remove_resources to_remove s.turn
     |> add_resources to_add s.turn
-  else
-    let () = print_endline ((string_of_color s.turn) ^ "\'s resources:") in
-    let () = print_resources s.turn s in
-    failwith "Bad trade!"
+  else failwith "Bad trade!"
 
 (*****************************************************************************
  *                          PLAY A DEVELOPMENT CARD                          *
@@ -1051,9 +1032,7 @@ let do_move cmd color_opt st =
       end
     | EndTurn -> end_turn true st
     | _ -> st
-  with
-  | Invalid_argument msg | Failure msg -> print_endline msg; st (* TODO: Remove print statement. *)
-  | _ -> st
+  with _ -> st
 
 (*****************************************************************************
  *                                   TEST                                    *
