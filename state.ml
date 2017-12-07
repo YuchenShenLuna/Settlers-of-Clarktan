@@ -592,170 +592,84 @@ let buy_card st =
  *                                   TRADE                                   *
  *****************************************************************************)
 
-(* [add_resources player n r] adds [n] resources [r] for player [player] *)
-let add_resources player n = function
-  | Lumber -> {player with lumber = player.lumber + n}
-  | Wool   -> {player with wool = player.wool + n}
-  | Grain  -> {player with grain = player.grain + n}
-  | Brick  -> {player with brick = player.brick + n}
-  | Ore    -> {player with ore = player.ore + n}
+let get_player color s = List.find (fun p -> p.color = color) s.players
 
-(* [player_ok p] checks whether a player has enough resources for trade
- * raises: Failure when resouces aren't enough *)
-let player_ok p =
-  if p.lumber < 0 || p.wool < 0 || p.grain < 0 || p.brick < 0 || p.ore < 0
-  then invalid_arg "Not enough resources"
-  else p
+let player_ok color s =
+  let p = get_player color s in
+  p.lumber < 0 || p.wool < 0 || p.grain < 0 || p.brick < 0 || p.ore < 0
 
-(* [ports_of_player_helper st lst] returns ports for player at state [st] *)
-let ports_of_player_helper st indices_list=
-  let ports_temp =
-    List.fold_left
-      (
-        fun acc element ->
-          if List.mem (fst element.neighbors) indices_list
-            || List.mem (snd element.neighbors) indices_list
-          then element::acc
-          else acc
-      ) [] st.canvas.ports
-  in (List.sort_uniq Pervasives.compare ports_temp)
-
-(* [ports_of_player st color] returns ports for player with color [color]
- * at state [st] *)
-let ports_of_player st color =
-  let indices =
-    List.fold_left (fun acc t -> acc @ List.fold_left (fun lst (i, (c, _)) ->
-        if c = color then i :: lst else lst) [] t.buildings) [] st.canvas.tiles
-  in ports_of_player_helper st indices
-
-(* [ports_of_player_with_specific_resource st color rs] returns ports for
- * player with color [color] and resource [rs] at state [st] *)
-let ports_of_player_with_specific_resource st color rs : port list =
-  let ports_belong_to_player = ports_of_player st color in
-  List.fold_left (fun acc x -> if x.demand = Some rs then x::acc else acc)
-    [] ports_belong_to_player
-
-(* [ports_of_player_with_specific_resource_with_best_rate st color rs]
- * returns ports for player with color [color] and resource [rs]
- * at state [st] *)
-let ports_of_player_with_specific_resource_with_best_rate st color rs : port option =
-  let ports_of_player_with_resource_wanted =
-    ports_of_player_with_specific_resource st color rs
+let add_resources to_add color s =
+  let rec add player = function
+    | [] -> player
+    | (r, n) :: t ->
+      match r with
+      | Lumber -> add { player with lumber = player.lumber + n } t
+      | Wool   -> add { player with wool = player.wool + n } t
+      | Grain  -> add { player with grain = player.grain + n } t
+      | Brick  -> add { player with brick = player.brick + n } t
+      | Ore    -> add { player with ore = player.ore + n } t
   in
-  match ports_of_player_with_resource_wanted with
-  | [] -> None
-  | h :: t -> Some (List.fold_left (fun acc x -> if x.rate < acc.rate then x else acc)
-    h ports_of_player_with_resource_wanted)
+  let players =
+    List.map (
+      fun x -> if x.color = color then add (get_player color s) to_add else x
+    ) s.players in
+  { s with players }
 
-(* [trade_ok st p r1 r2] returns whether a trade can be valid *)
-let trade_ok st p1 p2_opt (rs, n) (rs', n') =
-  let number_ok =
-    match rs with
-    | Lumber -> p1.lumber >= n
-    | Wool   -> p1.wool >= n
-    | Grain  -> p1.grain >= n
-    | Brick  -> p1.brick >= n
-    | Ore    -> p1.ore >= n
+let remove_resources to_remove color s =
+  let to_add = List.map (fun (r, n) -> r, -n) to_remove in
+  add_resources to_add color s
+
+let best_rate resource color s =
+  let is_settled intersection =
+    List.fold_left (
+      fun acc t ->
+        acc || List.fold_left (
+          fun acc (i, (c, _)) ->
+            acc || intersection = i && c = color
+        ) false t.buildings
+    ) false s.canvas.tiles
   in
-  match p2_opt with
+  let ports =
+    List.fold_left (
+      fun acc x ->
+        if x.demand = Some resource || x.demand = None
+        && (is_settled (fst x.neighbors) || is_settled (snd x.neighbors))
+        then x :: acc
+        else acc
+    ) [] s.canvas.ports
+  in
+  List.fold_left (fun acc x -> if x.rate < acc then x.rate else acc) 4 ports
+
+let trade_ok to_remove to_add partner_opt s =
+  match partner_opt with
   | None ->
-  if n / n' >= 4 then true
-  else
-    begin
-      match ports_of_player_with_specific_resource_with_best_rate st p1.color rs with
-      | Some port -> if n / n' >= port.rate then number_ok else false
-      | None -> false
-    end
-  | Some p2 ->
-    match rs' with
-    | Lumber -> p2.lumber>=n' && number_ok
-    | Wool  -> p2.wool >=n' && number_ok
-    | Grain -> p2.grain>=n' && number_ok
-    | Brick -> p2.brick >=n' && number_ok
-    | Ore ->p2.ore >=n' && number_ok
-
-(* [remove_resources player n r] removes [n] resource [r] for player [player]*)
-let remove_resources player n r = add_resources player (-n) r |> player_ok
-
-(* [index_of lst element] returns the index of element [element] in list [lst]*)
-let rec index_of lst element=
-  match lst with
-  | [] -> raise (Failure "the element is not in the list")
-  | h::t  -> if h=element then 0 else 1 + index_of t element
-
-let trade_with_bank color to_remove to_add st =
-  let player = List.find (fun p -> p.color = color) st.players in
-  let length_of_resource_pass_trade_ok =
     List.fold_left (
-      fun acc x ->
-        if trade_ok st player None x (List.nth to_add (index_of to_remove x))
-        then 1 + acc else acc
+      fun acc (r, n) -> acc + n / best_rate r s.turn s
     ) 0 to_remove
-  in
-  if length_of_resource_pass_trade_ok = List.length to_remove then
-    let player = List.fold_left (
-        fun acc (r, n) -> remove_resources acc n r
-      ) player to_remove in
-    let player = List.fold_left (
-        fun acc (r, n) -> add_resources acc n r
-      ) player to_add in
-    let players = List.map (
-        fun p -> if p.color = color then player else p
-      ) st.players in
-    { st with players }
-  else raise (Failure "the trade with bank is not valid")
+    >= List.fold_left (fun acc (_, n) -> acc + n) 0 to_add
+  | Some partner ->
+    s |> remove_resources to_remove s.turn |> player_ok s.turn
+    && s |> remove_resources to_add partner |> player_ok partner
+    && s |> add_resources to_add s.turn |> player_ok s.turn
+    && s |> add_resources to_remove partner |> player_ok partner
 
-let trade_with_port color to_remove to_add st =
-  let player = List.find (fun p -> p.color = color) st.players in
-  let length_of_resource_pass_trade_ok =
-    List.fold_left (
-      fun acc x ->
-        if trade_ok st player None x  (List.nth to_add (index_of to_remove x))
-        then 1 + acc else acc
-      ) 0 to_remove
-  in
-  if length_of_resource_pass_trade_ok = List.length to_remove then
-    let player = List.fold_left (
-        fun acc (r, n) -> remove_resources acc n r
-      ) player to_remove in
-    let player = List.fold_left (
-        fun acc (r, n) -> add_resources acc n r
-      ) player to_add in
-    let players = List.map (
-        fun p -> if p.color = color then player else p
-      ) st.players in
-    { st with players }
-  else raise (Failure "the trade with port is not valid")
+let domestic to_remove to_add partner s =
+  if trade_ok to_remove to_add (Some partner) s then
+    s |> remove_resources to_remove s.turn
+    |> remove_resources to_add partner
+    |> add_resources to_add s.turn
+    |> add_resources to_remove partner
+  else failwith "Bad trade!"
 
-      (*[check_whether_trade_is_ok_for_one_player st r a cl] checks whether a trade
- * is valid for player at state [st] *)
-let check_whether_trade_is_ok_for_one_player st to_remove to_add cl cl'=
-  let current_player = List.find (fun p -> p.color = cl) st.players in
-  let player = List.find (fun p -> p.color = cl') st.players in
-  let length_of_resource_pass_trade_ok =
-    List.fold_left (
-      fun acc x ->
-        if trade_ok st current_player (Some player) x (List.nth to_add (index_of to_remove x))
-        then 1 + acc else acc
-    ) 0 to_remove
-  in
-  length_of_resource_pass_trade_ok = List.length to_remove
-
-let trade_with_player color to_remove to_add st =
-  let condition_one =
-    check_whether_trade_is_ok_for_one_player st to_remove to_add st.turn color in
-  let condition_two =
-    check_whether_trade_is_ok_for_one_player st to_add to_remove color st.turn in
-  if condition_one && condition_two then
-    let st' = trade_with_bank st.turn to_remove to_add st in
-    trade_with_bank color to_add to_remove st'
-  else raise (Failure "the trade with other player is not valid")
+let maritime to_remove to_add s =
+  if trade_ok to_remove to_add None s then
+    s |> remove_resources to_remove s.turn
+    |> add_resources to_add s.turn
+  else failwith "Bad trade!"
 
 (*****************************************************************************
  *                          PLAY A DEVELOPMENT CARD                          *
  *****************************************************************************)
-
-let get_player color st = List.find (fun p -> p.color = color) st.players
 
 (* [num_resource player] returns the number of resources for player [player] *)
 let num_resource color resource st =
@@ -773,6 +687,21 @@ let num_all_resources color st =
   num_resource color Grain st +
   num_resource color Brick st +
   num_resource color Ore st
+
+let play_card card color s =
+  let hand player = function
+    | VictoryPoint -> player
+    | RoadBuilding -> { player with road_building = player.road_building - 1 }
+    | Monopoly -> { player with monopoly = player.monopoly - 1 }
+    | YearOfPlenty -> { player with year_of_plenty = player.year_of_plenty - 1 }
+    | Knight -> { player with knight = player.knight - 1;
+                              knights_activated = player.knights_activated + 1 }
+  in
+  let players =
+    List.map (
+      fun x -> if x.color = color then hand (get_player color s) card else x
+    ) s.players in
+  { s with players }
 
 let play_robber ind st =
   let pos_stealees =
@@ -855,29 +784,17 @@ let play_road_build (i0, i1) (j0, j1) st =
                    else t) st'.canvas.tiles in
       {st' with canvas = {tiles = new_tiles'; ports=st.canvas.ports}}
 
-let play_monopoly rs st =
-  let steal (lst, n) p =
-    if p.color = st.turn then
-      p :: lst, n
-    else
-      let m = num_resource p.color rs st in
-      (remove_resources p m rs) :: lst, n + m
-  in
-  let result = List.fold_left steal ([], 0) st.players in
-  let player = List.find (fun p -> p.color = st.turn) st.players in
-  let player = add_resources player (snd result) rs in
-  let player = { player with monopoly = player.monopoly - 1 } in
-  let players =
-    List.map (fun p -> if p.color = st.turn then player else p) (fst result) in
-  { st with players }
+let play_monopoly r s =
+  List.fold_left (
+    fun acc x ->
+      if x.color = s.turn then acc
+      else
+        let to_steal = [ r, num_resource x.color r s ] in
+        s |> remove_resources to_steal x.color |> add_resources to_steal s.turn
+  ) s s.players
 
-let play_year_of_plenty r1 r2 st =
-  let player = List.find (fun p -> p.color = st.turn) st.players in
-  let player' = add_resources (add_resources player 1 r1) 1 r2 in
-  let player'' = { player' with year_of_plenty = player'.year_of_plenty - 1 } in
-  let players =
-    List.map (fun p -> if p.color = st.turn then player'' else p) st.players in
-  { st with players }
+let play_year_of_plenty r1 r2 s =
+  s |> add_resources [r1, 1; r2, 1] s.turn |> play_card YearOfPlenty s.turn
 
 (*****************************************************************************
  *                                 RESOURCES                                 *
@@ -1079,32 +996,27 @@ let do_move cmd color_opt st =
   try
     match cmd with
     | InitSettlement i -> init_build_settlement i st.turn st
-    | InitRoad rd -> init_build_road rd st.turn st
+    | InitRoad e -> init_build_road e st.turn st
     | BuildSettlement i -> build_settlement i st
     | BuildCity i -> build_city i st
-    | BuildRoad rd -> build_road rd st
+    | BuildRoad e -> build_road e st
     | BuyCard -> buy_card st
     | PlayKnight i -> play_knight i st
-    | PlayRoadBuilding (rd0, rd1) -> play_road_build rd0 rd1 st
-    | PlayYearOfPlenty (rs0, rs1) -> play_year_of_plenty rs0 rs1 st
-    | PlayMonopoly rs -> play_monopoly rs st
+    | PlayRoadBuilding (e1, e2) -> play_road_build e1 e2 st
+    | PlayYearOfPlenty (r1, r2) -> play_year_of_plenty r1 r2 st
+    | PlayMonopoly r -> play_monopoly r st
     | Robber i -> play_robber i st
-    | DomesticTrade (lst0, lst1) ->
+    | DomesticTrade (l1, l2) ->
       begin
         match color_opt with
         | None -> invalid_arg "Requires a color."
-        | Some color -> trade_with_player color lst0 lst1 st
+        | Some color -> domestic l1 l2 color st
       end
     | MaritimeTrade (p0, p1) ->
       begin
         match color_opt with
         | None -> invalid_arg "Requires a color."
-        | Some color ->
-          begin
-            match trade_with_port st.turn [p0] [p1] st with
-            | exception (Failure _) -> trade_with_bank st.turn [p0] [p1] st
-            | stx -> stx
-          end
+        | Some color -> maritime [p0] [p1] st
       end
     | Discard lst ->
       begin
@@ -1114,7 +1026,9 @@ let do_move cmd color_opt st =
       end
     | EndTurn -> end_turn true st
     | _ -> st
-  with _ -> st
+  with
+  | Invalid_argument msg | Failure msg -> print_endline msg; st (* TODO: Remove print statement. *)
+  | _ -> st
 
 (*****************************************************************************
  *                                   TEST                                    *

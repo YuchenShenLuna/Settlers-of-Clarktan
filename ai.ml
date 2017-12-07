@@ -751,7 +751,7 @@ current state st*)
 let want_accept_trade st ai_color to_remove to_add =
   let remove_ok =
     List.fold_left (
-      fun acc (r, n) -> num_resource ai_color r st > 0 && acc
+      fun acc (r, n) -> num_resource ai_color r st > n && acc
     ) true to_remove
   in
   let ai = get_player ai_color st in
@@ -775,9 +775,10 @@ not (List.mem (best_resource st ai.color) (List.map (fun (r,n) -> r) rs_list))
 (*[find_best_rate] returns the best trading rate for resource rs the ai player
   with color cl can have under current state st*)
 let find_best_rate st cl rs =
-  match (ports_of_player_with_specific_resource_with_best_rate st cl rs) with
+  4 (* TODO: Fix *)
+  (* match (ports_of_player_with_specific_resource_with_best_rate st cl rs) with
     | None -> 4
-    | Some p -> p.rate
+    | Some p -> p.rate *)
 
 (* [want_trade_bank] returns a boolean stating whether the ai
    player should trade with bank given the resource list rs_list ai
