@@ -290,6 +290,10 @@ let update_dice i1 i2 =
   draw_image (get_img (fetch_dice i1)) 825 360;
   draw_image (get_img (fetch_dice i2)) 890 360
 
+let init_welcome f =
+  draw_image (get_img "assets/catan.png") 0 0;
+  moveto 0 0
+
 let draw_canvas s =
   clear_graph ();
   let water = get_img "assets/water.png" in

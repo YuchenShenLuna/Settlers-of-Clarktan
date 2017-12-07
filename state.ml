@@ -545,7 +545,7 @@ let build_city ind st =
       fun x ->
         if List.mem ind x.indices = false then x
         else { x with buildings = List.map (fun (a, (b, c)) ->
-            if a = ind then (a, (b, 2)) else (1, (b, c))) x.buildings }
+            if a = ind then (a, (b, 2)) else (a, (b, c))) x.buildings }
       )
   in
   {st with players = new_players;
