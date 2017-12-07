@@ -207,25 +207,20 @@ let trade to_remove to_add s =
     | None -> print_endline "No one wants to trade with you :(\n"; None
     | Some color -> Some color
 
-let game_over s =
-  List.iter (
-    fun x ->
-      if check_win x.color s then
-        let msg =
-          "Congratulations! "
-          ^ (if x.color = Red then "You have"
-             else string_of_color x.color ^ " has")
-          ^ " won the Settlers of Clarktan."
-        in
-        print_endline msg
-      else ()
-  ) s.players
-
 let rec repl (turns : int) (cmd : command) (clr_opt : color option) (s : state) =
   try
   let tmp = do_move cmd clr_opt s in
   if tmp.turn <> s.turn && s.turn = Red then print_endline "Ok.\n" else ();
-  let () = game_over s in
+  if check_win tmp.turn tmp then
+    let msg =
+      "\nCongratulations! "
+      ^ (if tmp.turn = Red then "You have"
+         else string_of_color tmp.turn ^ " has")
+      ^ " won the Settlers of Clarktan."
+    in
+    let () = print_endline msg in
+    raise Exit
+  else ();
   let sx = if s.turn = tmp.turn && cmd <> Start then tmp else roll_dice tmp in
   if sx <> s then update_canvas sx else ();
   if sx.turn <> Red then

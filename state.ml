@@ -602,6 +602,11 @@ let player_ok color s =
   let p = get_player color s in
   p.lumber >= 0 && p.wool >= 0 && p.grain >= 0 && p.brick >= 0 && p.ore >= 0
 
+let players_ok s =
+  List.fold_left (
+    fun acc x -> acc && player_ok x.color s
+  ) true s.players
+
 (* [add_resources r c s] adds resource [r] to player identified by color
  * [c] under state [s]. *)
 let add_resources to_add color s =
@@ -874,6 +879,11 @@ let generate_resource num st =
       end
   in help st info
 
+let discard lst color s =
+  let sx = remove_resources lst color s in
+  if s |> players_ok |> not || players_ok sx then sx
+  else invalid_arg "Player does not have enough resources."
+
 (*****************************************************************************
  *                               ACHIEVEMENT                                 *
  *****************************************************************************)
@@ -991,36 +1001,36 @@ let end_turn forward s =
   let turn = (List.nth s.players ((index 0 s.players + inc) mod 4)).color in
   { s with turn }
 
-let do_move cmd color_opt st =
+let do_move cmd color_opt s =
   try
     match cmd with
-    | InitSettlement i -> init_build_settlement i st.turn st
-    | InitRoad e -> init_build_road e st.turn st
-    | BuildSettlement i -> build_settlement i st
-    | BuildCity i -> build_city i st
-    | BuildRoad e -> build_road e st
-    | BuyCard -> buy_card st
-    | PlayKnight i -> play_knight i st
-    | PlayRoadBuilding (e1, e2) -> play_road_build e1 e2 st
-    | PlayYearOfPlenty (r1, r2) -> play_year_of_plenty r1 r2 st
-    | PlayMonopoly r -> play_monopoly r st
-    | Robber i -> play_robber i st
+    | InitSettlement i -> init_build_settlement i s.turn s
+    | InitRoad e -> init_build_road e s.turn s
+    | BuildSettlement i -> build_settlement i s
+    | BuildCity i -> build_city i s
+    | BuildRoad e -> build_road e s
+    | BuyCard -> buy_card s
+    | PlayKnight i -> play_knight i s
+    | PlayRoadBuilding (e1, e2) -> play_road_build e1 e2 s
+    | PlayYearOfPlenty (r1, r2) -> play_year_of_plenty r1 r2 s
+    | PlayMonopoly r -> play_monopoly r s
+    | Robber i -> play_robber i s
     | DomesticTrade (l1, l2) ->
       begin
         match color_opt with
         | None -> invalid_arg "Requires a color."
-        | Some color -> domestic l1 l2 color st
+        | Some color -> domestic l1 l2 color s
       end
-    | MaritimeTrade (p0, p1) -> maritime [p0] [p1] st
+    | MaritimeTrade (p0, p1) -> maritime [p0] [p1] s
     | Discard lst ->
       begin
         match color_opt with
         | None -> invalid_arg "Requires a color."
-        | Some color -> remove_resources lst color st
+        | Some color -> discard lst color s
       end
-    | EndTurn -> end_turn true st
-    | _ -> st
-  with _ -> st
+    | EndTurn -> end_turn true s
+    | _ -> s
+  with _ -> s
 
 (*****************************************************************************
  *                                   TEST                                    *

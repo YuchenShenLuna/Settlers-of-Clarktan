@@ -207,14 +207,16 @@ let draw_robber ind st =
          let f t =
            begin
              match t |> Tile.lower_left |> round with
-               | x, y -> draw_image (get_img_transparent (fetch t.resource)) x y
+             | x, y ->
+               try draw_image (get_img_transparent (fetch t.resource)) x y
+               with _ -> ()
            end;
            let x = t.center |> fst |> (-.) (0.2 *. t.edge) |> (~-.) |> int_of_float in
            let y = t.center |> snd |> (-.) (0.2 *. t.edge) |> (~-.) |> int_of_float in
            moveto x y;
            match t.dice with
            | None -> ()
-           | Some i -> draw_image (get_img_num (fetch' i)) x y
+           | Some i -> try draw_image (get_img_num (fetch' i)) x y with _ -> ()
          in
          f old_tile
        else ()
@@ -223,8 +225,10 @@ let draw_robber ind st =
        let center = round x.center in
        moveto (fst center) (snd center);
        if x=tile then
-         draw_image (get_img_robber "assets/smallrobber.png")
-           ((fst center) - 25) ((snd center) - 25)
+         try
+           let img = get_img_robber "assets/smallrobber.png" in
+           draw_image img ((fst center) - 25) ((snd center) - 25)
+         with _ -> ()
        else ()
      in
      List.iter f st.canvas.tiles;
