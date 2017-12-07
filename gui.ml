@@ -203,10 +203,7 @@ let draw_robber ind st =
      let f x =
        let center = round x.center in
        moveto (fst center) (snd center);
-       if x=tile then
-         draw_image (get_img_robber "assets/smallrobber.png")
-           ((fst center) - 25) ((snd center) - 25)
-       else if x = old_tile then
+       if x = old_tile then
          let f t =
            begin
              match t |> Tile.lower_left |> round with
@@ -222,7 +219,17 @@ let draw_robber ind st =
          f old_tile
        else ()
      in
-     List.iter (fun x -> f x) st.canvas.tiles
+     let g x =
+       let center = round x.center in
+       moveto (fst center) (snd center);
+       if x=tile then
+         draw_image (get_img_robber "assets/smallrobber.png")
+           ((fst center) - 25) ((snd center) - 25)
+       else ()
+     in
+     List.iter f st.canvas.tiles;
+     List.iter g st.canvas.tiles
+
 
 (* [index_to_coordinate st ind] converts a given index [ind] to coordinates. *)
 let index_to_coordinate st ind =
@@ -395,7 +402,8 @@ let draw_canvas s =
   fill_rect 205 310 70 160;
   draw_card_infos s;
   update_dice 6 6;
-  draw_ports s
+  draw_ports s;
+  draw_robber 7 s
 
 let update_canvas s =
   set_color 0x4b86b4;
