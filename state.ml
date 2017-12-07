@@ -874,36 +874,6 @@ let generate_resource num st =
       end
   in help st info
 
-let discard_resource color lst st =
-  if num_all_resources color st < 7 then st
-  else
-    let num_in_lst = List.fold_left (fun acc (a, b) -> acc + b) 0 lst in
-    if num_in_lst < num_all_resources color st then
-      failwith "you need to discard more resources"
-    else if num_in_lst > num_all_resources color st then
-      failwith "you need to discard fewer resources"
-    else
-      let new_players =
-        st.players
-        |> List.map
-          (fun x -> if x.color <> color then x
-            else {x with wool = if List.assoc_opt Wool lst <> None then
-                             x.wool - (List.assoc Wool lst)
-                           else x.wool;
-                         lumber = if List.assoc_opt Lumber lst <> None then
-                             x.wool - (List.assoc Lumber lst)
-                           else x.wool;
-                         grain = if List.assoc_opt Grain lst <> None then
-                             x.wool - (List.assoc Grain lst)
-                           else x.wool;
-                         brick = if List.assoc_opt Brick lst <> None then
-                             x.wool - (List.assoc Brick lst)
-                           else x.wool;
-                         ore = if List.assoc_opt Ore lst <> None then
-                             x.wool - (List.assoc Ore lst)
-                           else x.wool;})
-      in {st with players = new_players}
-
 (*****************************************************************************
  *                               ACHIEVEMENT                                 *
  *****************************************************************************)
@@ -1046,7 +1016,7 @@ let do_move cmd color_opt st =
       begin
         match color_opt with
         | None -> invalid_arg "Requires a color."
-        | Some color -> discard_resource color lst st
+        | Some color -> remove_resources lst color st
       end
     | EndTurn -> end_turn true st
     | _ -> st

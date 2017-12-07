@@ -78,22 +78,29 @@ let rec discard n s =
     if num_all_resources color s <= 7 then discard (n + 1) s
     else if color <> Red then
       let () = print_endline (string_of_color color ^ " was robbed.\n") in
-      s |> discard_resources color |> discard (n + 1)
+      let to_discard = choose_discards color s in
+      s |> do_move (Discard to_discard) (Some color) |> discard (n + 1)
     else
+      let rec count acc = function
+        | [] -> acc
+        | (_, n) :: t -> count (acc + n) t
+      in
       let x = num_all_resources color s / 2 in
       let msg = "Please discard " ^ string_of_int x ^ " resources.\n" in
       ANSITerminal.(print_string [cyan] msg);
       print_string  "> ";
       let to_discard = extract () in
-      if List.length to_discard < x then
+      if count 0 to_discard < x then
         let () =
-          if to_discard = [] then print_newline ()
-          else print_endline "Please specify more resources."
+          if count 0 to_discard = 0 then print_newline ()
+          else print_endline "Please specify more resources.\n"
         in
         discard n s
       else
         let sx = do_move (Discard to_discard) (Some Red) s in
-        if sx = s then discard n s
+        if sx = s then
+          let () = print_endline "I am afraid I can't do that.\n" in
+          discard n s
         else
           let () = print_endline "Ok.\n" in
           discard (n + 1) sx

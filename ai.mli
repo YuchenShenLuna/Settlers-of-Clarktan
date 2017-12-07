@@ -19,8 +19,7 @@ val second_settlement : state -> color -> intersection
  * by the ai at initial phase *)
 val init_road : state -> color -> intersection -> edge
 
-(* [discard_resource col s] discards resource for player with color [col]. *)
-val discard_resources : color -> state -> state
+val choose_discards : color -> state -> (resource * int) list
 
 (* [want_accept_trade l1 l2 c s] returns whether player with color [c]
  * wants to accept the trade. *)

@@ -196,13 +196,6 @@ val num_all_resources : color -> state -> int
  * [num] under state [st] and updates the state after generation. *)
 val generate_resource : int -> state -> state
 
-(* [discard_resource] discards resources for a player when the robber has been
- * activated. If the player does not have over seven resources, the original
- * state is returned.
- * raises: Failure "you need to discard more resources";
- *         Failure "you need to discard fewer resources" *)
-val discard_resource : color -> (resource * int) list -> state -> state
-
 (*****************************************************************************
  *                              ACHIEVEMENTS                                 *
  *****************************************************************************)
