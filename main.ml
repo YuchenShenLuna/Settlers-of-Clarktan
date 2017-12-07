@@ -72,7 +72,7 @@ let setup s =
   s |> helper 0
 
 let rec discard n s =
-  if n = 4 then s
+  if n >= 4 then s
   else
     let color = (List.nth s.players n).color in
     if num_all_resources color s <= 7 then discard (n + 1) s
@@ -84,23 +84,20 @@ let rec discard n s =
       let cmdx =
         match read_line () with
         | exception End_of_file -> Invalid
-        | str -> Command.parse_text s.canvas.tiles str
+        | str -> Command.parse_text s.canvas.tiles ("discard " ^ str)
       in
       match cmdx with
       | Discard l ->
-        begin try
-          discard_resource color l s
-        with
-        | _ -> print_endline "I am afraid I cannot do that.\n"; s
-      end
-      | _ -> print_endline "I do not understand"; s
-    else discard_resources color s
-        (*remember to call discard in robber*)
+        begin
+          try s |> discard_resource Red l |> discard (n + 1)
+          with _ -> print_endline "I am afraid I cannot do that.\n"; discard n s
+        end
+      | _ -> print_endline "I do not understand"; discard n s
+    else s |> discard_resources color |> discard (n + 1)
 
 let rec robber s =
+  let s = discard 0 s in
   if s.turn = Red then
-    (* let s = discard 0 s in
-    let _ = update_canvas s in *)
     let () = print_endline "Please move the robber." in
     match () |> parse_mouse_click |> nearby_tile s.canvas.tiles with
     | None -> robber s
@@ -109,11 +106,6 @@ let rec robber s =
       if sx <> s then let () = print_endline "Ok.\n"; draw_robber s.robber sx in sx
       else let () = print_endline "I am afraid I cannot do that.\n" in robber s
   else
-    (* let s =
-      if s.turn = Yellow then discard 1 s
-      else if s.turn = Blue then discard 2 s
-      else discard 3 s in
-    let _ = update_canvas s in *)
     let sx = do_move (Robber (choose_robber_spot s.turn s)) None s in
     if sx = s then ()
     else
@@ -154,7 +146,7 @@ let trade to_remove to_add s =
         List.fold_left (
           fun acc x ->
             if acc <> None then acc
-            else if x.color = Red then
+            else if x.color = Red && trade_ok to_remove to_add (Some Red) s then
               let msg = "Would you like to trade with "
                         ^ string_of_color s.turn
                         ^ "?\n> " in
@@ -220,7 +212,6 @@ let rec repl (turns : int) (cmd : command) (clr_opt : color option) (s : state) 
   try
   let tmp = do_move cmd clr_opt s in
   if tmp.turn <> s.turn && s.turn = Red then print_endline "Ok.\n" else ();
-  let _ = print_endline (string_of_command cmd); print_newline () in
   let () = game_over s in
   let sx = if s.turn = tmp.turn && cmd <> Start then tmp else roll_dice tmp in
   if sx <> s then update_canvas sx else ();

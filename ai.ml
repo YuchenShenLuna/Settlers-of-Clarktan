@@ -1012,7 +1012,6 @@ let choose_monopoly color s =
 (* [choose_discard_resource color s] chooses the resources the AI identified
  * by color [color] wants to discard under state [s] when robbed. *)
 let choose_discard_resource color s =
-  let hand = list_of_resources color s |> shuffle in
   let value =
     if want_build_settlement color s then
       function
@@ -1044,25 +1043,30 @@ let choose_discard_resource color s =
       | Ore -> 1
     else function _ -> 0
   in
+  let hand = list_of_resources color s |> shuffle in
   let cmp a b = compare (value a) (value b) in
   hand |> List.sort cmp |> take (List.length hand / 2) []
 
 let discard_resources color s =
-  let remove r s =
+  let remove r p =
     match r with
-    | Lumber -> {s with lumber = s.lumber -1}
-    | Ore -> {s with ore = s.ore -1}
-    | Wool -> {s with wool = s.wool -1}
-    | Brick -> {s with brick = s.brick -1}
-    | Grain -> {s with grain = s.grain -1}
+    | Lumber -> {p with lumber = p.lumber -1}
+    | Ore -> {p with ore = p.ore -1}
+    | Wool -> {p with wool = p.wool -1}
+    | Brick -> {p with brick = p.brick -1}
+    | Grain -> {p with grain = p.grain -1}
   in
-  let res = choose_discard_resource color s in
-  let r1 = List.hd res in
-  let r2 = List.tl res |> List.hd in
-  let player = List.hd (List.filter (fun x -> x.color = color) s.players) in
-  {s with
-   players = List.map (fun x -> if x = player then
-                          remove r2 (remove r1 x) else x) s.players}
+  let players =
+    List.map (
+      fun x ->
+        if x.color <> color then x
+        else s
+             |> choose_discard_resource color
+             |> List.fold_left (
+               fun acc x -> remove x acc
+             ) x
+    ) s.players in
+  { s with players }
 
 (*****************************************************************************
  *                                CHOOSE MOVE                                *
