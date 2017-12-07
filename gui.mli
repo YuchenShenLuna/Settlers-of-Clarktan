@@ -1,5 +1,8 @@
 (* GUI module handles the GUI and user interface for the game *)
 
+(* [init_welcome f] draws the welcome page of the catan game. *)
+val init_welcome : unit -> unit
+
 (* [draw_canvas st] draws the canvas background for the game
  * under current state [st]. *)
 val draw_canvas : State.state -> unit
