@@ -98,7 +98,7 @@ let trade to_remove to_add s =
       fun acc x ->
         if acc <> None then acc
         else if x.color <> s.turn
-             && want_accept_trade s x.color to_add to_remove then
+             && want_accept_trade to_add to_remove x.color s then
           let msg = "Would you like to trade with "
                     ^ string_of_color x.color
                     ^ "?\n> " in
