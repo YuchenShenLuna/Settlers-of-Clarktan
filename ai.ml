@@ -480,13 +480,30 @@ let choose_road ind color st =
   let ind_one = index_obtainable_in_one_road st color in
   let ind_two = index_obtainable_in_two_roads st color in
   if List.mem ind ind_one then
-    fetch_road_in_one ind st color
-  else if List.mem ind ind_two then
-    (fetch_roads_in_two ind st color |> List.hd |> fst)
-  else
+    if check_build_road (fetch_road_in_one ind st color) st color then
+      fetch_road_in_one ind st color
+    else if List.mem ind ind_two then
+      let rd = (fetch_roads_in_two ind st color |> List.hd |> fst) in
+      if check_build_road rd st color then rd
+      else
+        match get_the_road st color with
+        | None -> (failwith "no road building possible")
+        | Some r -> r
+    else
     match get_the_road st color with
     | None -> (failwith "no road building possible")
     | Some r -> r
+  else if List.mem ind ind_two then
+    let rd = (fetch_roads_in_two ind st color |> List.hd |> fst) in
+    if check_build_road rd st color then rd
+    else
+      match get_the_road st color with
+      | None -> (failwith "no road building possible")
+      | Some r -> r
+  else
+  match get_the_road st color with
+  | None -> (failwith "no road building possible")
+  | Some r -> r
 
 (* [choose_city st color] returns the index of the city the ai identified
  * by color [color] should seek to upgrade to at current state [st] *)
@@ -934,11 +951,21 @@ let choose_discard_resource color s =
  *****************************************************************************)
 
 let choose color s =
-  match make_build_plan s color with
+  (* match make_build_plan s color with
   | Build_Settlement i -> BuildSettlement i
   | Build_City i -> BuildCity i
   | Build_Road (e, _) -> BuildRoad e
-  | Neither _ ->
+     | Neither _ -> *)
+  if want_build_settlement color s then
+    BuildSettlement (choose_settlement s color)
+  else if want_build_city color s then
+    BuildCity (choose_city s color)
+  else if want_build_road color s then
+      match make_build_plan s color with
+      | Build_Road (_, Build_Settlement i) -> BuildRoad (choose_road i color s)
+      | Build_Road (e, _) -> BuildRoad e
+      | _ -> failwith "Impossible"
+  else
     if want_buy_card color s then BuyCard
     else if want_play_monopoly color s then PlayMonopoly (choose_monopoly color s)
     else if want_play_knight color s then PlayKnight (choose_robber_spot color s)
