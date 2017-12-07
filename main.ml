@@ -92,25 +92,65 @@ let roll_dice s =
   sx
 
 let trade to_remove to_add s =
-  print_newline ();
-  match
-    List.fold_left (
-      fun acc x ->
-        if acc <> None then acc
-        else if x.color <> s.turn
-             && want_accept_trade to_add to_remove x.color s then
-          let msg = "Would you like to trade with "
-                    ^ string_of_color x.color
-                    ^ "?\n> " in
-          print_string msg;
-          let color_opt = if feedback () |> not then None else Some x.color in
-          print_endline "Ok.\n";
-          color_opt
-        else None
-    ) None s.players
-  with
-  | None -> let () = print_endline "No one wants to trade with you :(\n" in None
-  | Some color -> Some color
+  if s.turn <> Red then
+    begin
+      let g (r, n) = print_string (string_of_int n ^ " " ^ string_of_resource r) in
+      print_string (string_of_color s.turn ^ " would like to trade ");
+      List.iter g to_remove;
+      print_string " for ";
+      List.iter g to_add;
+      print_string ". ";
+      match
+        List.fold_left (
+          fun acc x ->
+            if acc <> None then acc
+            else if x.color = Red then
+              let msg = "Would you like to trade with "
+                        ^ string_of_color s.turn
+                        ^ "?\n> " in
+              print_string msg;
+              let color_opt = if feedback () |> not then None else Some Red in
+              print_endline "Ok.\n";
+              color_opt
+            else if x.color <> s.turn
+                 && want_accept_trade to_add to_remove x.color s then
+              Some x.color
+            else None
+        ) None s.players
+      with
+      | None ->
+        let msg = string_of_color s.turn ^ " cannot find a trade partner.\n" in
+        print_endline msg; None
+      | Some color ->
+        let () =
+          if color = Red then ()
+          else
+            let msg = string_of_color s.turn ^ " has traded with "
+                      ^ string_of_color color ^ ".\n" in
+            print_endline msg
+        in
+        Some color
+    end
+  else
+    let () = print_newline () in
+    match
+      List.fold_left (
+        fun acc x ->
+          if acc <> None then acc
+          else if x.color <> s.turn
+               && want_accept_trade to_add to_remove x.color s then
+            let msg = "Would you like to trade with "
+                      ^ string_of_color x.color
+                      ^ "?\n> " in
+            print_string msg;
+            let color_opt = if feedback () |> not then None else Some x.color in
+            print_endline "Ok.\n";
+            color_opt
+          else None
+      ) None s.players
+    with
+    | None -> print_endline "No one wants to trade with you :(\n"; None
+    | Some color -> Some color
 
 let game_over s =
   List.iter (

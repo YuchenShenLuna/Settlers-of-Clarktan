@@ -959,11 +959,6 @@ let choose_discard_resource color s =
  *****************************************************************************)
 
 let choose color s =
-  (* match make_build_plan s color with
-  | Build_Settlement i -> BuildSettlement i
-  | Build_City i -> BuildCity i
-  | Build_Road (e, _) -> BuildRoad e
-     | Neither _ -> *)
   if want_build_settlement color s then
     BuildSettlement (choose_settlement s color)
   else if want_build_city color s then
