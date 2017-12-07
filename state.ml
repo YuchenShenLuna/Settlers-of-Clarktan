@@ -1031,12 +1031,7 @@ let do_move cmd color_opt st =
         | None -> invalid_arg "Requires a color."
         | Some color -> domestic l1 l2 color st
       end
-<<<<<<< HEAD
-    | MaritimeTrade (p0, p1) ->
-        maritime [p0] [p1] st
-=======
     | MaritimeTrade (p0, p1) -> maritime [p0] [p1] st
->>>>>>> 3442286703b537f086d8f48a00b3db190f2c756e
     | Discard lst ->
       begin
         match color_opt with
@@ -1225,11 +1220,13 @@ let canvas_to_test =
   }
 
 let state_to_test =
-  let players = [ {(Player.init_player Red) with wool = (Player.init_player Red).wool+5;
-                                    lumber = (Player.init_player Red).lumber+5;
-                                    grain = (Player.init_player Red).grain+5;
-                                    brick = (Player.init_player Red).brick+5;
-                                    ore =(Player.init_player Red).ore+5;};
+  let players =
+    [ {(Player.init_player Red)
+       with wool = (Player.init_player Red).wool+5;
+                    lumber = (Player.init_player Red).lumber+5;
+                    grain = (Player.init_player Red).grain+5;
+                    brick = (Player.init_player Red).brick+5;
+                    ore =(Player.init_player Red).ore+5;};
                   {(Player.init_player Yellow) with wool = 5; lumber = 5;
                                       grain = 5; brick = 5; ore =5;};
                   {(Player.init_player Blue) with wool = 5; lumber = 5;
@@ -1237,11 +1234,13 @@ let state_to_test =
                   {(Player.init_player Green) with wool = 5; lumber = 5;
                                        grain = 5; brick = 5; ore =5;}; ] in
   { robber = 10;
-    deck = [ YearOfPlenty; VictoryPoint; Knight; RoadBuilding;YearOfPlenty;Knight;
-             Knight; RoadBuilding; Knight; Knight; VictoryPoint; Knight;
-             Knight; Monopoly; Knight; YearOfPlenty; Knight; Knight;
-             VictoryPoint; Knight; Knight; Knight; Monopoly; VictoryPoint;
-             Knight; VictoryPoint ];
+    deck =
+    [ YearOfPlenty; VictoryPoint; Knight; RoadBuilding;YearOfPlenty;Knight;
+           Knight; RoadBuilding; Knight; Knight; VictoryPoint; Knight;
+           Knight; Monopoly; Knight; YearOfPlenty; Knight; Knight;
+           VictoryPoint; Knight; Knight; Knight; Monopoly; VictoryPoint;
+      Knight; VictoryPoint
+    ];
     players;
     turn = (List.hd players).color;
     canvas = canvas_to_test }
