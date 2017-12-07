@@ -5,7 +5,6 @@ open Elements
 open Player
 open Ai
 
-(* [setup s] completes the setting up stage for the game play. *)
 let setup s =
   let rec settlement s =
     ANSITerminal.(print_string [cyan] "Please pick a settlement.");
@@ -72,12 +71,31 @@ let setup s =
   in
   s |> helper 0
 
-let robber s = s (* TODO *)
+let discard n s = failwith "TODO"
+
+let rec robber s =
+  if s.turn = Red then
+    let () = print_endline "Please move the robber." in
+    match () |> parse_mouse_click |> nearby_tile s.canvas.tiles with
+    | None -> robber s
+    | Some i ->
+      let sx = do_move (Robber i) None s in
+      if sx <> s then let () = print_endline "Ok.\n"; draw_robber s.robber sx in sx
+      else let () = print_endline "I am afraid I cannot do that.\n" in robber s
+  else
+    let sx = do_move (Robber (choose_robber_spot s.turn s)) None s in
+    if sx = s then ()
+    else
+      begin
+        draw_robber s.robber sx;
+        print_endline (string_of_color s.turn ^ " has moved the robber.\n")
+      end;
+    sx
+
 
 let roll_dice s =
   let d1 = 1 + Random.int 6 in
   let d2 = 1 + Random.int 6 in
-  let sx = if d1 + d2 <> 7 then generate_resource (d1 + d2) s else robber s in
   let msg =
     if s.turn = Red then
       "It's your turn. You have rolled a "
@@ -88,8 +106,9 @@ let roll_dice s =
       ^ string_of_int (d1 + d2) ^ ".\n\n"
   in
   ANSITerminal.(print_string [cyan] msg);
-  print_string "";
-  update_dice d1 d2;
+  let () = print_string "" in
+  let () = update_dice d1 d2 in
+  let sx = if d1 + d2 <> 7 then generate_resource (d1 + d2) s else robber s in
   sx
 
 let trade to_remove to_add s =
