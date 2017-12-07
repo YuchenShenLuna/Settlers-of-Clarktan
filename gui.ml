@@ -278,6 +278,52 @@ let update_roads st =
   in
   List.iter (fun (edge, col) -> f edge col) info
 
+let draw_ports s =
+  let c = (List.nth s.canvas.tiles 0).center in
+  let res_img = function
+    | Some Lumber -> "assets/lumberport.png"
+    | Some Ore -> "assets/oreport.png"
+    | Some Brick -> "assets/brickport.png"
+    | Some Grain -> "assets/grainport.png"
+    | Some Wool -> "assets/woolport.png"
+    | None -> "assets/questionmark.png"
+  in
+  let r = res_img (List.nth s.canvas.ports 0).demand in
+  draw_image (get_img_transparent r) ((c |> round |> fst) - 53)
+    ((c |> round |> snd) + 45);
+  let c = (List.nth s.canvas.tiles 1).center in
+  let r = res_img (List.nth s.canvas.ports 1).demand in
+  draw_image (get_img_transparent r) ((c |> round |> fst) + 25)
+    ((c |> round |> snd) + 45);
+  let c = (List.nth s.canvas.tiles 3).center in
+  let r = res_img (List.nth s.canvas.ports 2).demand in
+  draw_image (get_img_transparent r) ((c |> round |> fst) - 80)
+    ((c |> round |> snd) - 10);
+  let c = (List.nth s.canvas.tiles 6).center in
+  let r = res_img (List.nth s.canvas.ports 3).demand in
+  draw_image (get_img_transparent r) ((c |> round |> fst) + 25 )
+    ((c |> round |> snd) + 45);
+  let c = (List.nth s.canvas.tiles 11).center in
+  let r = res_img (List.nth s.canvas.ports 4).demand in
+  draw_image (get_img_transparent r) ((c |> round |> fst) + 55)
+    ((c |> round |> snd) - 10);
+  let c = (List.nth s.canvas.tiles 12).center in
+  let r = res_img (List.nth s.canvas.ports 5).demand in
+  draw_image (get_img_transparent r) ((c |> round |> fst) - 80)
+    ((c |> round |> snd) - 10);
+  let c = (List.nth s.canvas.tiles 18).center in
+  let r = res_img (List.nth s.canvas.ports 6).demand in
+  draw_image (get_img_transparent r) ((c |> round |> fst) + 55)
+    ((c |> round |> snd) - 15);
+  let c = (List.nth s.canvas.tiles 16).center in
+  let r = res_img (List.nth s.canvas.ports 7).demand in
+  draw_image (get_img_transparent r) ((c |> round |> fst) - 50)
+    ((c |> round |> snd) - 70);
+  let c = (List.nth s.canvas.tiles 17).center in
+  let r = res_img (List.nth s.canvas.ports 8).demand in
+  draw_image (get_img_transparent r) ((c |> round |> fst) + 20)
+    ((c |> round |> snd) - 70)
+
 let update_dice i1 i2 =
   let fetch_dice = function
     | 1 -> "assets/Die_1.png"
@@ -336,7 +382,8 @@ let draw_canvas s =
   set_color 0x4b86b4;
   fill_rect 205 310 70 160;
   draw_card_infos s;
-  update_dice 6 6
+  update_dice 6 6;
+  draw_ports s
 
 let update_canvas s =
   invisible_robbers s;
