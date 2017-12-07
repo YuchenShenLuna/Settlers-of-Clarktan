@@ -15,3 +15,6 @@ val update_canvas : State.state -> unit
  * according to the two dice numbers [i1] [i2], obtainable from the
  * roll_dice function in main as a tuple. *)
 val update_dice : int -> int -> unit
+
+(* [draw_robber i st] updates the robber of canvas. *)
+val draw_robber : int -> State.state -> unit

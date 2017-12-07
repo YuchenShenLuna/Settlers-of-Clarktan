@@ -195,19 +195,32 @@ let make_invisible img =
   Array.map (fun arr -> replace arr) img
   in Png.load img [] |> array_of_image |> inv |> make_image
 
-(* [invisible_robbers st] draws the robber under state [st]. *)
-let invisible_robbers st =
+(* [invisible_robber st] draws the robber under state [st]. *)
+let draw_robber ind st =
      let tile_num = st.robber in
      let tile = List.nth st.canvas.tiles tile_num in
+     let old_tile = List.nth st.canvas.tiles ind in
      let f x =
        let center = round x.center in
        moveto (fst center) (snd center);
        if x=tile then
          draw_image (get_img_robber "assets/smallrobber.png")
            ((fst center) - 25) ((snd center) - 25)
-       else
-         draw_image (make_invisible "assets/smallrobber.png")
-           ((fst center) - 25) ((snd center) - 25)
+       else if x = old_tile then
+         let f t =
+           begin
+             match t |> Tile.lower_left |> round with
+               | x, y -> draw_image (get_img_transparent (fetch t.resource)) x y
+           end;
+           let x = t.center |> fst |> (-.) (0.2 *. t.edge) |> (~-.) |> int_of_float in
+           let y = t.center |> snd |> (-.) (0.2 *. t.edge) |> (~-.) |> int_of_float in
+           moveto x y;
+           match t.dice with
+           | None -> ()
+           | Some i -> draw_image (get_img_num (fetch' i)) x y
+         in
+         f old_tile
+       else ()
      in
      List.iter (fun x -> f x) st.canvas.tiles
 
@@ -371,7 +384,6 @@ let draw_canvas s =
   set_color 0x4b86b4;
   fill_rect 295 135 400 20;
   draw_resource s;
-  invisible_robbers s;
   set_color 0x4b86b4;
   fill_rect 5 475 193 20;
   fill_rect 5 265 193 20;
@@ -386,7 +398,6 @@ let draw_canvas s =
   draw_ports s
 
 let update_canvas s =
-  invisible_robbers s;
   set_color 0x4b86b4;
   fill_rect 295 135 400 20;
   draw_resource s;
