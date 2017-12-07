@@ -767,13 +767,16 @@ let play_robber ind st =
               robber = ind}
 
 let play_knight ind st =
-  let st' = play_robber ind st in
-  let new_players =
-    List.map (fun x -> if x.color <> st.turn then x
-               else
-                 {x with knight = x.knight - 1;
-                         knights_activated = x.knights_activated+1}) st'.players
-  in {st' with players = new_players}
+  let player = List.hd ((List.filter (fun x -> x.color = st.turn)) st.players) in
+  if player.knight < 1 then failwith "No knight card"
+  else
+    let st' = play_robber ind st in
+    let new_players =
+      List.map (fun x -> if x.color <> st.turn then x
+                 else
+                   {x with knight = x.knight - 1;
+                           knights_activated = x.knights_activated+1}) st'.players
+    in {st' with players = new_players}
 
 let play_road_build (i0, i1) (j0, j1) st =
   let player = List.filter (fun x -> x.color = st.turn) st.players |> List.hd in
@@ -804,16 +807,24 @@ let play_road_build (i0, i1) (j0, j1) st =
       {st' with canvas = {tiles = new_tiles'; ports=st.canvas.ports}}
 
 let play_monopoly r s =
-  List.fold_left (
-    fun acc x ->
-      if x.color = s.turn then acc
-      else
-        let to_steal = [ r, num_resource x.color r s ] in
-        s |> remove_resources to_steal x.color |> add_resources to_steal s.turn
-  ) s s.players
+  let player = List.filter (fun x -> x.color = s.turn) s.players |> List.hd in
+  if player.monopoly < 1 then
+    failwith "No Monopoly Card"
+  else
+    List.fold_left (
+      fun acc x ->
+        if x.color = s.turn then acc
+        else
+          let to_steal = [ r, num_resource x.color r s ] in
+          s |> remove_resources to_steal x.color |> add_resources to_steal s.turn
+    ) s s.players
 
 let play_year_of_plenty r1 r2 s =
-  s |> add_resources [r1, 1; r2, 1] s.turn |> play_card YearOfPlenty s.turn
+  let player = List.filter (fun x -> x.color = s.turn) s.players |> List.hd in
+  if player.year_of_plenty < 1 then
+    failwith "No Year of Plenty Card"
+  else
+    s |> add_resources [r1, 1; r2, 1] s.turn |> play_card YearOfPlenty s.turn
 
 (*****************************************************************************
  *                                 RESOURCES                                 *
