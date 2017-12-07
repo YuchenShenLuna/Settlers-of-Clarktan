@@ -61,8 +61,8 @@ let resource_priority_diff_stage color st res =
     | Lumber -> 3
     | Wool   -> 2
     | Brick  -> 3
-    | Ore    -> 2
-    | Grain  -> 1
+    | Ore    -> 1
+    | Grain  -> 2
   else if score < 9 then
     match res with
     | Lumber -> 2
@@ -98,9 +98,11 @@ let rec take n acc = function
  * possible indexes on which we can build a settlement or city based on
  * different checking functions [f]. *)
 let get_possible_house_ind st col f =
-  let rec from i j acc = if i > j then acc else from i (j-1) (j::acc) in
-  let lst = (from 2 8 []) @ (from 12 20 []) @ (from 22 43 []) @
-            (from 45 52 []) @ (from 57 63 []) in
+  let lst =
+  [ 2; 3; 4; 5; 6; 7; 8; 12; 13; 14; 15; 16; 17; 18; 19; 20; 22; 23; 24; 25;
+    26; 27; 28; 29; 30; 31; 32; 33; 34; 35; 36; 37; 38; 39; 40; 41; 42; 43;
+    45; 46; 47; 48; 49; 50; 51; 52; 53; 57; 58; 59; 60; 61; 62; 63 ]
+  in
   List.filter (fun x -> f col x st) lst
 
 (* [init_can_build_settlement_ai col x st] returns whether an ai identified by
@@ -187,11 +189,11 @@ let obtainable_resources ind st : resource list =
 (* [initial_resource_priority res] is the priority for resource [res] at
  * initial building phase of the game *)
 let initial_resource_priority = function
-  | Lumber -> 3
-  | Wool -> 2
-  | Brick -> 3
-  | Ore -> 2
-  | Grain -> 1
+  | Lumber -> 8
+  | Wool -> 7
+  | Brick -> 8
+  | Ore -> 3
+  | Grain -> 7
 
 (* [obtain_bordering_dices ind st] returns a list of dice numbers bordering the
  * house indexed by [ind] under state [st] *)
@@ -203,13 +205,14 @@ let obtain_bordering_dices ind st =
 (* [init_calc_value_settlement ind st f] calculates the initial value for the
  * settlement at index [ind] under the current state [st] decided by checking
  * function [f] *)
-let init_calc_value_settlement ind st f =
+let init_calc_value_settlement ind st f col =
   let resources = obtainable_resources ind st in
+  let r = get_unaccessible_resources col st in
   let dices = obtain_bordering_dices ind st in
   let res_pts =
     resources
-    |> List.map (fun x -> 5 * (f x))
-    |> List.fold_left (fun acc x -> acc + x) 0
+    |> List.map (fun x -> if List.mem x r then 100 else 15 * (f x))
+    |> List.fold_left (+) 0
   in
   let dice_pts =
     dices
@@ -231,7 +234,7 @@ let first_settlement st col =
   let values =
     List.map (
       fun x ->
-        init_calc_value_settlement x st initial_resource_priority, x
+        init_calc_value_settlement x st initial_resource_priority col, x
     ) possible_ind
   in
   let info =
@@ -266,7 +269,7 @@ let second_settlement st col =
   if List.length info <> 0 then
     let values =
       List.map (fun x ->
-          (init_calc_value_settlement x st initial_resource_priority, x)) info
+          (init_calc_value_settlement x st initial_resource_priority col, x)) info
     in
     let lst =
     List.fold_left (fun (accx, accy) (x, y) ->
@@ -281,7 +284,7 @@ let second_settlement st col =
     if List.length info' <> 0 then
       let values' =
         List.map (fun x ->
-            (init_calc_value_settlement x st initial_resource_priority, x)) info'
+            (init_calc_value_settlement x st initial_resource_priority col, x)) info'
       in
       let lst' =
         List.fold_left (fun (accx, accy) (x, y) ->
@@ -302,7 +305,7 @@ let calc_value_house ind st color =
   let dices = obtain_bordering_dices ind st in
   let res_pts =
     resources
-    |> List.map (fun x -> 8 * (resource_priority_diff_stage color st x))
+    |> List.map (fun x -> 15 * (resource_priority_diff_stage color st x))
     |> List.fold_left (fun acc x -> acc + x) 0
   in
   let dice_pts =
@@ -313,7 +316,13 @@ let calc_value_house ind st color =
         | Some n -> get_probability_dice n)
     |> List.fold_left (fun acc x -> acc + x) 0
   in
-  res_pts + dice_pts
+  let info =
+    st.canvas.tiles
+    |> List.map (fun x -> x.buildings)
+    |> List.flatten
+  in
+  let type_pts = if List.assoc_opt ind info <> None then 70 else 0 in
+  res_pts + dice_pts + type_pts
 
 (* [has_settlement ind st] returns whether there is a settlement build at
  * index [ind] at state [st] *)
@@ -487,22 +496,22 @@ let choose_road ind color st =
       if check_build_road rd st color then rd
       else
         match get_the_road st color with
-        | None -> (failwith "no road building possible")
+        | None -> (-1, -1)
         | Some r -> r
     else
     match get_the_road st color with
-    | None -> (failwith "no road building possible")
+    | None -> (-1, -1)
     | Some r -> r
   else if List.mem ind ind_two then
     let rd = (fetch_roads_in_two ind st color |> List.hd |> fst) in
     if check_build_road rd st color then rd
     else
       match get_the_road st color with
-      | None -> (failwith "no road building possible")
+      | None -> (-1, -1)
       | Some r -> r
   else
   match get_the_road st color with
-  | None -> (failwith "no road building possible")
+  | None -> (-1, -1)
   | Some r -> r
 
 (* [choose_city st color] returns the index of the city the ai identified
@@ -520,13 +529,13 @@ let choose_city st color =
  * obtained enough resources for building a settlement *)
 let enough_res_for_settlement st color =
   let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
-  player.ore > 0 && player.wool > 0 && player.lumber > 0 && player.brick > 0
+  player.grain > 0 && player.wool > 0 && player.lumber > 0 && player.brick > 0
 
 (* [enough_res_for_city st color] returns whether the player has
  * obtained enough resources for building a city *)
 let enough_res_for_city st color =
   let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
-  player.ore > 2 && player.grain > 3
+  player.ore > 3 && player.grain > 2
 
 (* [enough_res_for_road st color] returns whether the player has
  * obtained enough resources for building a road *)
@@ -550,6 +559,7 @@ let possible_city st color =
 let make_build_plan st color =
   let can_settlement = enough_res_for_settlement st color
                        && choose_settlement st color <> -1 in
+  (* let _ = print_endline (choose_settlement st color <> -1 |> string_of_bool) in *)
   let can_city = enough_res_for_city st color && choose_city st color <> -1 in
   let can_road = enough_res_for_road st color in
   if can_settlement && can_city then
@@ -587,8 +597,14 @@ let make_build_plan st color =
                           else (acc1, acc2)) (0, 0)
       |> snd
     in
-    let val_set1 = calc_value_house settlement_one st color in
-    let val_set2 = calc_value_house settlement_two st color in
+    let val_set1 =
+      if choose_road settlement_one color st <> (-1, -1) then
+        calc_value_house settlement_one st color
+      else -10 in
+      let val_set2 =
+        if choose_road settlement_two color st <> (-1, -1) then
+          calc_value_house settlement_two st color
+        else -10 in
     let val_c = calc_value_house city st color in
     try
       if val_set1 >= val_set2 && val_set1 >= val_c then
@@ -598,7 +614,15 @@ let make_build_plan st color =
         Build_Road ((choose_road settlement_two color st),
                     Build_Settlement settlement_two)
       else
-        Neither (Build_City city)
+        let extract opt = match opt with Some x -> x | None -> (-1, -1) in
+        if check_build_road (extract (get_the_road st color)) st color then
+          let i = Random.int 3 in
+          if i=1 then
+            Build_Road ((extract (get_the_road st color), Build_City city))
+          else
+            Neither (Build_City city)
+      else
+          Neither (Build_City city)
     with _ -> Neither (Build_Road ((0, 0), Build_Settlement 0))
   else
     Neither (Build_Road ((0, 0), Build_Settlement 0))
@@ -969,9 +993,9 @@ let choose color s =
     BuildCity (choose_city s color)
   else if want_build_road color s then
       match make_build_plan s color with
-      | Build_Road (_, Build_Settlement i) -> BuildRoad (choose_road i color s)
-      | Build_Road (e, _) -> BuildRoad e
-      | _ -> failwith "Impossible"
+        | Build_Road (_, Build_Settlement i) -> BuildRoad (choose_road i color s)
+        | Build_Road (e, _) -> BuildRoad e
+        | _ -> EndTurn
   else
     if want_buy_card color s then BuyCard
     else if want_play_monopoly color s then PlayMonopoly (choose_monopoly color s)

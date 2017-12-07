@@ -405,7 +405,7 @@ let can_build_settlement color ind st =
   else
     let player = List.hd (List.filter (fun x -> x.color = color) st.players) in
     if player.lumber < 1 || player.brick < 1
-       || player.ore < 1 || player.wool < 1 then
+       || player.grain < 1 || player.wool < 1 then
       failwith "You do not have enough resource to build a settlement"
     else true
 
@@ -416,7 +416,7 @@ let build_settlement ind st =
     |> List.map (fun x -> if x.color <> st.turn then x
                   else {x with lumber = x.lumber-1;
                                brick = x.brick-1;
-                               ore = x.ore-1;
+                               grain = x.grain-1;
                                wool = x.wool-1})
   in
   let new_tiles =
