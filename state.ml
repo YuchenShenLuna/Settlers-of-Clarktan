@@ -632,7 +632,7 @@ let best_rate resource color s =
   let ports =
     List.fold_left (
       fun acc x ->
-        if x.demand = resource
+        if x.demand = Some resource || x.demand = None
         && (is_settled (fst x.neighbors) || is_settled (snd x.neighbors))
         then x :: acc
         else acc
@@ -642,7 +642,11 @@ let best_rate resource color s =
 
 let trade_ok to_remove to_add partner_opt s =
   match partner_opt with
-  | None -> failwith "TODO"
+  | None ->
+    List.fold_left (
+      fun acc (r, n) -> acc + n / best_rate r s.turn s
+    ) 0 to_remove
+    >= List.fold_left (fun acc (_, n) -> acc + n) 0 to_add
   | Some partner ->
     s |> remove_resources to_remove s.turn |> player_ok s.turn
     && s |> remove_resources to_add partner |> player_ok partner
