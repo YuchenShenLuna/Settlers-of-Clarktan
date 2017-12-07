@@ -665,26 +665,8 @@ let trade_ok to_remove to_add partner_opt s =
     && s |> add_resources to_add s.turn |> player_ok s.turn
     && s |> add_resources to_remove partner |> player_ok partner
 
-<<<<<<< HEAD
-(* [print_resources col s] prints the resources for player identified by
- * color [col] under state [s]. *)
-let print_resources color s =
-  let player = get_player color s in
-  let start = if color = Red then "Your" else string_of_color color ^ "'s" in
-  let msg =
-    start ^ "  resources: "
-    ^ (string_of_int player.ore) ^ " ore, "
-    ^ (string_of_int player.grain) ^ " grain, "
-    ^ (string_of_int player.brick) ^ " brick, "
-    ^ (string_of_int player.lumber) ^ " lumber, and "
-    ^ (string_of_int player.wool) ^ " wool. "
-  in
-  print_endline msg; ()
-
 (* [domestic r1 r2 p s] does domestic trading for player [p] by trading
  * [r1] for [r2] under state [s]. *)
-=======
->>>>>>> 9e455570a3863186a8cdc85f19d8dcab3fe828cd
 let domestic to_remove to_add partner s =
   if trade_ok to_remove to_add (Some partner) s then
     s |> remove_resources to_remove s.turn
@@ -693,7 +675,7 @@ let domestic to_remove to_add partner s =
     |> add_resources to_remove partner
   else failwith "Bad trade!"
 
-(* [maritime r1 r2 p s] does maritime trading for player [p] by trading
+(* [maritime r1 r2 s] does maritime trading by trading with bank
  * [r1] for [r2] under state [s]. *)
 let maritime to_remove to_add s =
   if trade_ok to_remove to_add None s then

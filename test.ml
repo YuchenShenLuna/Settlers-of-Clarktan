@@ -3,6 +3,13 @@ open State
 open Command
 open Elements
 
+(*the test suite covers most basic commands that can appear in this game. We
+  test the correctness of initialization of the game, playing card commands,
+  trade command. We test the correctness of these commands mainly by checking
+  the both the number of 5 different kinds of resources and the total number of
+  resources, because these actions change the state mainly by changing the number
+  of resources. We also check if our turn changes from player to player accordingly*)
+
 (* card int list no dups no zeros *)
 let cmp l0 l1 =
   List.length l0 = List.length l1

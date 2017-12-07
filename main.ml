@@ -79,12 +79,28 @@ let rec discard n s =
     else if color = Red then
       let n = num_all_resources color s / 2 in
       let msg = "Please discard " ^ string_of_int n ^ " resources." in
-      failwith "TODO"
-    else failwith "TODO"
+      ANSITerminal.(print_string [cyan] msg);
+      print_string  "> ";
+      let cmdx =
+        match read_line () with
+        | exception End_of_file -> Invalid
+        | str -> Command.parse_text s.canvas.tiles str
+      in
+      match cmdx with
+      | Discard l ->
+        begin try
+          discard_resource color l s
+        with
+        | _ -> print_endline "I am afraid I cannot do that.\n"; s
+      end
+      | _ -> print_endline "I do not understand"; s
+    else discard_resources color s
         (*remember to call discard in robber*)
 
 let rec robber s =
   if s.turn = Red then
+    (* let s = discard 0 s in
+    let _ = update_canvas s in *)
     let () = print_endline "Please move the robber." in
     match () |> parse_mouse_click |> nearby_tile s.canvas.tiles with
     | None -> robber s
@@ -93,6 +109,11 @@ let rec robber s =
       if sx <> s then let () = print_endline "Ok.\n"; draw_robber s.robber sx in sx
       else let () = print_endline "I am afraid I cannot do that.\n" in robber s
   else
+    (* let s =
+      if s.turn = Yellow then discard 1 s
+      else if s.turn = Blue then discard 2 s
+      else discard 3 s in
+    let _ = update_canvas s in *)
     let sx = do_move (Robber (choose_robber_spot s.turn s)) None s in
     if sx = s then ()
     else
@@ -196,6 +217,7 @@ let game_over s =
   ) s.players
 
 let rec repl (turns : int) (cmd : command) (clr_opt : color option) (s : state) =
+  try
   let tmp = do_move cmd clr_opt s in
   if tmp.turn <> s.turn && s.turn = Red then print_endline "Ok.\n" else ();
   let _ = print_endline (string_of_command cmd); print_newline () in
@@ -252,6 +274,7 @@ let rec repl (turns : int) (cmd : command) (clr_opt : color option) (s : state) 
     | EndTurn -> repl 0 EndTurn None sx
     | _ -> repl (turns + 1) cmdx None sx
   end
+  with _ -> print_endline "I am afraid I cannot do that"
 
 let main () =
   let () = Random.self_init () in

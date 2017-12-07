@@ -1047,6 +1047,23 @@ let choose_discard_resource color s =
   let cmp a b = compare (value a) (value b) in
   hand |> List.sort cmp |> take (List.length hand / 2) []
 
+let discard_resources color s =
+  let remove r s =
+    match r with
+    | Lumber -> {s with lumber = s.lumber -1}
+    | Ore -> {s with ore = s.ore -1}
+    | Wool -> {s with wool = s.wool -1}
+    | Brick -> {s with brick = s.brick -1}
+    | Grain -> {s with grain = s.grain -1}
+  in
+  let res = choose_discard_resource color s in
+  let r1 = List.hd res in
+  let r2 = List.tl res |> List.hd in
+  let player = List.hd (List.filter (fun x -> x.color = color) s.players) in
+  {s with
+   players = List.map (fun x -> if x = player then
+                          remove r2 (remove r1 x) else x) s.players}
+
 (*****************************************************************************
  *                                CHOOSE MOVE                                *
  *****************************************************************************)

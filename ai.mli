@@ -19,8 +19,15 @@ val second_settlement : state -> color -> intersection
  * by the ai at initial phase *)
 val init_road : state -> color -> intersection -> edge
 
+(* [discard_resource col s] discards resource for player with color [col]. *)
+val discard_resources : color -> state -> state
+
+(* [want_accept_trade l1 l2 c s] returns whether player with color [c]
+ * wants to accept the trade. *)
 val want_accept_trade : (resource * int) list -> (resource * int) list -> color -> state -> bool
 
+(* [choose_robber_spot c s] chooses the robber index for player [c]. *)
 val choose_robber_spot : color -> state -> int
 
+(* [choose c s] handles state changes when an ai with color [c] moves. *)
 val choose : color -> state -> Command.command
