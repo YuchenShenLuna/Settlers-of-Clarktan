@@ -1031,12 +1031,7 @@ let do_move cmd color_opt st =
         | None -> invalid_arg "Requires a color."
         | Some color -> domestic l1 l2 color st
       end
-<<<<<<< HEAD
-    | MaritimeTrade (p0, p1) ->
-        maritime [p0] [p1] st
-=======
     | MaritimeTrade (p0, p1) -> maritime [p0] [p1] st
->>>>>>> 3442286703b537f086d8f48a00b3db190f2c756e
     | Discard lst ->
       begin
         match color_opt with
