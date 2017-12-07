@@ -727,7 +727,7 @@ current state st*)
 let want_accept_trade st ai_color to_remove to_add =
   let remove_ok =
     List.fold_left (
-      fun acc (r, n) -> num_resource ai_color r st > 0 && acc
+      fun acc (r, n) -> num_resource ai_color r st > n && acc
     ) true to_remove
   in
   let ai = get_player ai_color st in
