@@ -391,10 +391,10 @@ let update_canvas s =
   fill_rect 295 135 400 20;
   draw_resource s;
   set_color 0x4b86b4;
-  fill_rect 5 475 193 20;
-  fill_rect 5 265 193 20;
-  fill_rect 800 475 193 20;
-  fill_rect 800 265 193 20;
+  fill_rect 5 475 200 20;
+  fill_rect 5 265 200 20;
+  fill_rect 800 475 200 20;
+  fill_rect 800 265 200 20;
   draw_player_infos s;
   set_color 0x4b86b4;
   fill_rect 205 310 70 160;
