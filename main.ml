@@ -112,10 +112,25 @@ let trade to_remove to_add s =
   | None -> let () = print_endline "No one wants to trade with you :(\n" in None
   | Some color -> Some color
 
-let rec repl (cmd : command) (clr_opt : color option) (s : state) =
+let game_over s =
+  List.iter (
+    fun x ->
+      if check_win x.color s then
+        let msg =
+          "Congratulations! "
+          ^ (if x.color = Red then "You have"
+             else string_of_color x.color ^ " has")
+          ^ " won the Settlers of Clarktan."
+        in
+        print_endline msg
+      else ()
+  ) s.players
+
+let rec repl (turns : int) (cmd : command) (clr_opt : color option) (s : state) =
   let tmp = do_move cmd clr_opt s in
-  if tmp <> s && s.turn = Red then print_endline "Ok.\n" else ();
+  if tmp.turn <> s.turn && s.turn = Red then print_endline "Ok.\n" else ();
   let _ = print_endline (string_of_command cmd); print_newline () in
+  let () = game_over s in
   let sx = if s.turn = tmp.turn && cmd <> Start then tmp else roll_dice tmp in
   if sx <> s then update_canvas sx else ();
   if sx.turn <> Red then
@@ -126,7 +141,11 @@ let rec repl (cmd : command) (clr_opt : color option) (s : state) =
           if s <> sx then draw_robber s.robber sx else ()
         | _ -> ()
       end;
-      repl (choose sx.turn sx) None sx
+      let cmdx = if turns > 25 then EndTurn else choose sx.turn sx in
+      match cmdx with
+      | DomesticTrade (l0, l1) -> repl (turns + 1) cmdx (trade l0 l1 sx) sx
+      | EndTurn -> repl 0 EndTurn None sx
+      | _ -> repl (turns + 1) cmdx None sx
     end
   else begin
     begin
@@ -160,8 +179,9 @@ let rec repl (cmd : command) (clr_opt : color option) (s : state) =
       | str -> Command.parse_text s.canvas.tiles str
     in
     match cmdx with
-    | DomesticTrade (l0, l1) -> repl cmdx (trade l0 l1 sx) sx
-    | _ -> repl cmdx None sx
+    | DomesticTrade (l0, l1) -> repl (turns + 1) cmdx (trade l0 l1 sx) sx
+    | EndTurn -> repl 0 EndTurn None sx
+    | _ -> repl (turns + 1) cmdx None sx
   end
 
 let main () =
@@ -174,7 +194,7 @@ let main () =
   let _ = Sys.command("clear") in
   ANSITerminal.(print_string [red] "Welcome to the Settlers of Clarktan.");
   print_newline ();
-  match s |> setup |> repl Start None with
+  match s |> setup |> repl 0 Start None with
   | exception Exit -> Graphics.close_graph ()
   | _ -> print_endline "Oh no! Something went wrong."
 

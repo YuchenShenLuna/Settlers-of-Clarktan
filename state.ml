@@ -596,7 +596,7 @@ let get_player color s = List.find (fun p -> p.color = color) s.players
 
 let player_ok color s =
   let p = get_player color s in
-  p.lumber < 0 || p.wool < 0 || p.grain < 0 || p.brick < 0 || p.ore < 0
+  p.lumber >= 0 && p.wool >= 0 && p.grain >= 0 && p.brick >= 0 && p.ore >= 0
 
 let add_resources to_add color s =
   let rec add player = function
@@ -616,7 +616,7 @@ let add_resources to_add color s =
   { s with players }
 
 let remove_resources to_remove color s =
-  let to_add = List.map (fun (r, n) -> r, -n) to_remove in
+  let to_add = List.map (fun (r, n) -> r, (-n)) to_remove in
   add_resources to_add color s
 
 let best_rate resource color s =
@@ -653,12 +653,18 @@ let trade_ok to_remove to_add partner_opt s =
     && s |> add_resources to_add s.turn |> player_ok s.turn
     && s |> add_resources to_remove partner |> player_ok partner
 
-let print_resources =
-  List.iter (
-    fun (r, n) ->
-      let msg = string_of_resource r ^ " * " ^ string_of_int n in
-      print_endline msg
-  )
+let print_resources color s =
+  let player = get_player color s in
+  let start = if color = Red then "Your" else string_of_color color ^ "'s" in
+  let msg =
+    start ^ "  resources: "
+    ^ (string_of_int player.ore) ^ " ore, "
+    ^ (string_of_int player.grain) ^ " grain, "
+    ^ (string_of_int player.brick) ^ " brick, "
+    ^ (string_of_int player.lumber) ^ " lumber, and "
+    ^ (string_of_int player.wool) ^ " wool. "
+  in
+  print_endline msg; ()
 
 let domestic to_remove to_add partner s =
   if trade_ok to_remove to_add (Some partner) s then
@@ -667,10 +673,8 @@ let domestic to_remove to_add partner s =
     |> add_resources to_add s.turn
     |> add_resources to_remove partner
   else
-    let () = print_endline "REMOVE:" in
-    let () = print_resources to_remove in
-    let () = print_endline "ADD:" in
-    let () = print_resources to_add in
+    let () = print_resources s.turn s in
+    let () = print_resources partner s in
     failwith "Bad trade!"
 
 let maritime to_remove to_add s =
@@ -678,10 +682,8 @@ let maritime to_remove to_add s =
     s |> remove_resources to_remove s.turn
     |> add_resources to_add s.turn
   else
-    let () = print_endline "REMOVE:" in
-    let () = print_resources to_remove in
-    let () = print_endline "ADD:" in
-    let () = print_resources to_add in
+    let () = print_endline ((string_of_color s.turn) ^ "\'s resources:") in
+    let () = print_resources s.turn s in
     failwith "Bad trade!"
 
 (*****************************************************************************
@@ -1029,8 +1031,12 @@ let do_move cmd color_opt st =
         | None -> invalid_arg "Requires a color."
         | Some color -> domestic l1 l2 color st
       end
+<<<<<<< HEAD
     | MaritimeTrade (p0, p1) ->
         maritime [p0] [p1] st
+=======
+    | MaritimeTrade (p0, p1) -> maritime [p0] [p1] st
+>>>>>>> 3442286703b537f086d8f48a00b3db190f2c756e
     | Discard lst ->
       begin
         match color_opt with
