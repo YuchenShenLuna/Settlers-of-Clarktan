@@ -28,11 +28,11 @@ You might also need to install the Graphics module and the CamlImages. It can be
 
 After successfully installing the external libraries, you will be able to run
 <dl>
-  <dd> make check </dd>
+  <dt> make check </dt>
 </dl>
 to compile our code and
 <dl>
-  <dd> make play </dd>
+  <dt> make play </dt>
 </dl>
 to have fun with our game! Note that if running natively on macOS, it might take a few seconds to power up XQuartz. The game can also be manually launched by running ./main.byte.
 
