@@ -40,4 +40,6 @@ val parse_text : Tile.tile list -> string -> command
 
 val string_of_command : command -> string
 
+val extract : unit -> (resource * int) list
+
 val feedback : unit -> bool

@@ -76,29 +76,32 @@ let rec discard n s =
   else
     let color = (List.nth s.players n).color in
     if num_all_resources color s <= 7 then discard (n + 1) s
-    else if color = Red then
-      let n = num_all_resources color s / 2 in
-      let msg = "Please discard " ^ string_of_int n ^ " resources." in
+    else if color <> Red then
+      let () = print_endline (string_of_color color ^ " was robbed.\n") in
+      s |> discard_resources color |> discard (n + 1)
+    else
+      let x = num_all_resources color s / 2 in
+      let msg = "Please discard " ^ string_of_int x ^ " resources.\n" in
       ANSITerminal.(print_string [cyan] msg);
       print_string  "> ";
-      let cmdx =
-        match read_line () with
-        | exception End_of_file -> Invalid
-        | str -> Command.parse_text s.canvas.tiles ("discard " ^ str)
-      in
-      match cmdx with
-      | Discard l ->
-        begin
-          try s |> discard_resource Red l |> discard (n + 1)
-          with _ -> print_endline "I am afraid I cannot do that.\n"; discard n s
-        end
-      | _ -> print_endline "I do not understand"; discard n s
-    else s |> discard_resources color |> discard (n + 1)
+      let to_discard = extract () in
+      if List.length to_discard < x then
+        let () =
+          if to_discard = [] then print_newline ()
+          else print_endline "Please specify more resources."
+        in
+        discard n s
+      else
+        let sx = do_move (Discard to_discard) (Some Red) s in
+        if sx = s then discard n s
+        else
+          let () = print_endline "Ok.\n" in
+          discard (n + 1) sx
 
 let rec robber s =
-  let s = discard 0 s in
   if s.turn = Red then
-    let () = print_endline "Please move the robber." in
+    let () = ANSITerminal.(print_string [cyan] "Please move the robber") in
+    let () = print_newline () in
     match () |> parse_mouse_click |> nearby_tile s.canvas.tiles with
     | None -> robber s
     | Some i ->
@@ -121,7 +124,7 @@ let roll_dice s =
   let msg =
     if s.turn = Red then
       "It's your turn. You have rolled a "
-      ^ string_of_int (d1 + d2) ^ ". "
+      ^ string_of_int (d1 + d2) ^ ".\n\n"
     else
       let name = string_of_color s.turn in
       "It's " ^ name ^ "'s" ^ " turn. " ^ name ^ " has rolled a "
@@ -130,7 +133,10 @@ let roll_dice s =
   ANSITerminal.(print_string [cyan] msg);
   let () = print_string "" in
   let () = update_dice d1 d2 in
-  let sx = if d1 + d2 <> 7 then generate_resource (d1 + d2) s else robber s in
+  let sx =
+    if d1 + d2 <> 7 then generate_resource (d1 + d2) s
+    else s |> discard 0 |> robber
+  in
   sx
 
 let trade to_remove to_add s =
@@ -141,7 +147,7 @@ let trade to_remove to_add s =
       List.iter g to_remove;
       print_string " for ";
       List.iter g to_add;
-      print_string ". ";
+      print_endline ".\n";
       match
         List.fold_left (
           fun acc x ->

@@ -1050,11 +1050,11 @@ let choose_discard_resource color s =
 let discard_resources color s =
   let remove r p =
     match r with
-    | Lumber -> {p with lumber = p.lumber -1}
-    | Ore -> {p with ore = p.ore -1}
-    | Wool -> {p with wool = p.wool -1}
-    | Brick -> {p with brick = p.brick -1}
-    | Grain -> {p with grain = p.grain -1}
+    | Lumber -> {p with lumber = p.lumber - 1}
+    | Ore -> {p with ore = p.ore - 1}
+    | Wool -> {p with wool = p.wool - 1}
+    | Brick -> {p with brick = p.brick - 1}
+    | Grain -> {p with grain = p.grain - 1}
   in
   let players =
     List.map (
@@ -1075,33 +1075,32 @@ let discard_resources color s =
 (* [choose color s] chooses the next action the AI wants to do and finishes
  * that action. *)
 let choose color s =
-  if want_build_settlement color s then
-    BuildSettlement (choose_settlement s color)
-  else if want_build_city color s then
-    BuildCity (choose_city s color)
-  else if want_build_road color s then
-    try
-      match make_build_plan s color with
-        | Build_Road (_, Build_Settlement i) -> BuildRoad (choose_road i color s)
-        | Build_Road (e, _) -> BuildRoad e
-        | _ -> EndTurn
-    with _ -> EndTurn
-  else
-    if want_maritime_trade s then
+  try
+    if want_build_settlement color s then
+      BuildSettlement (choose_settlement s color)
+    else if want_build_city color s then
+      BuildCity (choose_city s color)
+    else if want_build_road color s then
+      try
+        match make_build_plan s color with
+          | Build_Road (_, Build_Settlement i) -> BuildRoad (choose_road i color s)
+          | Build_Road (e, _) -> BuildRoad e
+          | _ -> EndTurn
+      with _ -> EndTurn
+    else if want_maritime_trade s then
       match choose_maritime_trade s with
       | to_remove, to_add -> DomesticTrade (to_remove, to_add)
     else if want_buy_card color s then BuyCard
-    else if Random.int 3 = 1 then
-      match choose_domestic_trade s with
-      | to_remove, to_add -> DomesticTrade (to_remove, to_add)
     else if want_play_monopoly color s then PlayMonopoly (choose_monopoly color s)
     else if want_play_knight color s then PlayKnight (choose_robber_spot color s)
     else if want_play_year_of_plenty color s then
       match choose_two_resources color s with
       | r0, r1 -> PlayYearOfPlenty (r0, r1)
     else if want_play_road_building color s then
-      try
-        let (r1, r2) = choose_build_roads color s in
-        PlayRoadBuilding (r1, r2)
-      with _ -> EndTurn
+      let (r1, r2) = choose_build_roads color s in
+      PlayRoadBuilding (r1, r2)
+    else if Random.int 4 = 1 then
+      match choose_domestic_trade s with
+      | to_remove, to_add -> DomesticTrade (to_remove, to_add)
     else EndTurn
+  with _ -> EndTurn

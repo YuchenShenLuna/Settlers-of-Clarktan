@@ -143,6 +143,15 @@ let feedback () =
       fun acc t -> acc || List.mem t tokens
     ) false [ "yes"; "y"; "accept"; "ok"; "aye"; "fine"; "good" ]
 
+let extract () =
+  match read_line () with
+  | exception End_of_file -> []
+  | str ->
+    let str' = str |> String.trim |> String.lowercase_ascii in
+    let t = Str.split (Str.regexp "[ \n\r\x0c\t()/:;,?.!]+") str' in
+    try List.combine (extract_resources t) (extract_ints t)
+    with _ -> []
+
 let parse_text tiles str =
   let str' = str |> String.trim |> String.lowercase_ascii in
   match Str.split (Str.regexp "[ \n\r\x0c\t()/:;,?.!]+") str' with
@@ -218,12 +227,5 @@ let parse_text tiles str =
               if List.mem "maritime" t || List.mem "bank" t || List.mem "port" t
               then MaritimeTrade (List.nth give 0, List.nth take 0)
               else DomesticTrade (give, take)
-      end
-    | "discard" | "burn" | "throw" ->
-      begin
-        match List.combine (extract_resources t) (extract_ints t) with
-        | exception (Invalid_argument _) -> Invalid
-        | [] -> Invalid
-        | lst -> Discard lst
       end
     | _ -> Invalid
