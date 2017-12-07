@@ -20,21 +20,21 @@ Then, map opam to use the system installation instead of the currently bound one
 
 You might also need to install the Graphics module and the CamlImages. It can be done by running
 <dl>
-  <dd> opam install graphics </dd>
-  <dd> opam install camlimages </dd>
+  <dd> `opam install graphics` </dd>
+  <dd> `opam install camlimages` </dd>
 </dl>
 
 ## Gameplay
 
 After successfully installing the external libraries, you will be able to run
 <dl>
-  <dt> make check </dt>
+  <dd> `make check` to compile our code </dd>
 </dl>
-to compile our code and
+and
 <dl>
-  <dt> make play </dt>
+  <dd> `make play` to have fun with our game! </dd>
 </dl>
-to have fun with our game! Note that if running natively on macOS, it might take a few seconds to power up XQuartz. The game can also be manually launched by running ./main.byte.
+Note that if running natively on macOS, it might take a few seconds to power up XQuartz. The game can also be manually launched by running ./main.byte.
 
 Please make sure that both the Terminal and the main game Window is visible on your screen to see instructions and updates as you play.
 
