@@ -158,15 +158,15 @@ val maritime : (resource * int) list -> (resource * int) list -> state -> state
 
 (* [list_of_resources color st] returns the list of resources under state [st]
  * for player identified by color [color] *)
-val list_of_resources : color -> state -> state
+val list_of_resources : color -> state -> resource list
 
 (*****************************************************************************
  *                          PLAY A DEVELOPMENT CARD                          *
  *****************************************************************************)
 
-(* [play_robber st i] is the state after the player moves the robber to
+(* [move_robber st i] is the state after the player moves the robber to
  * robber to terrain hex [i]. *)
-val play_robber : int -> state -> state
+val move_robber : int -> state -> state
 
 (* [play_knight st color ind] is the state [st] after the current player
  * plays a knight card and moves the robber to terrain hex [ind]. *)
