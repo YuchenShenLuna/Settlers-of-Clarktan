@@ -107,10 +107,10 @@ let rec discard n s =
 
 let rec robber s =
   if s.turn = Red then
-    let () = ANSITerminal.(print_string [cyan] "Please move the robber") in
+    let () = ANSITerminal.(print_string [cyan] "Please move the robber.") in
     let () = print_newline () in
     match () |> parse_mouse_click |> nearby_tile s.canvas.tiles with
-    | None -> robber s
+    | None -> print_newline (); robber s
     | Some i ->
       let sx = do_move (Robber i) None s in
       if sx <> s then let () = print_endline "Ok.\n"; draw_robber s.robber sx in sx
@@ -131,13 +131,13 @@ let roll_dice s =
   let msg =
     if s.turn = Red then
       "It's your turn. You have rolled a "
-      ^ string_of_int (d1 + d2) ^ ".\n\n"
+      ^ string_of_int (d1 + d2) ^ ".\n"
     else
       let name = string_of_color s.turn in
       "It's " ^ name ^ "'s" ^ " turn. " ^ name ^ " has rolled a "
-      ^ string_of_int (d1 + d2) ^ ".\n\n"
+      ^ string_of_int (d1 + d2) ^ ".\n"
   in
-  ANSITerminal.(print_string [cyan] msg);
+  ANSITerminal.(print_string [red] msg);
   let () = print_string "" in
   let () = update_dice d1 d2 in
   let sx =
@@ -149,12 +149,14 @@ let roll_dice s =
 let trade to_remove to_add s =
   if s.turn <> Red then
     begin
-      let g (r, n) = print_string (string_of_int n ^ " " ^ string_of_resource r) in
-      print_string (string_of_color s.turn ^ " would like to trade ");
-      List.iter g to_remove;
-      print_string " for ";
-      List.iter g to_add;
-      print_endline ".\n";
+      let f acc (r, n) = acc ^ string_of_int n ^ " " ^ string_of_resource r in
+      let msg = string_of_color s.turn ^ " would like to trade "
+                ^ List.fold_left f "" to_remove
+                ^ " for "
+                ^ List.fold_left f "" to_add
+                ^ ".\n"
+      in
+      ANSITerminal.(print_string [white] msg);
       match
         List.fold_left (
           fun acc x ->
@@ -162,8 +164,9 @@ let trade to_remove to_add s =
             else if x.color = Red && trade_ok to_remove to_add (Some Red) s then
               let msg = "Would you like to trade with "
                         ^ string_of_color s.turn
-                        ^ "?\n> " in
-              print_string msg;
+                        ^ "?\n" in
+              ANSITerminal.(print_string [cyan] msg);
+              print_string "> ";
               let color_opt = if feedback () |> not then None else Some Red in
               print_endline "Ok.\n";
               color_opt
@@ -229,6 +232,7 @@ let rec repl (turns : int) (cmd : command) (clr_opt : color option) (s : state) 
         match cmd with
         | PlayKnight i | Robber i ->
           if s <> sx then draw_robber s.robber sx else ()
+        | EndTurn -> ()
         | _ -> ()
       end;
       let cmdx = if turns > 25 then EndTurn else choose sx.turn sx in
@@ -283,7 +287,7 @@ let main () =
                              Esther Jun";
   draw_canvas s;
   let _ = Sys.command("clear") in
-  ANSITerminal.(print_string [red] "Welcome to the Settlers of Clarktan.");
+  ANSITerminal.(print_string [on_cyan] "Welcome to the Settlers of Clarktan.");
   print_newline ();
   match s |> setup |> repl 0 Start None with
   | exception Exit -> Graphics.close_graph ()

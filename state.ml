@@ -711,124 +711,91 @@ let num_all_resources color st =
   num_resource color Brick st +
   num_resource color Ore st
 
-let play_card card color s =
+let list_of_resources color st =
+  let rec f r n acc = if n <= 0 then acc else f r (n - 1) (r :: acc) in
+  let cons r = f r (num_resource color r st) in
+  [] |> cons Lumber |> cons Wool |> cons Grain |> cons Brick |> cons Ore
+
+let play_card card s =
   let hand player = function
     | VictoryPoint -> player
-    | RoadBuilding -> { player with road_building = player.road_building - 1 }
-    | Monopoly -> { player with monopoly = player.monopoly - 1 }
-    | YearOfPlenty -> { player with year_of_plenty = player.year_of_plenty - 1 }
-    | Knight -> { player with knight = player.knight - 1;
-                              knights_activated = player.knights_activated + 1 }
+    | RoadBuilding ->
+      if player.road_building <= 0 then failwith "No road building card."
+      else { player with road_building = player.road_building - 1 }
+    | Monopoly ->
+      if player.monopoly <= 0 then failwith "No monopoly card."
+      else { player with monopoly = player.monopoly - 1 }
+    | YearOfPlenty ->
+      if player.year_of_plenty <= 0 then failwith "No year of plenty card."
+      else { player with year_of_plenty = player.year_of_plenty - 1 }
+    | Knight ->
+      if player.knight <= 0 then failwith "No knight card."
+      else { player with knight = player.knight - 1;
+                         knights_activated = player.knights_activated + 1 }
   in
   let players =
     List.map (
-      fun x -> if x.color = color then hand (get_player color s) card else x
+      fun x -> if x.color = s.turn then hand (get_player s.turn s) card else x
     ) s.players in
   { s with players }
 
-let play_robber ind st =
-  let pos_stealees =
-    (List.nth st.canvas.tiles ind).buildings
-    |> List.map (fun (_, (col, _)) -> col)
+let move_robber index s =
+  let candidates =
+    (List.nth s.canvas.tiles index).buildings
+    |> List.map (fun (_, (color, _)) -> color)
     |> List.sort_uniq compare
-    |> List.filter (fun x -> num_all_resources x st > 0) in
-  let shuffle lst =
-    let i = Random.int (List.length lst) in
-    List.nth lst i
+    |> List.filter (fun x -> num_all_resources x s > 0 && x <> s.turn)
+    |> shuffle
   in
-  let stealee_color = shuffle pos_stealees in
-  let stealee =
-    List.hd (List.filter (fun x -> x.color = stealee_color) st.players) in
-  let pos_wool = if stealee.wool > 0 then [Some Wool] else [] in
-  let pos_lumber = if stealee.lumber > 0 then [Some Lumber] else [] in
-  let pos_brick = if stealee.wool > 0 then [Some Brick] else [] in
-  let pos_ore = if stealee.lumber > 0 then [Some Ore] else [] in
-  let pos_grain = if stealee.wool > 0 then [Some Grain] else [] in
-  let pos_resource = pos_wool @ pos_brick @ pos_lumber @ pos_grain @ pos_ore in
-  let stolen_resource = shuffle pos_resource in
-  let new_players =
-    st.players
-    |> List.map (fun x -> if x.color = st.turn then
-                    begin
-                      match stolen_resource with
-                      | Some Wool -> {x with wool = x.wool+1}
-                      | Some Brick -> {x with brick = x.brick+1}
-                      | Some Lumber -> {x with lumber = x.lumber+1}
-                      | Some Ore -> {x with ore = x.ore+1}
-                      | Some Grain -> {x with grain = x.grain+1}
-                      | None -> x end
-                  else if x.color = stealee_color then
-                    begin
-                      match stolen_resource with
-                      | Some Wool -> {x with wool = x.wool-1}
-                      | Some Brick -> {x with brick = x.brick-1}
-                      | Some Lumber -> {x with lumber = x.lumber-1}
-                      | Some Ore -> {x with ore = x.ore-1}
-                      | Some Grain -> {x with grain = x.grain-1}
-                      | None -> x end
-                  else x)
-  in {st with players = new_players;
-              robber = ind}
+  match candidates with
+  | [] -> s
+  | h :: _ ->
+    let to_steal = [ s |> list_of_resources h |> shuffle |> List.hd, 1 ] in
+    { s with robber = index }
+    |> remove_resources to_steal h
+    |> add_resources to_steal h
 
-let play_knight ind st =
-  let player = List.hd ((List.filter (fun x -> x.color = st.turn)) st.players) in
-  if player.knight < 1 then failwith "No knight card"
-  else
-    let st' = play_robber ind st in
-    let new_players =
-      List.map (fun x -> if x.color <> st.turn then x
-                 else
-                   {x with knight = x.knight - 1;
-                           knights_activated = x.knights_activated+1}) st'.players
-    in {st' with players = new_players}
+let play_knight index s =
+  s |> move_robber index |> play_card Knight
 
-let play_road_build (i0, i1) (j0, j1) st =
-  let player = List.filter (fun x -> x.color = st.turn) st.players |> List.hd in
-  if player.road_building < 1 then
-    failwith "No Road Building Card"
+let play_road_build (i0, i1) (j0, j1) s =
+  if not (check_build_road (i0, i1) s s.turn) then
+    invalid_arg "Cannot build road at first intersection."
   else
-  if check_build_road (i0, i1) st st.turn = false then
-    failwith "Cannot Build Road at given first place"
-  else
-    let new_tiles =
-      List.map (fun t -> if List.mem i0 t.indices && List.mem i1 t.indices then
-                   {t with roads=((i0, i1), st.turn)::t.roads}
-                 else t) st.canvas.tiles in
-    let new_players =
-      List.map (fun x -> if x <> player then x
-                 else {player with road_building = player.road_building-1})
-        st.players in
-    let st' = {st with canvas = {tiles = new_tiles; ports=st.canvas.ports};
-                       players = new_players}
-    in
-    if check_build_road (j0, j1) st' st.turn = false then
-      failwith "Cannot Build Road at given second place"
+    let tiles =
+      List.map (
+        fun t ->
+          if List.mem i0 t.indices && List.mem i1 t.indices then
+            { t with roads = ((i0, i1), s.turn) :: t.roads }
+          else t
+      ) s.canvas.tiles in
+    let s' = { s with canvas = { s.canvas with tiles } } in
+    if not (check_build_road (j0, j1) s' s.turn) then
+      invalid_arg "Cannot build road at second intersection."
     else
-      let new_tiles' =
-        List.map (fun t -> if List.mem i0 t.indices && List.mem i1 t.indices then
-                     {t with roads=((i0, i1), st.turn)::t.roads}
-                   else t) st'.canvas.tiles in
-      {st' with canvas = {tiles = new_tiles'; ports=st.canvas.ports}}
+      let tiles =
+        List.map (
+          fun t ->
+            if List.mem j0 t.indices && List.mem j1 t.indices then
+              { t with roads = ((j0, j1), s.turn) :: t.roads }
+            else t
+        ) s'.canvas.tiles
+      in
+      { s' with canvas = { s'.canvas with tiles } }
+      |> play_card RoadBuilding
 
 let play_monopoly r s =
-  let player = List.filter (fun x -> x.color = s.turn) s.players |> List.hd in
-  if player.monopoly < 1 then
-    failwith "No Monopoly Card"
-  else
-    List.fold_left (
-      fun acc x ->
-        if x.color = s.turn then acc
-        else
-          let to_steal = [ r, num_resource x.color r s ] in
-          s |> remove_resources to_steal x.color |> add_resources to_steal s.turn
-    ) s s.players
+  List.fold_left (
+    fun acc x ->
+      if x.color = s.turn then acc
+      else
+        let to_steal = [ r, num_resource x.color r s ] in
+        s |> remove_resources to_steal x.color |> add_resources to_steal s.turn
+  ) s s.players
+  |> play_card Monopoly
 
 let play_year_of_plenty r1 r2 s =
-  let player = List.filter (fun x -> x.color = s.turn) s.players |> List.hd in
-  if player.year_of_plenty < 1 then
-    failwith "No Year of Plenty Card"
-  else
-    s |> add_resources [r1, 1; r2, 1] s.turn |> play_card YearOfPlenty s.turn
+  s |> add_resources [r1, 1; r2, 1] s.turn |> play_card YearOfPlenty
 
 (*****************************************************************************
  *                                 RESOURCES                                 *
@@ -1014,7 +981,7 @@ let do_move cmd color_opt s =
     | PlayRoadBuilding (e1, e2) -> play_road_build e1 e2 s
     | PlayYearOfPlenty (r1, r2) -> play_year_of_plenty r1 r2 s
     | PlayMonopoly r -> play_monopoly r s
-    | Robber i -> play_robber i s
+    | Robber i -> move_robber i s
     | DomesticTrade (l1, l2) ->
       begin
         match color_opt with

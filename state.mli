@@ -145,12 +145,20 @@ val buy_card : state -> state
 val best_rate : resource -> color -> state -> int
 
 val add_resources : (resource * int) list -> color -> state -> state
+
 val remove_resources : (resource * int) list -> color -> state -> state
+
 val trade_ok : (resource * int) list -> (resource * int) list -> color option
   -> state -> bool
+
 val domestic : (resource * int) list -> (resource * int) list -> color
   -> state -> state
+
 val maritime : (resource * int) list -> (resource * int) list -> state -> state
+
+(* [list_of_resources color st] returns the list of resources under state [st]
+ * for player identified by color [color] *)
+val list_of_resources : color -> state -> state
 
 (*****************************************************************************
  *                          PLAY A DEVELOPMENT CARD                          *

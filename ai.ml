@@ -130,14 +130,6 @@ let priority_easiest_AI color st res =
     | Ore    -> 1
     | Grain  -> 1
 
-
-(* [list_of_resources color st] returns the list of resources under state [st]
- * for player identified by color [color] *)
-let list_of_resources color st =
-  let rec f r n acc = if n <= 0 then acc else f r (n - 1) (r :: acc) in
-  let cons r = f r (num_resource color r st) in
-  [] |> cons Lumber |> cons Wool |> cons Grain |> cons Brick |> cons Ore
-
 (* [take n acc lst] returns the first n elements of list [lst] *)
 let rec take n acc = function
   | [] -> acc
