@@ -106,6 +106,7 @@ let rec discard n s =
           let () = print_endline "I am afraid I can't do that.\n" in
           discard n s
         else
+          let () = update_canvas sx in
           let () = print_endline "Ok.\n" in
           discard (n + 1) sx
 
@@ -285,7 +286,7 @@ let rec repl (turns : int) (cmd : command) (clr_opt : color option) (s : state) 
         else print_endline "I am afraid I cannot do that.\n"
       | Quit -> print_endline "Goodbye.\n"; raise Exit
       | Invalid -> print_endline "I do not understand.\n"
-      | PlayKnight i | Robber i ->
+      | PlayKnight i ->
         if s <> sx then
           let () = draw_robber s.robber sx in
           print_endline "Ok.\n"
