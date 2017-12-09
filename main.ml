@@ -77,7 +77,11 @@ let rec discard n s =
     let color = (List.nth s.players n).color in
     if num_all_resources color s <= 7 then discard (n + 1) s
     else if color <> Red then
-      let () = print_endline (string_of_color color ^ " was robbed.\n") in
+      let () = print_string (string_of_color color ^ " was robbed.\n") in
+      let () =
+        if n >= 3 || (List.nth s.players (n + 1)).color <> Red then ()
+        else print_newline ()
+      in
       let to_discard = choose_discards color s in
       s |> do_move (Discard to_discard) (Some color) |> discard (n + 1)
     else
@@ -113,7 +117,13 @@ let rec robber s =
     | None -> print_newline (); robber s
     | Some i ->
       let sx = do_move (Robber i) None s in
-      if sx <> s then let () = print_endline "Ok.\n"; draw_robber s.robber sx in sx
+      if sx <> s then
+        begin
+          print_endline "Ok.\n";
+          draw_robber s.robber sx;
+          update_canvas sx;
+          sx
+        end
       else let () = print_endline "I am afraid I cannot do that.\n" in robber s
   else
     let sx = do_move (Robber (choose_robber_spot s.turn s)) None s in
@@ -121,7 +131,8 @@ let rec robber s =
     else
       begin
         draw_robber s.robber sx;
-        print_endline (string_of_color s.turn ^ " has moved the robber.\n")
+        update_canvas sx;
+        print_endline (string_of_color s.turn ^ " has moved the robber.")
       end;
     sx
 
@@ -131,14 +142,14 @@ let roll_dice s =
   let msg =
     if s.turn = Red then
       "It's your turn. You have rolled a "
-      ^ string_of_int (d1 + d2) ^ ".\n"
+      ^ string_of_int (d1 + d2) ^ "."
     else
       let name = string_of_color s.turn in
       "It's " ^ name ^ "'s" ^ " turn. " ^ name ^ " has rolled a "
-      ^ string_of_int (d1 + d2) ^ ".\n"
+      ^ string_of_int (d1 + d2) ^ "."
   in
-  ANSITerminal.(print_string [red] msg);
-  let () = print_string "" in
+  ANSITerminal.(print_string [on_cyan] msg);
+  let () = print_newline () in
   let () = update_dice d1 d2 in
   let sx =
     if d1 + d2 <> 7 then generate_resource (d1 + d2) s
@@ -150,7 +161,7 @@ let trade to_remove to_add s =
   if s.turn <> Red then
     begin
       let f acc (r, n) = acc ^ string_of_int n ^ " " ^ string_of_resource r in
-      let msg = string_of_color s.turn ^ " would like to trade "
+      let msg = string_of_color s.turn ^ " wants to trade "
                 ^ List.fold_left f "" to_remove
                 ^ " for "
                 ^ List.fold_left f "" to_add
@@ -162,7 +173,7 @@ let trade to_remove to_add s =
           fun acc x ->
             if acc <> None then acc
             else if x.color = Red && trade_ok to_remove to_add (Some Red) s then
-              let msg = "Would you like to trade with "
+              let msg = "\nWould you like to trade with "
                         ^ string_of_color s.turn
                         ^ "?\n" in
               ANSITerminal.(print_string [cyan] msg);
@@ -177,14 +188,14 @@ let trade to_remove to_add s =
         ) None s.players
       with
       | None ->
-        let msg = string_of_color s.turn ^ " cannot find a trade partner.\n" in
+        let msg = string_of_color s.turn ^ " cannot find a trade partner." in
         print_endline msg; None
       | Some color ->
         let () =
           if color = Red then ()
           else
             let msg = string_of_color s.turn ^ " has traded with "
-                      ^ string_of_color color ^ ".\n" in
+                      ^ string_of_color color ^ "." in
             print_endline msg
         in
         Some color
@@ -211,7 +222,6 @@ let trade to_remove to_add s =
     | Some color -> Some color
 
 let rec repl (turns : int) (cmd : command) (clr_opt : color option) (s : state) =
-  try
   let tmp = do_move cmd clr_opt s in
   if tmp.turn <> s.turn && s.turn = Red then print_endline "Ok.\n" else ();
   if check_win tmp.turn tmp then
@@ -227,24 +237,44 @@ let rec repl (turns : int) (cmd : command) (clr_opt : color option) (s : state) 
   let sx = if s.turn = tmp.turn && cmd <> Start then tmp else roll_dice tmp in
   if sx <> s then update_canvas sx else ();
   if sx.turn <> Red then
-    begin
-      begin
+    let () =
+      if s <> sx then
+        let name = string_of_color sx.turn in
         match cmd with
-        | PlayKnight i | Robber i ->
-          if s <> sx then draw_robber s.robber sx else ()
-        | EndTurn -> ()
+        | InitSettlement _ | InitRoad _ | Quit -> failwith "Impossible."
+        | BuildSettlement _ -> print_endline (name ^ " has built a settlement.")
+        | BuildRoad _ -> print_endline (name ^ " has built a road.")
+        | BuildCity _ -> print_endline (name ^ " has built a city.")
+        | BuyCard -> print_endline (name ^ " has bought a card.")
+        | PlayKnight _ ->
+          print_endline (name ^ " has played a Knight card.");
+          draw_robber s.robber sx;
+          update_canvas sx
+        | PlayRoadBuilding _ ->
+          print_endline (name ^ " has played a Road Building card.");
+        | PlayMonopoly _ ->
+          print_endline (name ^ " has played a Monopoly card.");
+        | PlayYearOfPlenty _ ->
+          print_endline (name ^ " has played a Year of Plenty card.");
         | _ -> ()
-      end;
-      let cmdx = if turns > 25 then EndTurn else choose sx.turn sx in
-      match cmdx with
-      | DomesticTrade (l0, l1) -> repl (turns + 1) cmdx (trade l0 l1 sx) sx
-      | EndTurn -> repl 0 EndTurn None sx
-      | _ -> repl (turns + 1) cmdx None sx
-    end
+      else ()
+    in
+    let cmdx = if turns > 25 then EndTurn else choose sx.turn sx in
+    match cmdx with
+    | DomesticTrade (l0, l1) -> repl (turns + 1) cmdx (trade l0 l1 sx) sx
+    | EndTurn ->
+      let () =
+        match cmd with
+        | DomesticTrade _ -> if clr_opt = Some Red then () else print_newline ()
+        | _ -> print_newline ()
+      in
+      repl 0 EndTurn None sx
+    | _ -> repl (turns + 1) cmdx None sx
   else begin
     begin
       match cmd with
       | Start | EndTurn -> ()
+      | InitSettlement _ | InitRoad _ -> failwith "Impossible."
       | BuyCard ->
         if s <> sx then print_endline ("Ok. You have received a "
                                        ^ (s.deck |> List.hd |> string_of_card)
@@ -264,8 +294,9 @@ let rec repl (turns : int) (cmd : command) (clr_opt : color option) (s : state) 
         if s <> sx then print_endline "Ok.\n"
         else print_endline "I am afraid I cannot do that.\n"
     end;
-    let prompt = "Please enter a command.\n" in
+    let prompt = "Please enter a command." in
     ANSITerminal.(print_string [cyan] prompt);
+    print_newline ();
     print_string  "> ";
     let cmdx =
       match read_line () with
@@ -277,7 +308,6 @@ let rec repl (turns : int) (cmd : command) (clr_opt : color option) (s : state) 
     | EndTurn -> repl 0 EndTurn None sx
     | _ -> repl (turns + 1) cmdx None sx
   end
-  with _ -> print_endline "I am afraid I cannot do that"
 
 let main () =
   let () = Random.self_init () in
@@ -287,7 +317,7 @@ let main () =
                              Esther Jun";
   draw_canvas s;
   let _ = Sys.command("clear") in
-  ANSITerminal.(print_string [on_cyan] "Welcome to the Settlers of Clarktan.");
+  ANSITerminal.(print_string [red] "Welcome to the Settlers of Clarktan.");
   print_newline ();
   match s |> setup |> repl 0 Start None with
   | exception Exit -> Graphics.close_graph ()

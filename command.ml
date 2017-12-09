@@ -20,13 +20,6 @@ type command =
   | Quit
   | Invalid
 
-let string_of_resource = function
-  | Lumber -> "Lumber"
-  | Brick -> "Brick"
-  | Grain -> "Grain"
-  | Ore -> "Ore"
-  | Wool -> "Wool"
-
 let string_of_command = function
   | Start -> "Start"
   | InitSettlement i -> "InitSettlement @" ^ string_of_int i

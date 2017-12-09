@@ -366,6 +366,46 @@ let init_generate_resources color st =
  *                                   BUILD                                   *
  *****************************************************************************)
 
+(* [get_player color s] returns the player identified by color [color] under
+ * state [s]. *)
+let get_player color s = List.find (fun p -> p.color = color) s.players
+
+(* [player_ok color s] checks whether a player has enough resources for
+ * each resource under state [s]. *)
+let player_ok color s =
+  let p = get_player color s in
+  p.lumber >= 0 && p.wool >= 0 && p.grain >= 0 && p.brick >= 0 && p.ore >= 0
+
+let players_ok s =
+  List.fold_left (
+    fun acc x -> acc && player_ok x.color s
+  ) true s.players
+
+(* [add_resources r c s] adds resource [r] to player identified by color
+ * [c] under state [s]. *)
+let add_resources to_add color s =
+  let rec add player = function
+    | [] -> player
+    | (r, n) :: t ->
+      match r with
+      | Lumber -> add { player with lumber = player.lumber + n } t
+      | Wool   -> add { player with wool = player.wool + n } t
+      | Grain  -> add { player with grain = player.grain + n } t
+      | Brick  -> add { player with brick = player.brick + n } t
+      | Ore    -> add { player with ore = player.ore + n } t
+  in
+  let players =
+    List.map (
+      fun x -> if x.color = color then add (get_player color s) to_add else x
+    ) s.players in
+  { s with players }
+
+(* [remove_resources r col s] removes the resource [r] from the player identified
+ * by color [col] under state [s]. *)
+let remove_resources to_remove color s =
+  let to_add = List.map (fun (r, n) -> r, (-n)) to_remove in
+  add_resources to_add color s
+
 let check_build_settlement n st color =
   let ind_lst = n :: fetch_neighbors n in
   let tile_lst = st.canvas.tiles in
@@ -551,86 +591,30 @@ let build_city ind st =
   {st with players = new_players;
            canvas = {tiles = new_tiles; ports = st.canvas.ports}}
 
-let buy_card st =
-  let player = List.hd (List.filter (fun x -> x.color=st.turn) st.players) in
-  if player.grain < 1 || player.ore < 1 || player.wool < 1 then
-    failwith "Not enough resource to buy development card"
-  else if List.length st.deck < 1 then
-    failwith "Development cards sold out"
-  else
-    let card_lst = st.deck in
-    let card = List.hd card_lst in
-    let rest = List.tl card_lst in
-    let updated_players col lst =
-      List.map (fun x -> if x.color <> col then x
-                 else
-                   match card with
-                   | Knight -> {x with knight = x.knight+1;
-                                       grain = x.grain-1;
-                                       ore = x.ore-1;
-                                       wool = x.wool-1}
-                   | RoadBuilding -> {x with road_building = x.road_building+1;
-                                             grain = x.grain-1;
-                                             ore = x.ore-1;
-                                             wool = x.wool-1}
-                   | YearOfPlenty -> {x with year_of_plenty = x.year_of_plenty+1;
-                                             grain = x.grain-1;
-                                             ore = x.ore-1;
-                                             wool = x.wool-1}
-                   | Monopoly -> {x with monopoly = x.monopoly+1;
-                                         grain = x.grain-1;
-                                         ore = x.ore-1;
-                                         wool = x.wool-1}
-                   | VictoryPoint -> {x with victory_point = x.victory_point+1;
-                                             grain = x.grain-1;
-                                             ore = x.ore-1;
-                                             wool = x.wool-1}) lst
-    in
-    {st with deck = rest; players = updated_players st.turn st.players}
+let buy_card s =
+  match s.deck with
+  | [] -> failwith "Sold out."
+  | h :: t ->
+    let s' = s |> remove_resources [ Ore, 1; Grain, 1; Wool, 1 ] s.turn in
+    if not (players_ok s) || players_ok s' then
+      let players =
+        List.map (
+          fun x ->
+            if x.color <> s.turn then x
+            else match h with
+              | Knight -> { x with knight = x.knight + 1 }
+              | RoadBuilding -> { x with road_building = x.road_building + 1 }
+              | YearOfPlenty -> { x with year_of_plenty = x.year_of_plenty + 1 }
+              | Monopoly -> { x with monopoly = x.monopoly + 1 }
+              | VictoryPoint -> { x with victory_point = x.victory_point + 1 }
+        ) s'.players
+      in
+      { s' with deck = t; players }
+    else failwith "Not enough resources."
 
 (*****************************************************************************
  *                                   TRADE                                   *
  *****************************************************************************)
-
-(* [get_player color s] returns the player identified by color [color] under
- * state [s]. *)
-let get_player color s = List.find (fun p -> p.color = color) s.players
-
-(* [player_ok color s] checks whether a player has enough resources for
- * each resource under state [s]. *)
-let player_ok color s =
-  let p = get_player color s in
-  p.lumber >= 0 && p.wool >= 0 && p.grain >= 0 && p.brick >= 0 && p.ore >= 0
-
-let players_ok s =
-  List.fold_left (
-    fun acc x -> acc && player_ok x.color s
-  ) true s.players
-
-(* [add_resources r c s] adds resource [r] to player identified by color
- * [c] under state [s]. *)
-let add_resources to_add color s =
-  let rec add player = function
-    | [] -> player
-    | (r, n) :: t ->
-      match r with
-      | Lumber -> add { player with lumber = player.lumber + n } t
-      | Wool   -> add { player with wool = player.wool + n } t
-      | Grain  -> add { player with grain = player.grain + n } t
-      | Brick  -> add { player with brick = player.brick + n } t
-      | Ore    -> add { player with ore = player.ore + n } t
-  in
-  let players =
-    List.map (
-      fun x -> if x.color = color then add (get_player color s) to_add else x
-    ) s.players in
-  { s with players }
-
-(* [remove_resources r col s] removes the resource [r] from the player identified
- * by color [col] under state [s]. *)
-let remove_resources to_remove color s =
-  let to_add = List.map (fun (r, n) -> r, (-n)) to_remove in
-  add_resources to_add color s
 
 (* [best_rate res col s] determines the best trading rate for resource [res]
  * and player identified by color [color] under state [s]. *)
@@ -740,6 +724,7 @@ let play_card card s =
   { s with players }
 
 let move_robber index s =
+  let s = { s with robber = index } in
   let candidates =
     (List.nth s.canvas.tiles index).buildings
     |> List.map (fun (_, (color, _)) -> color)
@@ -751,9 +736,7 @@ let move_robber index s =
   | [] -> s
   | h :: _ ->
     let to_steal = [ s |> list_of_resources h |> shuffle |> List.hd, 1 ] in
-    { s with robber = index }
-    |> remove_resources to_steal h
-    |> add_resources to_steal h
+    s |> remove_resources to_steal h |> add_resources to_steal h
 
 let play_knight index s =
   s |> move_robber index |> play_card Knight

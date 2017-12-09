@@ -235,6 +235,8 @@ val do_move : Command.command -> color option -> state -> state
  *                                   TEST                                    *
  *****************************************************************************)
 
+val players_ok : state -> bool
+
 (* [state_to_test] is a game state. *)
 val state_to_test : state
 
