@@ -6,6 +6,10 @@ Settlers of Clarktan is an OCaml implementation of the popular German board game
 
 In addition to building roads, settlements and cities using your resources, you can also buy and play development cards as well as trade wisely with the other players and the bank. The game is single player, and you compete against 3 other AI players.
 
+Here is a screenshot of the gameboard:
+
+!(assets/game.png?raw=true "Title")
+
 ## Installation
 
 As this is the project for CS 3110 at Cornell University, we will assume that you already have ocaml and opam installed. If not, please follow the [instructions here] (http://www.cs.cornell.edu/courses/cs3110/2016fa/install.html).
