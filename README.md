@@ -8,7 +8,7 @@ In addition to building roads, settlements and cities using your resources, you 
 
 Here is a screenshot of the gameboard:
 
-!(assets/game.png?raw=true "Title")
+![Alt text](assets/game.png?raw=true "Title")
 
 ## Installation
 
